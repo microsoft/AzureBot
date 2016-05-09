@@ -2,6 +2,8 @@
 {
     using System.Threading.Tasks;
     using System.Web.Http;
+    using Dialogs;
+    using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Connector;
 
     [BotAuthentication]
@@ -15,11 +17,7 @@
         {
             if (message.Type == "Message")
             {
-                // calculate something for us to return
-                int length = (message.Text ?? string.Empty).Length;
-
-                // return our reply to the user
-                return message.CreateReplyMessage($"You sent {length} characters");
+                return await Conversation.SendAsync(message, () => new AzureAuthDialog(message));
             }
             else
             {
