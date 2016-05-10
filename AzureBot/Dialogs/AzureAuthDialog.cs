@@ -31,7 +31,7 @@
             {
                 var token = msg.Text.Remove(0, "token:".Length);
                 context.PerUserInConversationData.SetValue(AuthTokenKey, token);
-                context.Done(token);
+                this.ReturnPendingMessage(context);
             }
             else
             {
@@ -54,8 +54,13 @@
             }
             else
             {
-                context.Done(token);
+                this.ReturnPendingMessage(context);
             }
+        }
+
+        private void ReturnPendingMessage(IDialogContext context)
+        {
+            context.Done(this.pendingMessage.Text);
         }
     }
 }

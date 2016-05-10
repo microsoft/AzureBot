@@ -27,19 +27,38 @@
 
         private static IDialog<string> MakeRoot()
         {
-            return Chain.PostToChain().ContinueWith<Message, string>(async (ctx, message) =>
-            {
-                var msg = await message;
+            return Chain.PostToChain()
+                .ContinueWith<Message, string>(AzureAuthDialogCallback)
+                //// .ContinueWith<MyObject, MyObject>(AzureSubscriptionDialogCallback)
+                .ContinueWith<string, string>(AzureActionsDialogCallback);
+        }
 
-                return Chain.ContinueWith(
-                    new AzureAuthDialog(msg),
-                    async (context, result) =>
-                    {
-                        var token = await result;
+        private static async Task<IDialog<string>> AzureAuthDialogCallback(IBotContext context, IAwaitable<Message> message)
+        {
+            var msg = await message;
 
-                        return Chain.Return($"Your are logged in with access token: {token}").PostToUser();
-                    }).PostToUser();
-            });
+            return Chain.ContinueWith<string, string>(new AzureAuthDialog(msg), AzureAuthDialogContinuation);
+        }
+
+        private static async Task<IDialog<string>> AzureAuthDialogContinuation(IBotContext context, IAwaitable<string> item)
+        {
+            var msg = await item;
+
+            return Chain.Return(msg);
+        }
+
+        private static async Task<IDialog<string>> AzureActionsDialogCallback(IBotContext context, IAwaitable<string> message)
+        {
+            var msg = await message;
+
+            return Chain.ContinueWith<string, string>(new VirtualMachineDialog(msg), AzureActionsDialogContinuation);
+        }
+
+        private static async Task<IDialog<string>> AzureActionsDialogContinuation(IBotContext context, IAwaitable<string> item)
+        {
+            var msg = await item;
+
+            return Chain.Return(msg);
         }
 
         private Message HandleSystemMessage(Message message)

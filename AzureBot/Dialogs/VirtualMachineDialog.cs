@@ -1,15 +1,29 @@
-﻿using System;
-using System.Threading.Tasks;
-using AzureBot.Models;
-using Microsoft.Bot.Builder.Dialogs;
-
-namespace AzureBot.Dialogs
+﻿namespace AzureBot.Dialogs
 {
-    public class VirtualMachineDialog : IDialog<VirtualMachine>
+    using System;
+    using System.Threading.Tasks;
+    using Microsoft.Bot.Builder.Dialogs;
+    using Microsoft.Bot.Connector;
+
+    [Serializable]
+    public class VirtualMachineDialog : IDialog<string>
     {
-        public Task StartAsync(IDialogContext context)
+        private readonly string originalMessage;
+
+        public VirtualMachineDialog(string originalMessage)
         {
-            throw new NotImplementedException();
+            this.originalMessage = originalMessage;
+        }
+
+        public async Task StartAsync(IDialogContext context)
+        {
+            context.Wait(this.MessageReceivedAsync);
+        }
+
+        private async Task MessageReceivedAsync(IDialogContext context, IAwaitable<Message> argument)
+        {
+            var message = await argument;
+            await context.PostAsync($"Original message: {this.originalMessage} - Received message: {message.Text}");
         }
     }
 }
