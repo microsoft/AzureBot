@@ -10,27 +10,52 @@
     [Serializable]
     public class AzureAuthDialog : IDialog<string>
     {
+        private static readonly string AuthTokenKey = "AuthToken";
         private PendingMessage pendingMessage;
 
-        public AzureAuthDialog(Message message)
+        public AzureAuthDialog(Message msg)
         {
-            this.pendingMessage = new PendingMessage(message);
+            this.pendingMessage = new PendingMessage(msg);
         }
 
         public async Task StartAsync(IDialogContext context)
         {
-            context.Wait(this.MessageReceivedAsync);
+            await this.LogIn(context);
         }
 
         private async Task MessageReceivedAsync(IDialogContext context, IAwaitable<Message> argument)
         {
-            var result = await AzureActiveDirectoryHelper.GetAuthUrlAsync(this.pendingMessage);
+            var msg = await argument;
 
-            string loginMessage = string.Format("Welcome to the Azure Bot, your friendly automata to interact with Azure. You are not logged in! In order to start using me, please login using the following url: {0}", result);
+            if (msg.Text.StartsWith("token:"))
+            {
+                var token = msg.Text.Remove(0, "token:".Length);
+                context.PerUserInConversationData.SetValue(AuthTokenKey, token);
+                context.Done(token);
+            }
+            else
+            {
+                await this.LogIn(context);
+            }
+        }
 
-            await context.PostAsync(loginMessage);
+        private async Task LogIn(IDialogContext context)
+        {
+            string token;
+            if (!context.PerUserInConversationData.TryGetValue(AuthTokenKey, out token))
+            {
+                context.PerUserInConversationData.SetValue("pendingMessage", this.pendingMessage);
 
-            context.Wait(this.MessageReceivedAsync);
+                var result = await AzureActiveDirectoryHelper.GetAuthUrlAsync(this.pendingMessage);
+
+                await context.PostAsync(result);
+
+                context.Wait(this.MessageReceivedAsync);
+            }
+            else
+            {
+                context.Done(token);
+            }
         }
     }
 }

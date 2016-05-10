@@ -17,12 +17,29 @@
         {
             if (message.Type == "Message")
             {
-                return await Conversation.SendAsync(message, () => new AzureAuthDialog(message));
+                return await Conversation.SendAsync(message, MakeRoot);
             }
             else
             {
                 return this.HandleSystemMessage(message);
             }
+        }
+
+        private static IDialog<string> MakeRoot()
+        {
+            return Chain.PostToChain().ContinueWith<Message, string>(async (ctx, message) =>
+            {
+                var msg = await message;
+
+                return Chain.ContinueWith(
+                    new AzureAuthDialog(msg),
+                    async (context, result) =>
+                    {
+                        var token = await result;
+
+                        return Chain.Return($"Your are logged in with access token: {token}").PostToUser();
+                    }).PostToUser();
+            });
         }
 
         private Message HandleSystemMessage(Message message)

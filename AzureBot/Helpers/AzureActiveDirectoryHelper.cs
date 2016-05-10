@@ -2,19 +2,19 @@
 {
     using System;
     using System.Configuration;
-    using System.IO;
-    using System.Runtime.Serialization.Formatters.Binary;
     using System.Threading.Tasks;
+    using System.Web;
     using Microsoft.IdentityModel.Clients.ActiveDirectory;
     using Models;
-    using System.Web;
-    public static class AzureActiveDirectoryHelper
+
+    internal static class AzureActiveDirectoryHelper
     {
-        private static Lazy<string> ActiveDirectoryEndpointUrl = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectoryEndpointUrl"]);
-        private static Lazy<string> ActiveDirectoryTenant = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectoryTenant"]);
-        private static Lazy<string> ActiveDirectoryResourceId = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectoryResourceId"]);
-        private static Lazy<string> RedirectUrl = new Lazy<string>(() => ConfigurationManager.AppSettings["RedirectUrl"]);
-        private static Lazy<string> ClientId = new Lazy<string>(() => ConfigurationManager.AppSettings["ClientId"]);
+        private static Lazy<string> activeDirectoryEndpointUrl = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectoryEndpointUrl"]);
+        private static Lazy<string> activeDirectoryTenant = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectoryTenant"]);
+        private static Lazy<string> activeDirectoryResourceId = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectoryResourceId"]);
+        private static Lazy<string> redirectUrl = new Lazy<string>(() => ConfigurationManager.AppSettings["RedirectUrl"]);
+        private static Lazy<string> clientId = new Lazy<string>(() => ConfigurationManager.AppSettings["ClientId"]);
+        private static Lazy<string> clientSecret = new Lazy<string>(() => ConfigurationManager.AppSettings["ClientSecret"]);
 
         internal static async Task<string> GetAuthUrlAsync(PendingMessage pendingMessage)
         {
@@ -22,15 +22,27 @@
 
             var serializedState = SerializerHelper.SerializeObject(state);
 
-            Uri redirectUri = new Uri(RedirectUrl.Value);
+            Uri redirectUri = new Uri(redirectUrl.Value);
 
-            AuthenticationContext context = new AuthenticationContext(ActiveDirectoryEndpointUrl.Value + "/" + ActiveDirectoryTenant.Value);
+            AuthenticationContext context = new AuthenticationContext(activeDirectoryEndpointUrl.Value + "/" + activeDirectoryTenant.Value);
 
-            var uri = await context.GetAuthorizationRequestUrlAsync(ActiveDirectoryResourceId.Value,
-                ClientId.Value,
-                redirectUri, UserIdentifier.AnyUser, "state=" + HttpUtility.UrlEncode(serializedState));
+            var uri = await context.GetAuthorizationRequestUrlAsync(
+                activeDirectoryResourceId.Value,
+                clientId.Value,
+                redirectUri, 
+                UserIdentifier.AnyUser, 
+                "state=" + HttpUtility.UrlEncode(serializedState));
 
             return uri.ToString();
+        }
+
+        internal static async Task<AuthenticationResult> GetTokenByAuthCodeAsync(string authorizationCode)
+        {
+            AuthenticationContext context = new AuthenticationContext(activeDirectoryEndpointUrl.Value + "/" + activeDirectoryTenant.Value);
+
+            Uri redirectUri = new Uri(redirectUrl.Value);
+
+            return await context.AcquireTokenByAuthorizationCodeAsync(authorizationCode, redirectUri, new ClientCredential(clientId.Value, clientSecret.Value));
         }
     }
 }
