@@ -2,6 +2,8 @@
 {
     using System.Threading.Tasks;
     using System.Web.Http;
+    using Dialogs;
+    using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Connector;
 
     [BotAuthentication]
@@ -15,16 +17,29 @@
         {
             if (message.Type == "Message")
             {
-                // calculate something for us to return
-                int length = (message.Text ?? string.Empty).Length;
-
-                // return our reply to the user
-                return message.CreateReplyMessage($"You sent {length} characters");
+                return await Conversation.SendAsync(message, MakeRoot);
             }
             else
             {
                 return this.HandleSystemMessage(message);
             }
+        }
+
+        private static IDialog<string> MakeRoot()
+        {
+            return Chain.PostToChain().ContinueWith<Message, string>(async (ctx, message) =>
+            {
+                var msg = await message;
+
+                return Chain.ContinueWith(
+                    new AzureAuthDialog(msg),
+                    async (context, result) =>
+                    {
+                        var token = await result;
+
+                        return Chain.Return($"Your are logged in with access token: {token}").PostToUser();
+                    }).PostToUser();
+            });
         }
 
         private Message HandleSystemMessage(Message message)
