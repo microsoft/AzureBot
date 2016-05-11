@@ -116,17 +116,15 @@
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\OAuthCallbackController.cs" />
+    <Compile Include="Dialogs\ActionDialog.cs" />
     <Compile Include="Helpers\AzureActiveDirectoryHelper.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
     <Compile Include="Dialogs\AzureAuthDialog.cs" />
-    <Compile Include="Dialogs\VirtualMachineDialog.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\SerializerHelper.cs" />
     <Compile Include="Models\PendingMessage.cs" />
-    <Compile Include="Models\ServiceAction.cs" />
-    <Compile Include="Models\VirtualMachine.cs" />
     <Compile Include="Models\ResumeState.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

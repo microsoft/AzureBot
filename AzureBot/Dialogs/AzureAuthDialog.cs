@@ -46,9 +46,9 @@
             {
                 context.PerUserInConversationData.SetValue("pendingMessage", this.pendingMessage);
 
-                var result = await AzureActiveDirectoryHelper.GetAuthUrlAsync(this.pendingMessage);
+                var authenticationUrl = await AzureActiveDirectoryHelper.GetAuthUrlAsync(this.pendingMessage);
 
-                await context.PostAsync(result);
+                await context.PostAsync($"You must be authenticated in Azure to access your subscription. Please, use the following url to log into your Azure account: {authenticationUrl}");
 
                 context.Wait(this.MessageReceivedAsync);
             }

@@ -29,7 +29,8 @@
         {
             return Chain.PostToChain()
                 .ContinueWith<Message, string>(AzureAuthDialogCallback)
-                //// .ContinueWith<MyObject, MyObject>(AzureSubscriptionDialogCallback)
+                .PostToUser()
+                //// .ContinueWith<string, string>(AzureSubscriptionDialogCallback)
                 .ContinueWith<string, string>(AzureActionsDialogCallback);
         }
 
@@ -51,7 +52,7 @@
         {
             var msg = await message;
 
-            return Chain.ContinueWith<string, string>(new VirtualMachineDialog(msg), AzureActionsDialogContinuation);
+            return Chain.ContinueWith<string, string>(new ActionDialog(msg), AzureActionsDialogContinuation);
         }
 
         private static async Task<IDialog<string>> AzureActionsDialogContinuation(IBotContext context, IAwaitable<string> item)
