@@ -28,7 +28,7 @@
 
             // Create the message that is send to conversation to resume the login flow
             var msg = resumptionCookie.GetMessage();
-            msg.Text = $"token:{token.AccessToken}";
+            msg.Text = $"token:{token.AccessToken}&user:{token.UserInfo.GivenName} {token.UserInfo.FamilyName}";
 
             // Resume the conversation
             var reply = await Conversation.ResumeAsync(resumptionCookie, msg);
