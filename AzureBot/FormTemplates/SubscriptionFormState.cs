@@ -1,6 +1,9 @@
-﻿namespace AzureBot.Azure.Management.Models
+﻿namespace AzureBot.FormTemplates
 {
-    public class Subscription
+using System;
+
+    [Serializable]
+    public class SubscriptionFormState
     {
         public string DisplayName { get; set; }
 

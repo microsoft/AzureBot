@@ -1,15 +1,29 @@
 ﻿namespace AzureBot.Azure.Management.ResourceManagement
 {
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading.Tasks;
-    using AzureBot.Azure.Management.Models;
+    using Models;
     using Data;
+
     public class AzureRepository
     {
-        public Task<IEnumerable<Subscription>> ListSubscriptionsAsync()
+        public async Task<IEnumerable<Subscription>> ListSubscriptionsAsync()
         {
-            return Task.FromResult(MockData.GetSubscriptions());
+            return await Task.FromResult(MockData.GetSubscriptions());
+        }
+
+        public async Task<IEnumerable<VirtualMachine>> ListVirtualMachinesAsync(string subscriptionId)
+        {
+            return await Task.FromResult(MockData.GetVirtualMachines());
+        }
+
+        public async Task<bool> StartVirtualMachineAsync(string subscriptionId, string virtualMachineName)
+        {
+            return await Task.FromResult(true);
+        }
+        public async Task<bool> StopVirtualMachineAsync(string subscriptionId, string virtualMachineName)
+        {
+            return await Task.FromResult(true);
         }
     }
 }

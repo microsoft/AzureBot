@@ -10,13 +10,24 @@ using Newtonsoft.Json;
 
 namespace AzureBot.Azure.Management.Data
 {
-    public static class MockData
+    public class MockData
     {
-        public static IEnumerable<Subscription> GetSubscriptions()
+        public static MockData data;
+
+        static MockData()
         {
             var json = ReadAllText("AzureBot.Azure.Management.Data.MockData.json");
-            var subscriptions = JsonConvert.DeserializeObject<IEnumerable<Subscription>>(json);
-            return subscriptions;
+            data = JsonConvert.DeserializeObject<MockData>(json);
+        }
+
+        public static IEnumerable<Subscription> GetSubscriptions()
+        {
+            return data.Subscriptions;
+        }
+
+        public static IEnumerable<VirtualMachine> GetVirtualMachines()
+        {
+            return data.VirtualMachines;
         }
 
         public static string ReadAllText(string fileName)
@@ -31,5 +42,9 @@ namespace AzureBot.Azure.Management.Data
             }
             return end;
         }
+
+        public Subscription[] Subscriptions { get; set; }
+
+        public VirtualMachine[] VirtualMachines { get; set; }
     }
 }

@@ -9,7 +9,9 @@
     using Microsoft.Bot.Builder.Luis;
     using Microsoft.Bot.Builder.Luis.Models;
     using Microsoft.Bot.Connector;
-
+    using Microsoft.Bot.Builder.FormFlow;
+    using FormTemplates;
+    using Azure.Management.ResourceManagement;
     [LuisModel("c9e598cb-0e5f-48f6-b14a-ebbb390a6fb3", "a7c1c493d0e244e796b83c6785c4be4d")]
     [Serializable]
     public class ActionDialog : LuisDialog<string>
@@ -114,27 +116,35 @@
         [LuisIntent("StartVm")]
         public async Task StartVmAsync(IDialogContext context, LuisResult result)
         {
-            var entity = result.Entities.OrderByDescending(p => p.Score).FirstOrDefault();
-            if (entity != null)
-            {
-                var virtualMachineName = entity.Entity;
-                if (entity.Type == "builtin.ordinal")
-                {
-                    var ordinal = Array.IndexOf(ordinals, entity.Entity.ToLowerInvariant());
-                    if (ordinal >= 0)
-                    {
-                        virtualMachineName = GetAllVms().ElementAt(ordinal);
-                    }
-                }
+            // retrieve available VM names from the current subscription
+            var subscriptionId = context.PerUserInConversationData.Get<string>("SubscriptionId");
+            var availableVMs = (await (new AzureRepository().ListVirtualMachinesAsync(subscriptionId)))
+                                .Select(p => p.Name)
+                                .ToArray();
 
-                await context.PostAsync($"Starting the {virtualMachineName} virtual machine.");
-            }
-            else
+            var form = new FormDialog<VirtualMachineFormState>(
+                new VirtualMachineFormState(availableVMs), 
+                Forms.BuildVirtualMachinesForm, 
+                FormOptions.PromptInStart, 
+                result.Entities);
+            context.Call(form, this.VirtualMachineFormComplete);
+        }
+
+        private async Task VirtualMachineFormComplete(IDialogContext context, IAwaitable<VirtualMachineFormState> result)
+        {
+            try
             {
-                await context.PostAsync("Which virtual machine do you want to start?");
+                var virtualMachine = await result;
+                var subscriptionId = context.PerUserInConversationData.Get<string>("SubscriptionId");
+                await context.PostAsync($"Starting the {virtualMachine.Name} virtual machine.");
+                await (new AzureRepository().StartVirtualMachineAsync(subscriptionId, virtualMachine.Name));
+            }
+            catch (FormCanceledException<VirtualMachineFormState> ex)
+            {
+                await context.PostAsync("You have canceled the operation. What would you like to do next?");
             }
 
-            context.Wait(MessageReceived);
+            context.Wait(this.MessageReceived);
         }
 
         [LuisIntent("StopVm")]

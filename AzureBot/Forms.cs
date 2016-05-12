@@ -1,23 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Web;
-using AzureBot.Azure.Management.Models;
-using AzureBot.Azure.Management.ResourceManagement;
-using Microsoft.Bot.Builder.Dialogs;
-using Microsoft.Bot.Builder.FormFlow;
-using Microsoft.Bot.Builder.FormFlow.Advanced;
-
-namespace AzureBot
+﻿namespace AzureBot
 {
+    using System.Threading.Tasks;
+    using AzureBot.Azure.Management.ResourceManagement;
+    using AzureBot.FormTemplates;
+    using Microsoft.Bot.Builder.FormFlow;
+    using Microsoft.Bot.Builder.FormFlow.Advanced;
+
     public class Forms
     {
-        public static IForm<Subscription> BuildSubscriptionForm()
+        public static IForm<SubscriptionFormState> BuildSubscriptionForm()
         {
-            return new FormBuilder<Subscription>()
+            return new FormBuilder<SubscriptionFormState>()
                 .Message("Select the subscription you want to work with")
-                .Field(new FieldReflector<Subscription>(nameof(Subscription.SubscriptionId))
+                .Field(new FieldReflector<SubscriptionFormState>(nameof(SubscriptionFormState.SubscriptionId))
                 .SetType(null)
                 .SetDefine(async (state, field) =>
                {
@@ -30,6 +25,26 @@ namespace AzureBot
 
                    return true;
                }))
+               .Build();
+        }
+
+        public static IForm<VirtualMachineFormState> BuildVirtualMachinesForm()
+        {
+            return new FormBuilder<VirtualMachineFormState>()
+                .Field(new FieldReflector<VirtualMachineFormState>(nameof(VirtualMachineFormState.Name))
+                .SetType(null)
+                .SetDefine((state, field) =>
+                {
+                    foreach (var vm in state.AvailableVMs)
+                    {
+                        field
+                            .AddDescription(vm, vm)
+                            .AddTerms(vm, vm);
+                    }
+
+                    return Task.FromResult(true);
+                }))
+               .Confirm("Would you like to start virtual machine {Name}?")
                .Build();
         }
     }

@@ -118,6 +118,8 @@
     <Compile Include="Controllers\OAuthCallbackController.cs" />
     <Compile Include="Dialogs\ActionDialog.cs" />
     <Compile Include="Forms.cs" />
+    <Compile Include="FormTemplates\SubscriptionFormState.cs" />
+    <Compile Include="FormTemplates\VirtualMachineFormState.cs" />
     <Compile Include="Helpers\AzureActiveDirectoryHelper.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
     <Compile Include="Dialogs\AzureAuthDialog.cs" />

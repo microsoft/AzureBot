@@ -1,14 +1,30 @@
-﻿[
-  {
-    "DisplayName": "Development",
-    "SubscriptionId": "C5A58D5F-F21F-4027-9800-38BC5C4820B9"
-  },
-  {
-    "DisplayName": "Staging",
-    "SubscriptionId": "0F1648EA-802B-42CA-8EBC-1071F90A5B9D"
-  },
-  {
-    "DisplayName": "Production",
-    "SubscriptionId": "1356C20F-EB86-438C-9945-BC78F60BFD38"
-  }
-]
+﻿{
+  "Subscriptions": [
+    {
+      "DisplayName": "Development",
+      "SubscriptionId": "C5A58D5F-F21F-4027-9800-38BC5C4820B9"
+    },
+    {
+      "DisplayName": "Staging",
+      "SubscriptionId": "0F1648EA-802B-42CA-8EBC-1071F90A5B9D"
+    },
+    {
+      "DisplayName": "Production",
+      "SubscriptionId": "1356C20F-EB86-438C-9945-BC78F60BFD38"
+    }
+  ],
+  "VirtualMachines": [
+    {
+      "Name": "svrcomm01"
+    },
+    {
+      "Name": "svrcomm02"
+    },
+    {
+      "Name": "svrapipub"
+    },
+    {
+      "Name": "svrdbprod"
+    }
+  ]
+}
