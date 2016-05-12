@@ -31,7 +31,7 @@
             {
                 var token = msg.Text.Remove(0, "token:".Length);
                 context.PerUserInConversationData.SetValue(AuthTokenKey, token);
-                context.Done(token);
+                this.ReturnPendingMessage(context);
             }
             else
             {
@@ -46,16 +46,21 @@
             {
                 context.PerUserInConversationData.SetValue("pendingMessage", this.pendingMessage);
 
-                var result = await AzureActiveDirectoryHelper.GetAuthUrlAsync(this.pendingMessage);
+                var authenticationUrl = await AzureActiveDirectoryHelper.GetAuthUrlAsync(this.pendingMessage);
 
-                await context.PostAsync(result);
+                await context.PostAsync($"You must be authenticated in Azure to access your subscription. Please, use the following url to log into your Azure account: {authenticationUrl}");
 
                 context.Wait(this.MessageReceivedAsync);
             }
             else
             {
-                context.Done(token);
+                this.ReturnPendingMessage(context);
             }
+        }
+
+        private void ReturnPendingMessage(IDialogContext context)
+        {
+            context.Done(this.pendingMessage.Text);
         }
     }
 }

@@ -116,6 +116,7 @@
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\OAuthCallbackController.cs" />
+    <Compile Include="Dialogs\ActionDialog.cs" />
     <Compile Include="Helpers\AzureActiveDirectoryHelper.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
     <Compile Include="Dialogs\AzureAuthDialog.cs" />
@@ -137,9 +138,6 @@
     <None Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\PublishProfiles\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

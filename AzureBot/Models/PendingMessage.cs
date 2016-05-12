@@ -21,12 +21,15 @@
 
         public string conversationId;
 
+        public string Text;
+
         public PendingMessage()
         {
         }
 
         public PendingMessage(Message msg)
         {
+            this.Text = msg.Text;
             userId = msg.From?.Id;
             userAddress = msg.From?.Address;
             userChannelId = msg.From?.ChannelId;
