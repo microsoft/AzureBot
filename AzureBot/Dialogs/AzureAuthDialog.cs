@@ -11,11 +11,15 @@
     public class AzureAuthDialog : IDialog<string>
     {
         private static readonly string AuthTokenKey = "AuthToken";
-        private PendingMessage pendingMessage;
+
+        private readonly ResumptionCookie resumptionCookie;
+
+        private string originalMessageText;
 
         public AzureAuthDialog(Message msg)
         {
-            this.pendingMessage = new PendingMessage(msg);
+            this.originalMessageText = msg.Text;
+            this.resumptionCookie = new ResumptionCookie(msg);
         }
 
         public async Task StartAsync(IDialogContext context)
@@ -35,6 +39,7 @@
             }
             else
             {
+                this.originalMessageText = msg.Text;
                 await this.LogIn(context);
             }
         }
@@ -44,9 +49,9 @@
             string token;
             if (!context.PerUserInConversationData.TryGetValue(AuthTokenKey, out token))
             {
-                context.PerUserInConversationData.SetValue("pendingMessage", this.pendingMessage);
+                context.PerUserInConversationData.SetValue("persistedCookie", this.resumptionCookie);
 
-                var authenticationUrl = await AzureActiveDirectoryHelper.GetAuthUrlAsync(this.pendingMessage);
+                var authenticationUrl = await AzureActiveDirectoryHelper.GetAuthUrlAsync(this.resumptionCookie);
 
                 await context.PostAsync($"You must be authenticated in Azure to access your subscription. Please, use the following url to log into your Azure account: {authenticationUrl}");
 
@@ -60,7 +65,7 @@
 
         private void ReturnPendingMessage(IDialogContext context)
         {
-            context.Done(this.pendingMessage.Text);
+            context.Done(this.originalMessageText);
         }
     }
 }

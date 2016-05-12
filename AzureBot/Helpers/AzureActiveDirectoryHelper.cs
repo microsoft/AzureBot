@@ -4,8 +4,8 @@
     using System.Configuration;
     using System.Threading.Tasks;
     using System.Web;
+    using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.IdentityModel.Clients.ActiveDirectory;
-    using Models;
 
     internal static class AzureActiveDirectoryHelper
     {
@@ -16,11 +16,9 @@
         private static Lazy<string> clientId = new Lazy<string>(() => ConfigurationManager.AppSettings["ClientId"]);
         private static Lazy<string> clientSecret = new Lazy<string>(() => ConfigurationManager.AppSettings["ClientSecret"]);
 
-        internal static async Task<string> GetAuthUrlAsync(PendingMessage pendingMessage)
+        internal static async Task<string> GetAuthUrlAsync(ResumptionCookie resumptionCookie)
         {
-            var state = new ResumeState { UserId = pendingMessage.userId, ConversationId = pendingMessage.conversationId };
-
-            var serializedState = SerializerHelper.SerializeObject(state);
+            var serializedCookie = resumptionCookie.GZipSerialize();
 
             Uri redirectUri = new Uri(redirectUrl.Value);
 
@@ -31,7 +29,7 @@
                 clientId.Value,
                 redirectUri, 
                 UserIdentifier.AnyUser, 
-                "state=" + HttpUtility.UrlEncode(serializedState));
+                "state=" + HttpUtility.UrlEncode(serializedCookie));
 
             return uri.ToString();
         }
