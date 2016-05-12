@@ -117,6 +117,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\OAuthCallbackController.cs" />
     <Compile Include="Dialogs\ActionDialog.cs" />
+    <Compile Include="Forms.cs" />
     <Compile Include="Helpers\AzureActiveDirectoryHelper.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
     <Compile Include="Dialogs\AzureAuthDialog.cs" />
@@ -135,6 +136,12 @@
     <None Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AzureBot.Azure.Management\AzureBot.Azure.Management.csproj">
+      <Project>{7b112f12-3f0d-48d5-9203-28a2e1cfd224}</Project>
+      <Name>AzureBot.Azure.Management</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

@@ -3,10 +3,12 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using System.Threading.Tasks;
     using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Builder.Luis;
     using Microsoft.Bot.Builder.Luis.Models;
+    using Microsoft.Bot.Connector;
 
     [LuisModel("c9e598cb-0e5f-48f6-b14a-ebbb390a6fb3", "a7c1c493d0e244e796b83c6785c4be4d")]
     [Serializable]
@@ -16,9 +18,36 @@
 
         private readonly string originalMessage;
 
+        private readonly ILuisService service;
+
         public ActionDialog(string originalMessage)
         {
             this.originalMessage = originalMessage;
+            if (service == null)
+            {
+                var type = this.GetType();
+                var luisModel = type.GetCustomAttribute<LuisModelAttribute>(inherit: true);
+                if (luisModel == null)
+                {
+                    throw new Exception("Luis model attribute is not set for the class");
+                }
+
+                service = new LuisService(luisModel);
+            }
+        }
+
+
+        public override async Task StartAsync(IDialogContext context)
+        {
+            var luisResult = await this.service.QueryAsync(this.originalMessage);
+
+
+            await ListVmsAsync(context, luisResult);
+        }
+
+        protected override Task MessageReceived(IDialogContext context, IAwaitable<Message> item)
+        {
+            return base.MessageReceived(context, item);
         }
 
         [LuisIntent("")]
