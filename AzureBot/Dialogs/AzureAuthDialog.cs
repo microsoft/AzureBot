@@ -5,7 +5,6 @@
     using Helpers;
     using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Connector;
-    using Models;
 
     [Serializable]
     public class AzureAuthDialog : IDialog<string>
@@ -33,9 +32,14 @@
 
             if (msg.Text.StartsWith("token:"))
             {
-                var token = msg.Text.Remove(0, "token:".Length);
+                var index = msg.Text.IndexOf("&user:");
+                var token = msg.Text.Substring("token:".Length, index - "token:".Length);
+                var user = msg.Text.Substring(index + "&user:".Length);
+
                 context.PerUserInConversationData.SetValue(AuthTokenKey, token);
-                this.ReturnPendingMessage(context);
+                context.Done($"Thanks {user}. You are now logged in.");
+                
+                //this.ReturnPendingMessage(context);
             }
             else
             {
