@@ -2,8 +2,10 @@
 {
     using System.Threading.Tasks;
     using System.Web.Http;
+    using Azure.Management.Models;
     using Dialogs;
     using Microsoft.Bot.Builder.Dialogs;
+    using Microsoft.Bot.Builder.FormFlow;
     using Microsoft.Bot.Connector;
 
     [BotAuthentication]
@@ -28,15 +30,15 @@
         private static IDialog<string> MakeRoot()
         {
             return Chain.PostToChain()
-                .ContinueWith<Message, string>(AzureAuthDialogCallback)
-                .PostToUser()
-                //// .ContinueWith<string, string>(AzureSubscriptionDialogCallback)
+                .ContinueWith<Message, string>(MessageDialogCallback)
+                .ContinueWith<string, string>(AzureSubscriptionDialogCallback)
                 .ContinueWith<string, string>(AzureActionsDialogCallback);
         }
 
-        private static async Task<IDialog<string>> AzureAuthDialogCallback(IBotContext context, IAwaitable<Message> message)
+        private static async Task<IDialog<string>> MessageDialogCallback(IBotContext context, IAwaitable<Message> message)
         {
             var msg = await message;
+
 
             return Chain.ContinueWith<string, string>(new AzureAuthDialog(msg), AzureAuthDialogContinuation);
         }
@@ -44,8 +46,27 @@
         private static async Task<IDialog<string>> AzureAuthDialogContinuation(IBotContext context, IAwaitable<string> item)
         {
             var msg = await item;
-
+            if (msg.Contains("Thanks"))
+            {
+                await context.PostAsync(msg);
+            }
+            
             return Chain.Return(msg);
+        }
+
+        private static async Task<IDialog<string>> AzureSubscriptionDialogCallback(IBotContext context, IAwaitable<string> message)
+        {
+            var msg = await message;
+
+            return Chain.ContinueWith<Subscription, string>(FormDialog.FromForm(Forms.BuildSubscriptionForm), AzureSubscriptionDialogContinuation);
+        }
+
+        private static async Task<IDialog<string>> AzureSubscriptionDialogContinuation(IBotContext context, IAwaitable<Subscription> item)
+        {
+            var msg = await item;
+            context.PerUserInConversationData.SetValue("SubscriptionId", msg.SubscriptionId);
+
+            return Chain.Return(msg.DisplayName);
         }
 
         private static async Task<IDialog<string>> AzureActionsDialogCallback(IBotContext context, IAwaitable<string> message)
