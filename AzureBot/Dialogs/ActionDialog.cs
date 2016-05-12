@@ -116,9 +116,14 @@
         [LuisIntent("StartVm")]
         public async Task StartVmAsync(IDialogContext context, LuisResult result)
         {
+            // retrieve available VM names from the current subscription
             var subscriptionId = context.PerUserInConversationData.Get<string>("SubscriptionId");
+            var availableVMs = (await (new AzureRepository().ListVirtualMachinesAsync(subscriptionId)))
+                                .Select(p => p.Name)
+                                .ToArray();
+
             var form = new FormDialog<VirtualMachineFormState>(
-                new VirtualMachineFormState(), 
+                new VirtualMachineFormState(availableVMs), 
                 Forms.BuildVirtualMachinesForm, 
                 FormOptions.PromptInStart, 
                 result.Entities);

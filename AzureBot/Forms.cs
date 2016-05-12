@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Web;
-using AzureBot.Azure.Management.ResourceManagement;
-using Microsoft.Bot.Builder.Dialogs;
-using Microsoft.Bot.Builder.FormFlow;
-using Microsoft.Bot.Builder.FormFlow.Advanced;
-using AzureBot.FormTemplates;
-
-namespace AzureBot
+﻿namespace AzureBot
 {
+    using System.Threading.Tasks;
+    using AzureBot.Azure.Management.ResourceManagement;
+    using AzureBot.FormTemplates;
+    using Microsoft.Bot.Builder.FormFlow;
+    using Microsoft.Bot.Builder.FormFlow.Advanced;
+
     public class Forms
     {
         public static IForm<SubscriptionFormState> BuildSubscriptionForm()
@@ -38,19 +33,16 @@ namespace AzureBot
             return new FormBuilder<VirtualMachineFormState>()
                 .Field(new FieldReflector<VirtualMachineFormState>(nameof(VirtualMachineFormState.Name))
                 .SetType(null)
-                .SetDefine(async (state, field) =>
+                .SetDefine((state, field) =>
                 {
-                    // TODO: need to access the current subscriptionID 
-                    var subscriptionId = "NOT IMPLEMENTED";
-                    var virtualMachines = await (new AzureRepository().ListVirtualMachinesAsync(subscriptionId));
-                    foreach (var vm in virtualMachines)
+                    foreach (var vm in state.AvailableVMs)
                     {
                         field
-                            .AddDescription(vm.Name, vm.Name)
-                            .AddTerms(vm.Name, vm.Name);
+                            .AddDescription(vm, vm)
+                            .AddTerms(vm, vm);
                     }
 
-                    return true;
+                    return Task.FromResult(true);
                 }))
                .Confirm("Would you like to start virtual machine {Name}?")
                .Build();
