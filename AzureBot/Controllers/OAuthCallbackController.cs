@@ -5,14 +5,12 @@
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Web;
     using System.Web.Http;
     using Autofac;
     using Helpers;
     using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Builder.Dialogs.Internals;
     using Microsoft.Bot.Connector;
-    using Models;
 
     public class OAuthCallbackController : ApiController
     {
@@ -22,41 +20,37 @@
         [Route("api/OAuthCallback")]
         public async Task<HttpResponseMessage> OAuthCallback([FromUri] string code, [FromUri] string state)
         {
-            // Check if the bot is running against emulator
-            var connectorType = HttpContext.Current.Request.IsLocal ? ConnectorType.Emulator : ConnectorType.Cloud;
+            // Get the resumption cookie
+            var resumptionCookie = ResumptionCookie.GZipDeserialize(state);
 
-            var resumeInfo = SerializerHelper.DeserializeObject<ResumeState>(state);
-            var userId = resumeInfo.UserId;
-            var conversationId = resumeInfo.ConversationId;
-
-            // Exchange the Auth code with Access toekn
+            // Exchange the Auth code with Access token
             var token = await AzureActiveDirectoryHelper.GetTokenByAuthCodeAsync(code);
 
             // Create the message that is send to conversation to resume the login flow
-            var msg = new Message
-            {
-                Text = $"token:{token.AccessToken}",
-                From = new ChannelAccount { Id = userId },
-                To = new ChannelAccount { Id = botId.Value },
-                ConversationId = conversationId
-            };
+            var msg = resumptionCookie.GetMessage();
+            msg.Text = $"token:{token.AccessToken}";
 
             // Resume the conversation
-            Message reply = await Conversation.ResumeAsync(botId.Value, userId, conversationId, msg, connectorType: connectorType);
+            var reply = await Conversation.ResumeAsync(resumptionCookie, msg);
 
             // Remove the pending message because login flow is complete
             IBotData dataBag = new JObjectBotData(reply);
-            PendingMessage pending;
-            if (dataBag.PerUserInConversationData.TryGetValue("pendingMessage", out pending))
+            ResumptionCookie pending;
+            if (dataBag.PerUserInConversationData.TryGetValue("persistedCookie", out pending))
             {
-                dataBag.PerUserInConversationData.RemoveValue("pendingMessage");
-                var pendingMessage = pending.GetMessage();
-                reply.To = pendingMessage.From;
-                reply.From = pendingMessage.To;
+                dataBag.PerUserInConversationData.RemoveValue("persistedCookie");
 
-                // Send the login success asynchronously to user
-                var client = Conversation.ResumeContainer.Resolve<IConnectorClient>(TypedParameter.From(connectorType));
-                await client.Messages.SendMessageAsync(reply);
+                using (var scope = DialogModule.BeginLifetimeScope(Conversation.Container, reply))
+                {
+                    // make sure that we have the right Channel info for the outgoing message
+                    var persistedCookie = pending.GetMessage();
+                    reply.To = persistedCookie.From;
+                    reply.From = persistedCookie.To;
+
+                    // Send the login success asynchronously to user
+                    var client = scope.Resolve<IConnectorClient>();
+                    await client.Messages.SendMessageAsync(reply);
+                }
 
                 return Request.CreateResponse("You are now logged in! Continue talking to the bot.");
             }
