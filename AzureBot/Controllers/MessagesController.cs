@@ -47,7 +47,7 @@
         private static async Task<IDialog<string>> AzureAuthDialogContinuation(IBotContext context, IAwaitable<string> item)
         {
             var msg = await item;
-            if (msg.Contains("Thanks"))
+            if (!string.IsNullOrEmpty(msg))
             {
                 await context.PostAsync(msg);
             }
