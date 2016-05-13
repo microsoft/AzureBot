@@ -10,7 +10,7 @@
     using Microsoft.Bot.Builder.FormFlow;
     using Microsoft.Bot.Connector;
 
-    [BotAuthenticationFromSetting("BotFramework.AppId", "BotFramework.AppSecret")]
+    [BotAuthentication]
     public class MessagesController : ApiController
     {
         /// <summary>
