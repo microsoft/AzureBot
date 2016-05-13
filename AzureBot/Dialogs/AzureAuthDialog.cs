@@ -11,11 +11,8 @@
     {
         private readonly ResumptionCookie resumptionCookie;
 
-        private string originalMessageText;
-
         public AzureAuthDialog(Message msg)
         {
-            this.originalMessageText = msg.Text;
             this.resumptionCookie = new ResumptionCookie(msg);
         }
 
@@ -35,12 +32,12 @@
                 var user = msg.Text.Substring(index + "&user:".Length);
 
                 context.PerUserInConversationData.SetValue(ContextConstants.AuthTokenKey, token);
-                context.PerUserInConversationData.SetValue(ContextConstants.OriginalMessageKey, this.originalMessageText);
 
-                context.Done($"Thanks {user}. You are now logged in.");
+                context.Done($"Thanks {user}. You are now logged in. What do you want to do next?");
             }
             else
             {
+                context.PerUserInConversationData.SetValue(ContextConstants.OriginalMessageKey, msg.Text);
                 await this.LogIn(context);
             }
         }
@@ -66,7 +63,7 @@
 
         private void ReturnPendingMessage(IDialogContext context)
         {
-            context.Done(this.originalMessageText);
+            context.Done(string.Empty);
         }
     }
 }
