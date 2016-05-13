@@ -70,7 +70,17 @@
 
         private static async Task<IDialog<string>> AzureActionsDialogCallback(IBotContext context, IAwaitable<string> message)
         {
-            var msg = await message;
+            string msg;
+
+            if (context.PerUserInConversationData.TryGetValue(ContextConstants.OriginalMessageKey, out msg))
+            {
+                context.PerUserInConversationData.RemoveValue(ContextConstants.OriginalMessageKey);
+            }
+            else
+            {
+                msg = await message;
+            }
+
 
             return Chain.ContinueWith<string, string>(new ActionDialog(msg), AzureActionsDialogContinuation);
         }

@@ -6,6 +6,8 @@
 
         public const string PersistedCookieKey = "persistedCookie";
 
-        public const string AuthTokenKey = "AuthToken";
+        public const string AuthTokenKey = "authToken";
+
+        public const string OriginalMessageKey = "originalMessage";
     }
 }
