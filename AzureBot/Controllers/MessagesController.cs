@@ -3,10 +3,11 @@
     using System.Threading.Tasks;
     using System.Web.Http;
     using Dialogs;
+    using FormTemplates;
     using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Builder.FormFlow;
     using Microsoft.Bot.Connector;
-    using FormTemplates;
+
     [BotAuthentication]
     public class MessagesController : ApiController
     {
@@ -38,7 +39,6 @@
         {
             var msg = await message;
 
-
             return Chain.ContinueWith<string, string>(new AzureAuthDialog(msg), AzureAuthDialogContinuation);
         }
 
@@ -57,13 +57,13 @@
         {
             var msg = await message;
 
-            return Chain.ContinueWith<SubscriptionFormState, string>(FormDialog.FromForm(Forms.BuildSubscriptionForm, FormOptions.PromptInStart), AzureSubscriptionDialogContinuation);
+            return Chain.ContinueWith<SubscriptionFormState, string>(FormDialog.FromForm(EntityForms.BuildSubscriptionForm, FormOptions.PromptInStart), AzureSubscriptionDialogContinuation);
         }
 
         private static async Task<IDialog<string>> AzureSubscriptionDialogContinuation(IBotContext context, IAwaitable<SubscriptionFormState> item)
         {
             var msg = await item;
-            context.PerUserInConversationData.SetValue("SubscriptionId", msg.SubscriptionId);
+            context.PerUserInConversationData.SetValue(ContextConstants.SubscriptionIdKey, msg.SubscriptionId);
 
             return Chain.Return(msg.DisplayName);
         }

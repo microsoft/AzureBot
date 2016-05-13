@@ -6,7 +6,7 @@
     using Microsoft.Bot.Builder.FormFlow;
     using Microsoft.Bot.Builder.FormFlow.Advanced;
 
-    public class Forms
+    public class EntityForms
     {
         public static IForm<SubscriptionFormState> BuildSubscriptionForm()
         {
@@ -16,7 +16,7 @@
                 .SetPrompt(new PromptAttribute("Please select the subscription you want to work with: {||}"))
                 .SetDefine(async (state, field) =>
                {
-                   var subscriptions = await (new AzureRepository().ListSubscriptionsAsync());
+                   var subscriptions = await new AzureRepository().ListSubscriptionsAsync();
                    foreach (var sub in subscriptions)
                    {
                        field.AddDescription(sub.SubscriptionId, sub.DisplayName)
@@ -44,7 +44,8 @@
 
                     return Task.FromResult(true);
                 }))
-               .Confirm("Would you like to start virtual machine {VirtualMachine}?")
+                .Field(nameof(VirtualMachineFormState.Operation))
+               .Confirm("Would you like to {Operation} virtual machine {VirtualMachine}?")
                .Build();
         }
     }

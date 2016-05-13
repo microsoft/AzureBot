@@ -36,9 +36,9 @@
             // Remove the pending message because login flow is complete
             IBotData dataBag = new JObjectBotData(reply);
             ResumptionCookie pending;
-            if (dataBag.PerUserInConversationData.TryGetValue("persistedCookie", out pending))
+            if (dataBag.PerUserInConversationData.TryGetValue(ContextConstants.PersistedCookieKey, out pending))
             {
-                dataBag.PerUserInConversationData.RemoveValue("persistedCookie");
+                dataBag.PerUserInConversationData.RemoveValue(ContextConstants.PersistedCookieKey);
 
                 using (var scope = DialogModule.BeginLifetimeScope(Conversation.Container, reply))
                 {

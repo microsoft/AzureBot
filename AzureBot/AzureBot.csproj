@@ -125,7 +125,8 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\OAuthCallbackController.cs" />
     <Compile Include="Dialogs\ActionDialog.cs" />
-    <Compile Include="Forms.cs" />
+    <Compile Include="EntityForms.cs" />
+    <Compile Include="FormTemplates\Operations.cs" />
     <Compile Include="FormTemplates\SubscriptionFormState.cs" />
     <Compile Include="FormTemplates\VirtualMachineFormState.cs" />
     <Compile Include="Helpers\AzureActiveDirectoryHelper.cs" />
@@ -135,6 +136,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ContextConstants.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />

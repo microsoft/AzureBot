@@ -1,24 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using AzureBot.Azure.Management.Models;
-using Newtonsoft.Json;
-
-namespace AzureBot.Azure.Management.Data
+﻿namespace AzureBot.Azure.Management.Data
 {
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Reflection;
+    using AzureBot.Azure.Management.Models;
+    using Newtonsoft.Json;
+
     public class MockData
     {
-        public static MockData data;
+        private static MockData data;
 
         static MockData()
         {
             var json = ReadAllText("AzureBot.Azure.Management.Data.MockData.json");
             data = JsonConvert.DeserializeObject<MockData>(json);
         }
+
+        public Subscription[] Subscriptions { get; set; }
+
+        public VirtualMachine[] VirtualMachines { get; set; }
 
         public static IEnumerable<Subscription> GetSubscriptions()
         {
@@ -40,11 +40,8 @@ namespace AzureBot.Azure.Management.Data
                     end = reader.ReadToEnd();
                 }
             }
+
             return end;
         }
-
-        public Subscription[] Subscriptions { get; set; }
-
-        public VirtualMachine[] VirtualMachines { get; set; }
     }
 }

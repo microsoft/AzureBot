@@ -2,8 +2,8 @@
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Models;
     using Data;
+    using Models;
 
     public class AzureRepository
     {
@@ -21,6 +21,7 @@
         {
             return await Task.FromResult(true);
         }
+
         public async Task<bool> StopVirtualMachineAsync(string subscriptionId, string virtualMachineName)
         {
             return await Task.FromResult(true);

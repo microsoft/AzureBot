@@ -9,8 +9,6 @@
     [Serializable]
     public class AzureAuthDialog : IDialog<string>
     {
-        private static readonly string AuthTokenKey = "AuthToken";
-
         private readonly ResumptionCookie resumptionCookie;
 
         private string originalMessageText;
@@ -36,10 +34,8 @@
                 var token = msg.Text.Substring("token:".Length, index - "token:".Length);
                 var user = msg.Text.Substring(index + "&user:".Length);
 
-                context.PerUserInConversationData.SetValue(AuthTokenKey, token);
+                context.PerUserInConversationData.SetValue(ContextConstants.AuthTokenKey, token);
                 context.Done($"Thanks {user}. You are now logged in.");
-                
-                //this.ReturnPendingMessage(context);
             }
             else
             {
@@ -51,9 +47,9 @@
         private async Task LogIn(IDialogContext context)
         {
             string token;
-            if (!context.PerUserInConversationData.TryGetValue(AuthTokenKey, out token))
+            if (!context.PerUserInConversationData.TryGetValue(ContextConstants.AuthTokenKey, out token))
             {
-                context.PerUserInConversationData.SetValue("persistedCookie", this.resumptionCookie);
+                context.PerUserInConversationData.SetValue(ContextConstants.PersistedCookieKey, this.resumptionCookie);
 
                 var authenticationUrl = await AzureActiveDirectoryHelper.GetAuthUrlAsync(this.resumptionCookie);
 
