@@ -14,8 +14,6 @@
 
     public class OAuthCallbackController : ApiController
     {
-        private static Lazy<string> botId = new Lazy<string>(() => ConfigurationManager.AppSettings["AppId"]);
-
         [HttpGet]
         [Route("api/OAuthCallback")]
         public async Task<HttpResponseMessage> OAuthCallback([FromUri] string code, [FromUri] string state)
