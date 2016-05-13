@@ -51,11 +51,6 @@
                .Build();
         }
 
-        internal static IForm<SubscriptionFormState> BuildSubscriptionForm(List<string> list)
-        {
-            throw new NotImplementedException();
-        }
-
         public static IForm<RunBookFormState> BuildRunBookForm()
         {
             return new FormBuilder<RunBookFormState>()
@@ -76,7 +71,7 @@
                 .Field(new FieldReflector<RunBookFormState>(nameof(RunBookFormState.RunBookName))
                     .SetType(null)
                     .SetPrompt(new PromptAttribute("Please select the runbook you want to run: {||}"))
-                    .SetActive(state=> !string.IsNullOrWhiteSpace(state.AutomationAccountName))
+                    .SetActive(state => !string.IsNullOrWhiteSpace(state.AutomationAccountName))
                     .SetDefine((state, field) =>
                     {
                         if (string.IsNullOrWhiteSpace(state.AutomationAccountName))
