@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
     using Azure.Management.Models;
-
+    using Microsoft.Bot.Builder.FormFlow;
     [Serializable]
     public class VirtualMachineFormState
     {
@@ -12,7 +12,7 @@
             this.AvailableVMs = availableVMs;
         }
 
-        public string Name { get; set; }
+        public string VirtualMachine { get; set; }
 
         public IEnumerable<string> AvailableVMs { get; private set; }
     }

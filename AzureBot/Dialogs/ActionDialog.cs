@@ -148,10 +148,10 @@
         {
             try
             {
-                var virtualMachine = await result;
+                var virtualMachineFormState = await result;
                 var subscriptionId = context.PerUserInConversationData.Get<string>("SubscriptionId");
-                await context.PostAsync($"Starting the {virtualMachine.Name} virtual machine.");
-                await (new AzureRepository().StartVirtualMachineAsync(subscriptionId, virtualMachine.Name));
+                await context.PostAsync($"Starting the {virtualMachineFormState.VirtualMachine} virtual machine.");
+                await (new AzureRepository().StartVirtualMachineAsync(subscriptionId, virtualMachineFormState.VirtualMachine));
             }
             catch (FormCanceledException<VirtualMachineFormState> ex)
             {
