@@ -35,11 +35,12 @@
                 var user = msg.Text.Substring(index + "&user:".Length);
 
                 context.PerUserInConversationData.SetValue(ContextConstants.AuthTokenKey, token);
+                context.PerUserInConversationData.SetValue(ContextConstants.OriginalMessageKey, this.originalMessageText);
+
                 context.Done($"Thanks {user}. You are now logged in.");
             }
             else
             {
-                this.originalMessageText = msg.Text;
                 await this.LogIn(context);
             }
         }
