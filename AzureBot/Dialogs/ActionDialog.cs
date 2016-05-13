@@ -93,29 +93,16 @@
         [LuisIntent("UseSubscription")]
         public async Task UseSubscriptionAsync(IDialogContext context, LuisResult result)
         {
-            var subscriptions = await new AzureRepository().ListSubscriptionsAsync();
+            var availableSubscriptions = (await new AzureRepository().ListSubscriptionsAsync())
+                                            .ToDictionary(p => p.SubscriptionId, q => q.DisplayName);
 
-            var entity = result.Entities.OrderByDescending(p => p.Score).FirstOrDefault();
-            if (entity != null)
-            {
-                var subscriptionName = entity.Entity;
-                if (entity.Type == "builtin.ordinal")
-                {
-                    var ordinal = Array.IndexOf(ordinals, entity.Entity.ToLowerInvariant());
-                    if (ordinal >= 0)
-                    {
-                        subscriptionName = subscriptions.ElementAt(ordinal).DisplayName;
-                    }
-                }
+            var form = new FormDialog<SubscriptionFormState>(
+                new SubscriptionFormState(availableSubscriptions),
+                EntityForms.BuildSubscriptionForm,
+                FormOptions.PromptInStart,
+                result.Entities);
 
-                await context.PostAsync($"Using the {subscriptionName} subscription.");
-            }
-            else
-            {
-                await context.PostAsync("Which subscription do you want to use?");
-            }
-
-            context.Wait(this.MessageReceived);
+            context.Call(form, this.UseSubscriptionFormComplete);
         }
 
         [LuisIntent("ListVms")]
@@ -229,6 +216,23 @@
                 await new AzureRepository().StartVirtualMachineAsync(subscriptionId, virtualMachineFormState.VirtualMachine);
             }
             catch (FormCanceledException<VirtualMachineFormState>)
+            {
+                await context.PostAsync("You have canceled the operation. What would you like to do next?");
+            }
+
+            context.Wait(this.MessageReceived);
+        }
+
+        private async Task UseSubscriptionFormComplete(IDialogContext context, IAwaitable<SubscriptionFormState> result)
+        {
+            try
+            {
+                var subscriptionFormState = await result;
+                var subscriptionName = subscriptionFormState.AvailableSubscriptions[subscriptionFormState.SubscriptionId];
+                context.PerUserInConversationData.SetValue(ContextConstants.SubscriptionIdKey, subscriptionFormState.SubscriptionId);
+                await context.PostAsync($"Setting {subscriptionName} as the current subscription.");
+            }
+            catch (FormCanceledException<SubscriptionFormState>)
             {
                 await context.PostAsync("You have canceled the operation. What would you like to do next?");
             }

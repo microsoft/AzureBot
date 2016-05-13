@@ -1,7 +1,9 @@
 ﻿namespace AzureBot
 {
+    using System.Linq;
     using System.Threading.Tasks;
     using System.Web.Http;
+    using Azure.Management.ResourceManagement;
     using Dialogs;
     using FormTemplates;
     using Microsoft.Bot.Builder.Dialogs;
@@ -57,7 +59,17 @@
         {
             var msg = await message;
 
-            return Chain.ContinueWith<SubscriptionFormState, string>(FormDialog.FromForm(EntityForms.BuildSubscriptionForm, FormOptions.PromptInStart), AzureSubscriptionDialogContinuation);
+            var availableSubscriptions = (await new AzureRepository().ListSubscriptionsAsync())
+                                .ToDictionary(p => p.SubscriptionId, q => q.DisplayName);
+
+            var form = new FormDialog<SubscriptionFormState>(
+                new SubscriptionFormState(availableSubscriptions),
+                EntityForms.BuildSubscriptionForm,
+                FormOptions.PromptInStart);
+
+            return Chain.ContinueWith(form, AzureSubscriptionDialogContinuation);
+
+            // return Chain.ContinueWith<SubscriptionFormState, string>(FormDialog.FromForm(EntityForms.BuildSubscriptionForm, FormOptions.PromptInStart), AzureSubscriptionDialogContinuation);
         }
 
         private static async Task<IDialog<string>> AzureSubscriptionDialogContinuation(IBotContext context, IAwaitable<SubscriptionFormState> item)
@@ -80,7 +92,6 @@
             {
                 msg = await message;
             }
-
 
             return Chain.ContinueWith<string, string>(new ActionDialog(msg), AzureActionsDialogContinuation);
         }

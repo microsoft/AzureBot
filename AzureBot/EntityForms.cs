@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using AzureBot.Azure.Management.ResourceManagement;
     using FormTemplates;
     using Microsoft.Bot.Builder.FormFlow;
     using Microsoft.Bot.Builder.FormFlow.Advanced;
@@ -17,17 +16,16 @@
                 .Field(new FieldReflector<SubscriptionFormState>(nameof(SubscriptionFormState.SubscriptionId))
                 .SetType(null)
                 .SetPrompt(new PromptAttribute("Please select the subscription you want to work with: {||}"))
-                .SetDefine(async (state, field) =>
-               {
-                   var subscriptions = await new AzureRepository().ListSubscriptionsAsync();
-                   foreach (var sub in subscriptions)
-                   {
-                       field.AddDescription(sub.SubscriptionId, sub.DisplayName)
-                           .AddTerms(sub.SubscriptionId, sub.DisplayName);
-                   }
+                .SetDefine((state, field) =>
+                {
+                    foreach (var sub in state.AvailableSubscriptions)
+                    {
+                        field.AddDescription(sub.Key, sub.Value)
+                            .AddTerms(sub.Key, sub.Value);
+                    }
 
-                   return true;
-               }))
+                    return Task.FromResult(true);
+                }))
                .Build();
         }
 

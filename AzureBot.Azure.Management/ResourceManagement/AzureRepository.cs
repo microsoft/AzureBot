@@ -1,6 +1,7 @@
 ﻿namespace AzureBot.Azure.Management.ResourceManagement
 {
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Data;
     using Models;
@@ -14,7 +15,7 @@
 
         public async Task<IEnumerable<VirtualMachine>> ListVirtualMachinesAsync(string subscriptionId)
         {
-            return await Task.FromResult(MockData.GetVirtualMachines());
+            return await Task.FromResult(MockData.GetVirtualMachines().Where(p => p.SubscriptionId == subscriptionId));
         }
 
         public async Task<IEnumerable<AutomationAccount>> ListAutomationAccountsAsync(string subscriptionId)
