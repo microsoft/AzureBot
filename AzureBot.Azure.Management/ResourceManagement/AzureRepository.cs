@@ -17,12 +17,22 @@
             return await Task.FromResult(MockData.GetVirtualMachines());
         }
 
+        public async Task<IEnumerable<AutomationAccount>> ListAutomationAccountsAsync(string subscriptionId)
+        {
+            return await Task.FromResult(MockData.GetAutomationAccounts());
+        }
+
         public async Task<bool> StartVirtualMachineAsync(string subscriptionId, string virtualMachineName)
         {
             return await Task.FromResult(true);
         }
 
         public async Task<bool> StopVirtualMachineAsync(string subscriptionId, string virtualMachineName)
+        {
+            return await Task.FromResult(true);
+        }
+
+        public async Task<bool> RunRunBookAsync(string subscriptionId, string automationAccountName, string runBookName)
         {
             return await Task.FromResult(true);
         }

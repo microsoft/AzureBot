@@ -174,15 +174,29 @@
         [LuisIntent("RunRunbook")]
         public async Task RunRunbookAsync(IDialogContext context, LuisResult result)
         {
-            var entity = result.Entities.OrderByDescending(p => p.Score).FirstOrDefault();
-            if (entity != null)
+            var subscriptionId = context.PerUserInConversationData.Get<string>(ContextConstants.SubscriptionIdKey);
+            var availableAutomationAccounts = (await new AzureRepository().ListAutomationAccountsAsync(subscriptionId)).ToList();
+
+            var form = new FormDialog<RunBookFormState>(
+                new RunBookFormState(availableAutomationAccounts),
+                EntityForms.BuildRunBookForm,
+                FormOptions.PromptInStart,
+                result.Entities);
+            context.Call(form, this.RunBookFormComplete);
+        }
+
+        private async Task RunBookFormComplete(IDialogContext context, IAwaitable<RunBookFormState> result)
+        {
+            try
             {
-                var runbookName = entity.Entity;
-                await context.PostAsync($"Launching the {runbookName} runbook.");
+                var runBookFormState = await result;
+                var subscriptionId = context.PerUserInConversationData.Get<string>(ContextConstants.SubscriptionIdKey);
+                await context.PostAsync($"Running the {runBookFormState.RunBookName} runbook.");
+                await new AzureRepository().RunRunBookAsync(subscriptionId, runBookFormState.AutomationAccountName, runBookFormState.RunBookName);
             }
-            else
+            catch (FormCanceledException<VirtualMachineFormState>)
             {
-                await context.PostAsync("Which runbook do you want to run?");
+                await context.PostAsync("You have canceled the operation. What would you like to do next?");
             }
 
             context.Wait(this.MessageReceived);

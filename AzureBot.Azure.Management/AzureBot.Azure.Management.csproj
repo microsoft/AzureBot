@@ -45,6 +45,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\MockData.cs" />
+    <Compile Include="Models\AutomationAccount.cs" />
+    <Compile Include="Models\RunBook.cs" />
     <Compile Include="Models\VirtualMachine.cs" />
     <Compile Include="Models\Subscription.cs" />
     <Compile Include="ResourceManagement\AzureRepository.cs" />
