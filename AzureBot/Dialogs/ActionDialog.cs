@@ -93,7 +93,7 @@
         [LuisIntent("UseSubscription")]
         public async Task UseSubscriptionAsync(IDialogContext context, LuisResult result)
         {
-            var availableSubscriptions = (await (new AzureRepository().ListSubscriptionsAsync()))
+            var availableSubscriptions = (await new AzureRepository().ListSubscriptionsAsync())
                                             .ToDictionary(p => p.SubscriptionId, q => q.DisplayName);
 
             var form = new FormDialog<SubscriptionFormState>(
