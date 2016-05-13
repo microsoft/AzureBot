@@ -9,12 +9,12 @@
 
     internal static class AzureActiveDirectoryHelper
     {
-        private static Lazy<string> activeDirectoryEndpointUrl = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectoryEndpointUrl"]);
-        private static Lazy<string> activeDirectoryTenant = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectoryTenant"]);
-        private static Lazy<string> activeDirectoryResourceId = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectoryResourceId"]);
-        private static Lazy<string> redirectUrl = new Lazy<string>(() => ConfigurationManager.AppSettings["RedirectUrl"]);
-        private static Lazy<string> clientId = new Lazy<string>(() => ConfigurationManager.AppSettings["ClientId"]);
-        private static Lazy<string> clientSecret = new Lazy<string>(() => ConfigurationManager.AppSettings["ClientSecret"]);
+        private static Lazy<string> activeDirectoryEndpointUrl = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectory.EndpointUrl"]);
+        private static Lazy<string> activeDirectoryTenant = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectory.Tenant"]);
+        private static Lazy<string> activeDirectoryResourceId = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectory.ResourceId"]);
+        private static Lazy<string> redirectUrl = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectory.RedirectUrl"]);
+        private static Lazy<string> clientId = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectory.ClientId"]);
+        private static Lazy<string> clientSecret = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectory.ClientSecret"]);
 
         internal static async Task<string> GetAuthUrlAsync(ResumptionCookie resumptionCookie)
         {
