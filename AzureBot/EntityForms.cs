@@ -31,8 +31,10 @@
         public static IForm<VirtualMachineFormState> BuildVirtualMachinesForm()
         {
             return new FormBuilder<VirtualMachineFormState>()
+                .Field(nameof(VirtualMachineFormState.Operation))
                 .Field(new FieldReflector<VirtualMachineFormState>(nameof(VirtualMachineFormState.VirtualMachine))
                 .SetType(null)
+                .SetPrompt(new PromptAttribute("Please select the virtual machine you want to {Operation}: {||}"))
                 .SetDefine((state, field) =>
                 {
                     foreach (var vm in state.AvailableVMs)
@@ -44,7 +46,6 @@
 
                     return Task.FromResult(true);
                 }))
-                .Field(nameof(VirtualMachineFormState.Operation))
                .Confirm("Would you like to {Operation} virtual machine {VirtualMachine}?")
                .Build();
         }
