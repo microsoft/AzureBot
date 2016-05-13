@@ -11,9 +11,9 @@
         public static IForm<SubscriptionFormState> BuildSubscriptionForm()
         {
             return new FormBuilder<SubscriptionFormState>()
-                .Message("Select the subscription you want to work with")
                 .Field(new FieldReflector<SubscriptionFormState>(nameof(SubscriptionFormState.SubscriptionId))
                 .SetType(null)
+                .SetPrompt(new PromptAttribute("Please select the subscription you want to work with: {||}"))
                 .SetDefine(async (state, field) =>
                {
                    var subscriptions = await (new AzureRepository().ListSubscriptionsAsync());

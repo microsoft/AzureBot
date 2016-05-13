@@ -57,7 +57,7 @@
         {
             var msg = await message;
 
-            return Chain.ContinueWith<SubscriptionFormState, string>(FormDialog.FromForm(Forms.BuildSubscriptionForm), AzureSubscriptionDialogContinuation);
+            return Chain.ContinueWith<SubscriptionFormState, string>(FormDialog.FromForm(Forms.BuildSubscriptionForm, FormOptions.PromptInStart), AzureSubscriptionDialogContinuation);
         }
 
         private static async Task<IDialog<string>> AzureSubscriptionDialogContinuation(IBotContext context, IAwaitable<SubscriptionFormState> item)
