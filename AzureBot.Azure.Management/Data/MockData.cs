@@ -20,6 +20,8 @@
 
         public VirtualMachine[] VirtualMachines { get; set; }
 
+        public AutomationAccount[] AutomationAccounts { get; set; }
+
         public static IEnumerable<Subscription> GetSubscriptions()
         {
             return data.Subscriptions;
@@ -28,6 +30,11 @@
         public static IEnumerable<VirtualMachine> GetVirtualMachines()
         {
             return data.VirtualMachines;
+        }
+
+        public static IEnumerable<AutomationAccount> GetAutomationAccounts()
+        {
+            return data.AutomationAccounts;
         }
 
         public static string ReadAllText(string fileName)

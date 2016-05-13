@@ -127,6 +127,7 @@
     <Compile Include="Dialogs\ActionDialog.cs" />
     <Compile Include="EntityForms.cs" />
     <Compile Include="FormTemplates\Operations.cs" />
+    <Compile Include="FormTemplates\RunBookFormState.cs" />
     <Compile Include="FormTemplates\SubscriptionFormState.cs" />
     <Compile Include="FormTemplates\VirtualMachineFormState.cs" />
     <Compile Include="Helpers\AzureActiveDirectoryHelper.cs" />
