@@ -5,13 +5,14 @@
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
+    using Azure.Management.ResourceManagement;
+    using FormTemplates;
     using Microsoft.Bot.Builder.Dialogs;
+    using Microsoft.Bot.Builder.FormFlow;
     using Microsoft.Bot.Builder.Luis;
     using Microsoft.Bot.Builder.Luis.Models;
     using Microsoft.Bot.Connector;
-    using Microsoft.Bot.Builder.FormFlow;
-    using FormTemplates;
-    using Azure.Management.ResourceManagement;
+
     [LuisModel("c9e598cb-0e5f-48f6-b14a-ebbb390a6fb3", "a7c1c493d0e244e796b83c6785c4be4d")]
     [Serializable]
     public class ActionDialog : LuisDialog<string>
@@ -36,6 +37,8 @@
 
                 service = new LuisService(luisModel);
             }
+
+            this.handlerByIntent = new Dictionary<string, IntentHandler>(this.GetHandlersByIntent());
         }
 
 
@@ -43,8 +46,19 @@
         {
             var luisResult = await this.service.QueryAsync(this.originalMessage);
 
+            var intent = luisResult.Intents.OrderByDescending(i => i.Score).FirstOrDefault();
 
-            await ListVmsAsync(context, luisResult);
+            IntentHandler intentHandler;
+
+            if (intent != null &&
+                this.handlerByIntent.TryGetValue(intent.Intent, out intentHandler))
+            {
+                await intentHandler(context, luisResult);
+            }
+            else
+            {
+                await this.None(context, luisResult);
+            }
         }
 
         protected override Task MessageReceived(IDialogContext context, IAwaitable<Message> item)
@@ -134,10 +148,10 @@
         {
             try
             {
-                var virtualMachine = await result;
+                var virtualMachineFormState = await result;
                 var subscriptionId = context.PerUserInConversationData.Get<string>("SubscriptionId");
-                await context.PostAsync($"Starting the {virtualMachine.Name} virtual machine.");
-                await (new AzureRepository().StartVirtualMachineAsync(subscriptionId, virtualMachine.Name));
+                await context.PostAsync($"Starting the {virtualMachineFormState.VirtualMachine} virtual machine.");
+                await (new AzureRepository().StartVirtualMachineAsync(subscriptionId, virtualMachineFormState.VirtualMachine));
             }
             catch (FormCanceledException<VirtualMachineFormState> ex)
             {

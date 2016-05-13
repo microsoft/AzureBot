@@ -11,9 +11,9 @@
         public static IForm<SubscriptionFormState> BuildSubscriptionForm()
         {
             return new FormBuilder<SubscriptionFormState>()
-                .Message("Select the subscription you want to work with")
                 .Field(new FieldReflector<SubscriptionFormState>(nameof(SubscriptionFormState.SubscriptionId))
                 .SetType(null)
+                .SetPrompt(new PromptAttribute("Please select the subscription you want to work with: {||}"))
                 .SetDefine(async (state, field) =>
                {
                    var subscriptions = await (new AzureRepository().ListSubscriptionsAsync());
@@ -31,7 +31,7 @@
         public static IForm<VirtualMachineFormState> BuildVirtualMachinesForm()
         {
             return new FormBuilder<VirtualMachineFormState>()
-                .Field(new FieldReflector<VirtualMachineFormState>(nameof(VirtualMachineFormState.Name))
+                .Field(new FieldReflector<VirtualMachineFormState>(nameof(VirtualMachineFormState.VirtualMachine))
                 .SetType(null)
                 .SetDefine((state, field) =>
                 {
@@ -44,7 +44,7 @@
 
                     return Task.FromResult(true);
                 }))
-               .Confirm("Would you like to start virtual machine {Name}?")
+               .Confirm("Would you like to start virtual machine {VirtualMachine}?")
                .Build();
         }
     }
