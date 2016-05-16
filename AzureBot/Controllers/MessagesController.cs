@@ -59,7 +59,8 @@
         {
             var msg = await message;
 
-            var availableSubscriptions = (await new AzureRepository().ListSubscriptionsAsync())
+            var accessToken = context.PerUserInConversationData.Get<string>(ContextConstants.AuthTokenKey);
+            var availableSubscriptions = (await new AzureRepository(accessToken).ListSubscriptionsAsync())
                                 .ToDictionary(p => p.SubscriptionId, q => q.DisplayName);
 
             var form = new FormDialog<SubscriptionFormState>(

@@ -4,13 +4,30 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Data;
+    using Microsoft.Azure.Management.ResourceManager;
+    using Microsoft.Rest;
     using Models;
 
     public class AzureRepository
     {
+        private string accessToken;
+
+        public AzureRepository(string accessToken)
+        {
+            this.accessToken = accessToken;
+        }
+
         public async Task<IEnumerable<Subscription>> ListSubscriptionsAsync()
         {
-            return await Task.FromResult(MockData.GetSubscriptions());
+            return await IsolatedService.Marshal(async (args) =>
+            {
+                var credentials = new TokenCredentials((string)args[0]);
+                using (var subscriptionClient = new SubscriptionClient(credentials))
+                {
+                    var subscriptions = await subscriptionClient.Subscriptions.ListAsync();
+                    return subscriptions.Select(p => new Subscription { DisplayName = p.DisplayName, SubscriptionId = p.Id }).ToArray();
+                }
+            }, this.accessToken);
         }
 
         public async Task<IEnumerable<VirtualMachine>> ListVirtualMachinesAsync(string subscriptionId)

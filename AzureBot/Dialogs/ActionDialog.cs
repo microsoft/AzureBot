@@ -75,7 +75,8 @@
         public async Task ListSubscriptionsAsync(IDialogContext context, LuisResult result)
         {
             int index = 0;
-            var subscriptions = await new AzureRepository().ListSubscriptionsAsync();
+            var accessToken = context.PerUserInConversationData.Get<string>(ContextConstants.AuthTokenKey);
+            var subscriptions = await new AzureRepository(accessToken).ListSubscriptionsAsync();
 
             var subscriptionsText = subscriptions.Aggregate(
                 string.Empty,
@@ -93,7 +94,8 @@
         [LuisIntent("UseSubscription")]
         public async Task UseSubscriptionAsync(IDialogContext context, LuisResult result)
         {
-            var availableSubscriptions = (await new AzureRepository().ListSubscriptionsAsync())
+            var accessToken = context.PerUserInConversationData.Get<string>(ContextConstants.AuthTokenKey);
+            var availableSubscriptions = (await new AzureRepository(accessToken).ListSubscriptionsAsync())
                                             .ToDictionary(p => p.SubscriptionId, q => q.DisplayName);
 
             var form = new FormDialog<SubscriptionFormState>(
@@ -108,9 +110,10 @@
         [LuisIntent("ListVms")]
         public async Task ListVmsAsync(IDialogContext context, LuisResult result)
         {
+            var accessToken = context.PerUserInConversationData.Get<string>(ContextConstants.AuthTokenKey);
             var subscriptionId = context.PerUserInConversationData.Get<string>(ContextConstants.SubscriptionIdKey);
 
-            var virtualMachines = await new AzureRepository().ListVirtualMachinesAsync(subscriptionId);
+            var virtualMachines = await new AzureRepository(accessToken).ListVirtualMachinesAsync(subscriptionId);
 
             int index = 0;
             var virtualMachinesText = virtualMachines.Aggregate(
@@ -129,8 +132,9 @@
         public async Task StartVmAsync(IDialogContext context, LuisResult result)
         {
             // retrieve available VM names from the current subscription
+            var accessToken = context.PerUserInConversationData.Get<string>(ContextConstants.AuthTokenKey);
             var subscriptionId = context.PerUserInConversationData.Get<string>(ContextConstants.SubscriptionIdKey);
-            var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(subscriptionId))
+            var availableVMs = (await new AzureRepository(accessToken).ListVirtualMachinesAsync(subscriptionId))
                                 .Select(p => p.Name)
                                 .ToArray();
 
@@ -145,8 +149,9 @@
         [LuisIntent("StopVm")]
         public async Task StopVmAsync(IDialogContext context, LuisResult result)
         {
+            var accessToken = context.PerUserInConversationData.Get<string>(ContextConstants.AuthTokenKey);
             var subscriptionId = context.PerUserInConversationData.Get<string>(ContextConstants.SubscriptionIdKey);
-            var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(subscriptionId))
+            var availableVMs = (await new AzureRepository(accessToken).ListVirtualMachinesAsync(subscriptionId))
                                .Select(p => p.Name)
                                .ToArray();
 
@@ -161,8 +166,9 @@
         [LuisIntent("RunRunbook")]
         public async Task RunRunbookAsync(IDialogContext context, LuisResult result)
         {
+            var accessToken = context.PerUserInConversationData.Get<string>(ContextConstants.AuthTokenKey);
             var subscriptionId = context.PerUserInConversationData.Get<string>(ContextConstants.SubscriptionIdKey);
-            var availableAutomationAccounts = (await new AzureRepository().ListAutomationAccountsAsync(subscriptionId)).ToList();
+            var availableAutomationAccounts = (await new AzureRepository(accessToken).ListAutomationAccountsAsync(subscriptionId)).ToList();
 
             var form = new FormDialog<RunBookFormState>(
                 new RunBookFormState(availableAutomationAccounts),
@@ -177,9 +183,10 @@
             try
             {
                 var runBookFormState = await result;
+                var accessToken = context.PerUserInConversationData.Get<string>(ContextConstants.AuthTokenKey);
                 var subscriptionId = context.PerUserInConversationData.Get<string>(ContextConstants.SubscriptionIdKey);
                 await context.PostAsync($"Running the {runBookFormState.RunBookName} runbook.");
-                await new AzureRepository().RunRunBookAsync(subscriptionId, runBookFormState.AutomationAccountName, runBookFormState.RunBookName);
+                await new AzureRepository(accessToken).RunRunBookAsync(subscriptionId, runBookFormState.AutomationAccountName, runBookFormState.RunBookName);
             }
             catch (FormCanceledException<VirtualMachineFormState>)
             {
@@ -194,9 +201,10 @@
             try
             {
                 var virtualMachineFormState = await result;
+                var accessToken = context.PerUserInConversationData.Get<string>(ContextConstants.AuthTokenKey);
                 var subscriptionId = context.PerUserInConversationData.Get<string>(ContextConstants.SubscriptionIdKey);
                 await context.PostAsync($"Starting the {virtualMachineFormState.VirtualMachine} virtual machine.");
-                await new AzureRepository().StartVirtualMachineAsync(subscriptionId, virtualMachineFormState.VirtualMachine);
+                await new AzureRepository(accessToken).StartVirtualMachineAsync(subscriptionId, virtualMachineFormState.VirtualMachine);
             }
             catch (FormCanceledException<VirtualMachineFormState>)
             {
@@ -211,9 +219,10 @@
             try
             {
                 var virtualMachineFormState = await result;
+                var accessToken = context.PerUserInConversationData.Get<string>(ContextConstants.AuthTokenKey);
                 var subscriptionId = context.PerUserInConversationData.Get<string>(ContextConstants.SubscriptionIdKey);
                 await context.PostAsync($"Stopping the {virtualMachineFormState.VirtualMachine} virtual machine.");
-                await new AzureRepository().StartVirtualMachineAsync(subscriptionId, virtualMachineFormState.VirtualMachine);
+                await new AzureRepository(accessToken).StartVirtualMachineAsync(subscriptionId, virtualMachineFormState.VirtualMachine);
             }
             catch (FormCanceledException<VirtualMachineFormState>)
             {
