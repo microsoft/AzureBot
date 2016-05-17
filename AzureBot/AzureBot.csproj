@@ -123,6 +123,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="ContextExtensions.cs" />
     <Compile Include="Controllers\OAuthCallbackController.cs" />
     <Compile Include="Dialogs\ActionDialog.cs" />
     <Compile Include="EntityForms.cs" />

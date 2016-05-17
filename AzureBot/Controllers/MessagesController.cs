@@ -1,6 +1,5 @@
 ﻿namespace AzureBot
 {
-    using System.Linq;
     using System.Threading.Tasks;
     using System.Web.Http;
     using Azure.Management.ResourceManagement;
@@ -59,8 +58,9 @@
         {
             var msg = await message;
 
-            var availableSubscriptions = (await new AzureRepository().ListSubscriptionsAsync())
-                                .ToDictionary(p => p.SubscriptionId, q => q.DisplayName);
+            var accessToken = context.GetAccessToken();
+
+            var availableSubscriptions = await new AzureRepository().ListSubscriptionsAsync(accessToken);
 
             var form = new FormDialog<SubscriptionFormState>(
                 new SubscriptionFormState(availableSubscriptions),
@@ -68,16 +68,15 @@
                 FormOptions.PromptInStart);
 
             return Chain.ContinueWith(form, AzureSubscriptionDialogContinuation);
-
-            // return Chain.ContinueWith<SubscriptionFormState, string>(FormDialog.FromForm(EntityForms.BuildSubscriptionForm, FormOptions.PromptInStart), AzureSubscriptionDialogContinuation);
         }
 
-        private static async Task<IDialog<string>> AzureSubscriptionDialogContinuation(IBotContext context, IAwaitable<SubscriptionFormState> item)
+        private static async Task<IDialog<string>> AzureSubscriptionDialogContinuation(IBotContext context, IAwaitable<SubscriptionFormState> result)
         {
-            var msg = await item;
-            context.PerUserInConversationData.SetValue(ContextConstants.SubscriptionIdKey, msg.SubscriptionId);
+            var subscriptionFormState = await result;
 
-            return Chain.Return(msg.DisplayName);
+            context.StoreSubscriptionId(subscriptionFormState.SubscriptionId);
+
+            return Chain.Return(subscriptionFormState.DisplayName);
         }
 
         private static async Task<IDialog<string>> AzureActionsDialogCallback(IBotContext context, IAwaitable<string> message)

@@ -2,11 +2,12 @@
 {
     using System;
     using System.Collections.Generic;
+    using Azure.Management.Models;
 
     [Serializable]
     public class SubscriptionFormState
     {
-        public SubscriptionFormState(IDictionary<string, string> availableSubscriptions)
+        public SubscriptionFormState(IEnumerable<Subscription> availableSubscriptions)
         {
             this.AvailableSubscriptions = availableSubscriptions;
         }
@@ -15,6 +16,6 @@
 
         public string SubscriptionId { get; set; }
 
-        public IDictionary<string, string> AvailableSubscriptions { get; private set; }
+        public IEnumerable<Subscription> AvailableSubscriptions { get; private set; }
     }
 }

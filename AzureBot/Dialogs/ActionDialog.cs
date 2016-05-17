@@ -11,7 +11,6 @@
     using Microsoft.Bot.Builder.FormFlow;
     using Microsoft.Bot.Builder.Luis;
     using Microsoft.Bot.Builder.Luis.Models;
-    using Microsoft.Bot.Connector;
 
     [LuisModel("c9e598cb-0e5f-48f6-b14a-ebbb390a6fb3", "a7c1c493d0e244e796b83c6785c4be4d")]
     [Serializable]
@@ -75,7 +74,9 @@
         public async Task ListSubscriptionsAsync(IDialogContext context, LuisResult result)
         {
             int index = 0;
-            var subscriptions = await new AzureRepository().ListSubscriptionsAsync();
+            var accessToken = context.GetAccessToken();
+
+            var subscriptions = await new AzureRepository().ListSubscriptionsAsync(accessToken);
 
             var subscriptionsText = subscriptions.Aggregate(
                 string.Empty,
@@ -93,8 +94,9 @@
         [LuisIntent("UseSubscription")]
         public async Task UseSubscriptionAsync(IDialogContext context, LuisResult result)
         {
-            var availableSubscriptions = (await new AzureRepository().ListSubscriptionsAsync())
-                                            .ToDictionary(p => p.SubscriptionId, q => q.DisplayName);
+            var accessToken = context.GetAccessToken();
+
+            var availableSubscriptions = await new AzureRepository().ListSubscriptionsAsync(accessToken);
 
             var form = new FormDialog<SubscriptionFormState>(
                 new SubscriptionFormState(availableSubscriptions),
@@ -108,7 +110,7 @@
         [LuisIntent("ListVms")]
         public async Task ListVmsAsync(IDialogContext context, LuisResult result)
         {
-            var subscriptionId = context.PerUserInConversationData.Get<string>(ContextConstants.SubscriptionIdKey);
+            var subscriptionId = context.GetSubscriptionId();
 
             var virtualMachines = await new AzureRepository().ListVirtualMachinesAsync(subscriptionId);
 
@@ -128,8 +130,8 @@
         [LuisIntent("StartVm")]
         public async Task StartVmAsync(IDialogContext context, LuisResult result)
         {
-            // retrieve available VM names from the current subscription
-            var subscriptionId = context.PerUserInConversationData.Get<string>(ContextConstants.SubscriptionIdKey);
+            var subscriptionId = context.GetSubscriptionId();
+
             var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(subscriptionId))
                                 .Select(p => p.Name)
                                 .ToArray();
@@ -145,7 +147,8 @@
         [LuisIntent("StopVm")]
         public async Task StopVmAsync(IDialogContext context, LuisResult result)
         {
-            var subscriptionId = context.PerUserInConversationData.Get<string>(ContextConstants.SubscriptionIdKey);
+            var subscriptionId = context.GetSubscriptionId();
+
             var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(subscriptionId))
                                .Select(p => p.Name)
                                .ToArray();
@@ -161,7 +164,8 @@
         [LuisIntent("RunRunbook")]
         public async Task RunRunbookAsync(IDialogContext context, LuisResult result)
         {
-            var subscriptionId = context.PerUserInConversationData.Get<string>(ContextConstants.SubscriptionIdKey);
+            var subscriptionId = context.GetSubscriptionId();
+
             var availableAutomationAccounts = (await new AzureRepository().ListAutomationAccountsAsync(subscriptionId)).ToList();
 
             var form = new FormDialog<RunBookFormState>(
@@ -177,7 +181,8 @@
             try
             {
                 var runBookFormState = await result;
-                var subscriptionId = context.PerUserInConversationData.Get<string>(ContextConstants.SubscriptionIdKey);
+                var subscriptionId = context.GetSubscriptionId();
+
                 await context.PostAsync($"Running the {runBookFormState.RunBookName} runbook.");
                 await new AzureRepository().RunRunBookAsync(subscriptionId, runBookFormState.AutomationAccountName, runBookFormState.RunBookName);
             }
@@ -194,7 +199,8 @@
             try
             {
                 var virtualMachineFormState = await result;
-                var subscriptionId = context.PerUserInConversationData.Get<string>(ContextConstants.SubscriptionIdKey);
+                var subscriptionId = context.GetSubscriptionId();
+
                 await context.PostAsync($"Starting the {virtualMachineFormState.VirtualMachine} virtual machine.");
                 await new AzureRepository().StartVirtualMachineAsync(subscriptionId, virtualMachineFormState.VirtualMachine);
             }
@@ -211,7 +217,8 @@
             try
             {
                 var virtualMachineFormState = await result;
-                var subscriptionId = context.PerUserInConversationData.Get<string>(ContextConstants.SubscriptionIdKey);
+                var subscriptionId = context.GetSubscriptionId();
+
                 await context.PostAsync($"Stopping the {virtualMachineFormState.VirtualMachine} virtual machine.");
                 await new AzureRepository().StartVirtualMachineAsync(subscriptionId, virtualMachineFormState.VirtualMachine);
             }
@@ -228,9 +235,9 @@
             try
             {
                 var subscriptionFormState = await result;
-                var subscriptionName = subscriptionFormState.AvailableSubscriptions[subscriptionFormState.SubscriptionId];
-                context.PerUserInConversationData.SetValue(ContextConstants.SubscriptionIdKey, subscriptionFormState.SubscriptionId);
-                await context.PostAsync($"Setting {subscriptionName} as the current subscription.");
+                var selectedSubscription = subscriptionFormState.AvailableSubscriptions.Single(sub => sub.SubscriptionId == subscriptionFormState.SubscriptionId);
+                context.StoreSubscriptionId(subscriptionFormState.SubscriptionId);
+                await context.PostAsync($"Setting {selectedSubscription.DisplayName} as the current subscription.");
             }
             catch (FormCanceledException<SubscriptionFormState>)
             {
