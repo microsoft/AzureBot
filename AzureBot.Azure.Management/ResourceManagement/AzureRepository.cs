@@ -58,14 +58,24 @@
             return await Task.FromResult(MockData.GetAutomationAccounts());
         }
 
-        public async Task<bool> StartVirtualMachineAsync(string subscriptionId, string virtualMachineName)
+        public async Task<bool> StartVirtualMachineAsync(string accessToken, string subscriptionId, string resourceGroupName, string virtualMachineName)
         {
-            return await Task.FromResult(true);
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
+            using (var client = new ComputeManagementClient(credentials))
+            {
+                var status = await client.VirtualMachines.StartAsync(resourceGroupName, virtualMachineName);
+                return status.Status != Microsoft.Azure.Management.Compute.Models.ComputeOperationStatus.Failed;
+            }
         }
 
-        public async Task<bool> StopVirtualMachineAsync(string subscriptionId, string virtualMachineName)
+        public async Task<bool> StopVirtualMachineAsync(string accessToken, string subscriptionId, string resourceGroupName, string virtualMachineName)
         {
-            return await Task.FromResult(true);
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
+            using (var client = new ComputeManagementClient(credentials))
+            {
+                var status = await client.VirtualMachines.PowerOffAsync(resourceGroupName, virtualMachineName);
+                return status.Status != Microsoft.Azure.Management.Compute.Models.ComputeOperationStatus.Failed;
+            }
         }
 
         public async Task<bool> RunRunBookAsync(string subscriptionId, string automationAccountName, string runBookName)

@@ -198,10 +198,15 @@
             try
             {
                 var virtualMachineFormState = await result;
-                var subscriptionId = context.GetSubscriptionId();
 
                 await context.PostAsync($"Starting the {virtualMachineFormState.VirtualMachine} virtual machine.");
-                await new AzureRepository().StartVirtualMachineAsync(subscriptionId, virtualMachineFormState.VirtualMachine);
+
+                var accessToken = context.GetAccessToken();
+                await new AzureRepository().StartVirtualMachineAsync(
+                    accessToken,
+                    virtualMachineFormState.SelectedVM.SubscriptionId,
+                    virtualMachineFormState.SelectedVM.ResourceGroup,
+                    virtualMachineFormState.SelectedVM.Name);
             }
             catch (FormCanceledException<VirtualMachineFormState>)
             {
@@ -216,10 +221,16 @@
             try
             {
                 var virtualMachineFormState = await result;
-                var subscriptionId = context.GetSubscriptionId();
 
                 await context.PostAsync($"Stopping the {virtualMachineFormState.VirtualMachine} virtual machine.");
-                await new AzureRepository().StartVirtualMachineAsync(subscriptionId, virtualMachineFormState.VirtualMachine);
+
+                var selectedVM = virtualMachineFormState.SelectedVM;
+                var accessToken = context.GetAccessToken();
+                await new AzureRepository().StopVirtualMachineAsync(
+                    accessToken, 
+                    virtualMachineFormState.SelectedVM.SubscriptionId,
+                    virtualMachineFormState.SelectedVM.ResourceGroup,
+                    virtualMachineFormState.SelectedVM.Name);
             }
             catch (FormCanceledException<VirtualMachineFormState>)
             {
