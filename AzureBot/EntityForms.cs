@@ -10,14 +10,14 @@
     {
         public static IForm<SubscriptionFormState> BuildSubscriptionForm()
         {
-            var prompt = new PromptAttribute("Please select the subscription you want to work with: {||}")
+            var prompt = new PromptAttribute()
             {
                 ChoiceStyle = ChoiceStyleOptions.PerLine
             };
             return new FormBuilder<SubscriptionFormState>()
                 .Field(new FieldReflector<SubscriptionFormState>(nameof(SubscriptionFormState.SubscriptionId))
                 .SetType(null)
-                .SetPrompt(prompt)
+                .SetPrompt(PerLinePromptAttribute("Please select the subscription you want to work with: {||}"))
                 .SetDefine((state, field) =>
                 {
                     foreach (var sub in state.AvailableSubscriptions)
@@ -37,7 +37,7 @@
                 .Field(nameof(VirtualMachineFormState.Operation), (state) => false)
                 .Field(new FieldReflector<VirtualMachineFormState>(nameof(VirtualMachineFormState.VirtualMachine))
                 .SetType(null)
-                .SetPrompt(new PromptAttribute("Please select the virtual machine you want to {Operation}: {||}"))
+                .SetPrompt(PerLinePromptAttribute("Please select the virtual machine you want to {Operation}: {||}"))
                 .SetDefine((state, field) =>
                 {
                     foreach (var vm in state.AvailableVMs)
@@ -58,7 +58,7 @@
             return new FormBuilder<RunBookFormState>()
                 .Field(new FieldReflector<RunBookFormState>(nameof(RunBookFormState.AutomationAccountName))
                     .SetType(null)
-                    .SetPrompt(new PromptAttribute("Please select the automation account you want to use: {||}"))
+                    .SetPrompt(PerLinePromptAttribute("Please select the automation account you want to use: {||}"))
                     .SetDefine((state, field) =>
                     {
                         foreach (var account in state.AvailableAutomationAccounts)
@@ -72,7 +72,7 @@
                     }))
                 .Field(new FieldReflector<RunBookFormState>(nameof(RunBookFormState.RunBookName))
                     .SetType(null)
-                    .SetPrompt(new PromptAttribute("Please select the runbook you want to run: {||}"))
+                    .SetPrompt(PerLinePromptAttribute("Please select the runbook you want to run: {||}"))
                     .SetActive(state => !string.IsNullOrWhiteSpace(state.AutomationAccountName))
                     .SetDefine((state, field) =>
                     {
@@ -93,6 +93,14 @@
                     }))
                .Confirm("Would you like to run runbook '{RunBookName}'?")
                .Build();
+        }
+
+        private static PromptAttribute PerLinePromptAttribute(string pattern)
+        {
+            return new PromptAttribute(pattern)
+            {
+                ChoiceStyle = ChoiceStyleOptions.PerLine
+            };
         }
     }
 }
