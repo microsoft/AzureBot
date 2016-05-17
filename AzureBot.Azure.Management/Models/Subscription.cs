@@ -1,9 +1,18 @@
 ﻿namespace AzureBot.Azure.Management.Models
 {
+    using System;
+
+    [Serializable]
     public class Subscription
     {
-        public string DisplayName { get; set; }
+        public Subscription(string subscriptionId, string displayName)
+        {
+            this.SubscriptionId = subscriptionId;
+            this.DisplayName = displayName;
+        }
 
-        public string SubscriptionId { get; set; }
+        public string DisplayName { get; private set; }
+
+        public string SubscriptionId { get; private set; }
     }
 }

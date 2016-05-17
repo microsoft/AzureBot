@@ -4,13 +4,26 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Data;
+    using Microsoft.Azure;
+    using Microsoft.Azure.Subscriptions;
     using Models;
 
     public class AzureRepository
     {
-        public async Task<IEnumerable<Subscription>> ListSubscriptionsAsync()
+        public async Task<IEnumerable<Subscription>> ListSubscriptionsAsync(string accessToken)
         {
-            return await Task.FromResult(MockData.GetSubscriptions());
+            TokenCloudCredentials credentials = new TokenCloudCredentials(accessToken);
+
+            IEnumerable<Subscription> subscriptions = new List<Subscription>();
+
+            using (SubscriptionClient client = new SubscriptionClient(credentials))
+            {
+                var result = await client.Subscriptions.ListAsync();
+
+                subscriptions = result.Subscriptions.Select(sub => new Subscription(sub.SubscriptionId, sub.DisplayName)).ToList();
+            }
+
+            return subscriptions;
         }
 
         public async Task<IEnumerable<VirtualMachine>> ListVirtualMachinesAsync(string subscriptionId)

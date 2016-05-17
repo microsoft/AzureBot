@@ -20,8 +20,8 @@
                 {
                     foreach (var sub in state.AvailableSubscriptions)
                     {
-                        field.AddDescription(sub.Key, sub.Value)
-                            .AddTerms(sub.Key, sub.Value);
+                        field.AddDescription(sub.SubscriptionId, sub.DisplayName)
+                            .AddTerms(sub.SubscriptionId, sub.DisplayName);
                     }
 
                     return Task.FromResult(true);
