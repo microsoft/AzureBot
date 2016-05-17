@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Data;
+    using Microsoft.Azure.Management.Compute;
     using Microsoft.Azure.Management.ResourceManager;
     using Microsoft.Rest;
     using Models;
@@ -32,7 +33,16 @@
 
         public async Task<IEnumerable<VirtualMachine>> ListVirtualMachinesAsync(string subscriptionId)
         {
-            return await Task.FromResult(MockData.GetVirtualMachines().Where(p => p.SubscriptionId == subscriptionId));
+            return await IsolatedService.Marshal(async (args) =>
+            {
+                var credentials = new TokenCredentials((string)args[0]);
+                using (var client = new ComputeManagementClient(credentials))
+                {
+                    client.SubscriptionId = (string)args[1];
+                    var virtualMachines = await client.VirtualMachines.ListAllAsync();
+                    return virtualMachines.Select(p => new VirtualMachine { SubscriptionId = p.Id, Name = p.Name }).ToArray();
+                }
+            }, this.accessToken, subscriptionId);
         }
 
         public async Task<IEnumerable<AutomationAccount>> ListAutomationAccountsAsync(string subscriptionId)
