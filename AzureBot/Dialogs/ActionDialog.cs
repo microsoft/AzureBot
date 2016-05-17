@@ -11,7 +11,6 @@
     using Microsoft.Bot.Builder.FormFlow;
     using Microsoft.Bot.Builder.Luis;
     using Microsoft.Bot.Builder.Luis.Models;
-    using Microsoft.Bot.Connector;
 
     [LuisModel("c9e598cb-0e5f-48f6-b14a-ebbb390a6fb3", "a7c1c493d0e244e796b83c6785c4be4d")]
     [Serializable]

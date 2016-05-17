@@ -1,7 +1,5 @@
 ﻿namespace AzureBot
 {
-    using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using FormTemplates;
@@ -12,10 +10,14 @@
     {
         public static IForm<SubscriptionFormState> BuildSubscriptionForm()
         {
+            var prompt = new PromptAttribute("Please select the subscription you want to work with: {||}")
+            {
+                ChoiceStyle = ChoiceStyleOptions.PerLine
+            };
             return new FormBuilder<SubscriptionFormState>()
                 .Field(new FieldReflector<SubscriptionFormState>(nameof(SubscriptionFormState.SubscriptionId))
                 .SetType(null)
-                .SetPrompt(new PromptAttribute("Please select the subscription you want to work with: {||}"))
+                .SetPrompt(prompt)
                 .SetDefine((state, field) =>
                 {
                     foreach (var sub in state.AvailableSubscriptions)

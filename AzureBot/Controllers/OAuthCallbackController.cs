@@ -1,16 +1,13 @@
 ﻿namespace AzureBot.Controllers
 {
     using System;
-    using System.Configuration;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
-    using Autofac;
     using Helpers;
     using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Builder.Dialogs.Internals;
-    using Microsoft.Bot.Connector;
 
     public class OAuthCallbackController : ApiController
     {

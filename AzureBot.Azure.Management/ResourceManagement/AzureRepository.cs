@@ -4,15 +4,15 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Data;
-    using Microsoft.Azure;
     using Microsoft.Azure.Subscriptions;
     using Models;
+    using TokenCredentials = Microsoft.Azure.TokenCloudCredentials;
 
     public class AzureRepository
     {
         public async Task<IEnumerable<Subscription>> ListSubscriptionsAsync(string accessToken)
         {
-            TokenCloudCredentials credentials = new TokenCloudCredentials(accessToken);
+            var credentials = new TokenCredentials(accessToken);
 
             IEnumerable<Subscription> subscriptions = new List<Subscription>();
 
@@ -20,7 +20,7 @@
             {
                 var result = await client.Subscriptions.ListAsync();
 
-                subscriptions = result.Subscriptions.Select(sub => new Subscription(sub.SubscriptionId, sub.DisplayName)).ToList();
+                subscriptions = result.Subscriptions.Select(sub => new Subscription { SubscriptionId= sub.SubscriptionId, DisplayName= sub.DisplayName }).ToList();
             }
 
             return subscriptions;
