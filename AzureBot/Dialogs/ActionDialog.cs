@@ -133,7 +133,6 @@
             var subscriptionId = context.GetSubscriptionId();
 
             var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId))
-                                .Select(p => p.Name)
                                 .ToArray();
 
             var form = new FormDialog<VirtualMachineFormState>(
@@ -151,7 +150,6 @@
             var subscriptionId = context.GetSubscriptionId();
 
             var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId))
-                               .Select(p => p.Name)
                                .ToArray();
 
             var form = new FormDialog<VirtualMachineFormState>(

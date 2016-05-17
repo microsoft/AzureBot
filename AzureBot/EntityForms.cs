@@ -43,8 +43,8 @@
                     foreach (var vm in state.AvailableVMs)
                     {
                         field
-                            .AddDescription(vm, vm)
-                            .AddTerms(vm, vm);
+                            .AddDescription(vm.Name, vm.Name)
+                            .AddTerms(vm.Name, vm.Name);
                     }
 
                     return Task.FromResult(true);
