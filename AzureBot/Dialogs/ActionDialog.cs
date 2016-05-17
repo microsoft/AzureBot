@@ -110,18 +110,19 @@
         [LuisIntent("ListVms")]
         public async Task ListVmsAsync(IDialogContext context, LuisResult result)
         {
+            var accessToken = context.GetAccessToken();
             var subscriptionId = context.GetSubscriptionId();
 
-            var virtualMachines = await new AzureRepository().ListVirtualMachinesAsync(subscriptionId);
+            var virtualMachines = await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId);
 
             int index = 0;
             var virtualMachinesText = virtualMachines.Aggregate(
                 string.Empty,
                 (current, next) =>
-                    {
-                        index++;
-                        return current += $"\r\n{index}. {next.Name}";
-                    });
+                {
+                    index++;
+                    return current += $"\r\n{index}. {next.Name}";
+                });
 
             await context.PostAsync($"Available VMs are: {virtualMachinesText}");
             context.Wait(this.MessageReceived);
@@ -130,9 +131,10 @@
         [LuisIntent("StartVm")]
         public async Task StartVmAsync(IDialogContext context, LuisResult result)
         {
+            var accessToken = context.GetAccessToken();
             var subscriptionId = context.GetSubscriptionId();
 
-            var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(subscriptionId))
+            var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId))
                                 .Select(p => p.Name)
                                 .ToArray();
 
@@ -147,9 +149,10 @@
         [LuisIntent("StopVm")]
         public async Task StopVmAsync(IDialogContext context, LuisResult result)
         {
+            var accessToken = context.GetAccessToken();
             var subscriptionId = context.GetSubscriptionId();
 
-            var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(subscriptionId))
+            var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId))
                                .Select(p => p.Name)
                                .ToArray();
 

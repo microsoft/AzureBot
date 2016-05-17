@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Data;
+    using Microsoft.Azure.Management.Compute;
     using Microsoft.Azure.Subscriptions;
     using Models;
     using TokenCredentials = Microsoft.Azure.TokenCloudCredentials;
@@ -26,9 +27,14 @@
             return subscriptions;
         }
 
-        public async Task<IEnumerable<VirtualMachine>> ListVirtualMachinesAsync(string subscriptionId)
+        public async Task<IEnumerable<VirtualMachine>> ListVirtualMachinesAsync(string accessToken, string subscriptionId)
         {
-            return await Task.FromResult(MockData.GetVirtualMachines().Where(p => p.SubscriptionId == subscriptionId));
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
+            using (var client = new ComputeManagementClient(credentials))
+            {
+                var vmList = await client.VirtualMachines.ListAllAsync(null);
+                return vmList.VirtualMachines.Select((vm) => new VirtualMachine { SubscriptionId = subscriptionId, Name = vm.Name }).ToArray();
+            }
         }
 
         public async Task<IEnumerable<AutomationAccount>> ListAutomationAccountsAsync(string subscriptionId)
