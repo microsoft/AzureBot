@@ -115,16 +115,14 @@
 
             var virtualMachines = await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId);
 
-            int index = 0;
             var virtualMachinesText = virtualMachines.Aggregate(
                 string.Empty,
                 (current, next) =>
-                {
-                    index++;
-                    return current += $"\r\n{index}. {next.Name}";
-                });
+                    {
+                        return current += $"\r\n• {next.Name} ({next.Status})";
+                    });
 
-            await context.PostAsync($"Available VMs are: {virtualMachinesText}");
+            await context.PostAsync($"Available VMs are:\r\n {virtualMachinesText}");
             context.Wait(this.MessageReceived);
         }
 

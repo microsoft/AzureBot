@@ -33,7 +33,23 @@
             using (var client = new ComputeManagementClient(credentials))
             {
                 var vmList = await client.VirtualMachines.ListAllAsync(null);
-                return vmList.VirtualMachines.Select((vm) => new VirtualMachine { SubscriptionId = subscriptionId, Name = vm.Name }).ToArray();
+                var all = vmList.VirtualMachines.Select(async (vm) =>
+                {
+                    var segments = vm.Id.Split('/');
+                    var resourceGroupName = segments.SkipWhile(segment => segment != "resourceGroups").ElementAtOrDefault(1);
+                    var vmName = segments.Last();
+                    var response = await client.VirtualMachines.GetWithInstanceViewAsync(resourceGroupName, vmName);
+                    var vmInfo = response.VirtualMachine;
+                    var vmStatus = vmInfo.InstanceView.Statuses.Where(p => p.Code.StartsWith("PowerState/")).FirstOrDefault();
+                    return new VirtualMachine {
+                        SubscriptionId = subscriptionId,
+                        ResourceGroup = resourceGroupName,
+                        Name = vmInfo.Name,
+                        Status = vmStatus?.DisplayStatus ?? "NA"
+                    };
+                });
+
+                return await Task.WhenAll(all.ToArray());
             }
         }
 
