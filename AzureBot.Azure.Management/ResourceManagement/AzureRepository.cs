@@ -22,10 +22,10 @@
             return await IsolatedService.Marshal(async (args) =>
             {
                 var credentials = new TokenCredentials((string)args[0]);
-                using (var subscriptionClient = new SubscriptionClient(credentials))
+                using (var client = new SubscriptionClient(credentials))
                 {
-                    var subscriptions = await subscriptionClient.Subscriptions.ListAsync();
-                    return subscriptions.Select(p => new Subscription { DisplayName = p.DisplayName, SubscriptionId = p.Id }).ToArray();
+                    var subscriptions = await client.Subscriptions.ListAsync();
+                    return subscriptions.Select(p => new Subscription { DisplayName = p.DisplayName, SubscriptionId = p.SubscriptionId }).ToArray();
                 }
             }, this.accessToken);
         }
