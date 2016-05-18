@@ -1,6 +1,7 @@
 ﻿namespace AzureBot.Azure.Management.Models
 {
     using System;
+    using System.Collections.Generic;
 
     [Serializable]
     public class AutomationAccount
@@ -9,6 +10,6 @@
 
         public string AutomationAccountId { get; set; }
 
-        public RunBook[] RunBooks { get; set; }
+        public IEnumerable<RunBook> RunBooks { get; set; }
     }
 }
