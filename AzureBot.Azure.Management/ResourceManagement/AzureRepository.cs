@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using Data;
     using Microsoft.Azure.Management.Automation;
+    using Microsoft.Azure.Management.Compute;
     using Microsoft.Azure.Subscriptions;
     using Models;
     using TokenCredentials = Microsoft.Azure.TokenCloudCredentials;
@@ -26,9 +27,28 @@
             return subscriptions;
         }
 
-        public async Task<IEnumerable<VirtualMachine>> ListVirtualMachinesAsync(string subscriptionId)
+        public async Task<IEnumerable<VirtualMachine>> ListVirtualMachinesAsync(string accessToken, string subscriptionId)
         {
-            return await Task.FromResult(MockData.GetVirtualMachines().Where(p => p.SubscriptionId == subscriptionId));
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
+            using (var client = new ComputeManagementClient(credentials))
+            {
+                var virtualMachinesResult = await client.VirtualMachines.ListAllAsync(null);
+                var all = virtualMachinesResult.VirtualMachines.Select(async (vm) =>
+                {
+                    var resourceGroupName = GetResourceGroup(vm.Id);
+                    var response = await client.VirtualMachines.GetWithInstanceViewAsync(resourceGroupName, vm.Name);
+                    var vmStatus = response.VirtualMachine.InstanceView.Statuses.Where(p => p.Code.StartsWith("PowerState/")).FirstOrDefault();
+                    return new VirtualMachine
+                    {
+                        SubscriptionId = subscriptionId,
+                        ResourceGroup = resourceGroupName,
+                        Name = vm.Name,
+                        Status = vmStatus?.DisplayStatus ?? "NA"
+                    };
+                });
+
+                return await Task.WhenAll(all.ToArray());
+            }
         }
 
         public async Task<IEnumerable<AutomationAccount>> ListAutomationAccountsAsync(string accessToken, string subscriptionId)
@@ -49,7 +69,7 @@
                             RunBooks = await this.ListAutomationRunBooks(accessToken, subscriptionId, GetResourceGroup(account.Id), account.Name)
                         }).ToList());
             }
-
+            
             return automationAccounts;
         }
 
@@ -69,14 +89,24 @@
             return automationRunBooks;
         }
 
-        public async Task<bool> StartVirtualMachineAsync(string subscriptionId, string virtualMachineName)
+        public async Task<bool> StartVirtualMachineAsync(string accessToken, string subscriptionId, string resourceGroupName, string virtualMachineName)
         {
-            return await Task.FromResult(true);
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
+            using (var client = new ComputeManagementClient(credentials))
+            {
+                var status = await client.VirtualMachines.StartAsync(resourceGroupName, virtualMachineName);
+                return status.Status != Microsoft.Azure.Management.Compute.Models.ComputeOperationStatus.Failed;
+            }
         }
 
-        public async Task<bool> StopVirtualMachineAsync(string subscriptionId, string virtualMachineName)
+        public async Task<bool> StopVirtualMachineAsync(string accessToken, string subscriptionId, string resourceGroupName, string virtualMachineName)
         {
-            return await Task.FromResult(true);
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
+            using (var client = new ComputeManagementClient(credentials))
+            {
+                var status = await client.VirtualMachines.PowerOffAsync(resourceGroupName, virtualMachineName);
+                return status.Status != Microsoft.Azure.Management.Compute.Models.ComputeOperationStatus.Failed;
+            }
         }
 
         public async Task<bool> RunRunBookAsync(string subscriptionId, string automationAccountName, string runBookName)
@@ -89,6 +119,6 @@
             var segments = id.Split('/');
             var resourceGroupName = segments.SkipWhile(segment => segment != "resourceGroups").ElementAtOrDefault(1);
             return resourceGroupName;
-        }
+    }
     }
 }

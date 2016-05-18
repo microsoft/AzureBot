@@ -110,30 +110,29 @@
         [LuisIntent("ListVms")]
         public async Task ListVmsAsync(IDialogContext context, LuisResult result)
         {
+            var accessToken = context.GetAccessToken();
             var subscriptionId = context.GetSubscriptionId();
 
-            var virtualMachines = await new AzureRepository().ListVirtualMachinesAsync(subscriptionId);
+            var virtualMachines = await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId);
 
-            int index = 0;
             var virtualMachinesText = virtualMachines.Aggregate(
                 string.Empty,
                 (current, next) =>
                     {
-                        index++;
-                        return current += $"\r\n{index}. {next.Name}";
+                        return current += $"\r\n• {next.Name} ({next.Status})";
                     });
 
-            await context.PostAsync($"Available VMs are: {virtualMachinesText}");
+            await context.PostAsync($"Available VMs are:\r\n {virtualMachinesText}");
             context.Wait(this.MessageReceived);
         }
 
         [LuisIntent("StartVm")]
         public async Task StartVmAsync(IDialogContext context, LuisResult result)
         {
+            var accessToken = context.GetAccessToken();
             var subscriptionId = context.GetSubscriptionId();
 
-            var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(subscriptionId))
-                                .Select(p => p.Name)
+            var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId))
                                 .ToArray();
 
             var form = new FormDialog<VirtualMachineFormState>(
@@ -147,10 +146,10 @@
         [LuisIntent("StopVm")]
         public async Task StopVmAsync(IDialogContext context, LuisResult result)
         {
+            var accessToken = context.GetAccessToken();
             var subscriptionId = context.GetSubscriptionId();
 
-            var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(subscriptionId))
-                               .Select(p => p.Name)
+            var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId))
                                .ToArray();
 
             var form = new FormDialog<VirtualMachineFormState>(
@@ -200,10 +199,15 @@
             try
             {
                 var virtualMachineFormState = await result;
-                var subscriptionId = context.GetSubscriptionId();
 
                 await context.PostAsync($"Starting the {virtualMachineFormState.VirtualMachine} virtual machine.");
-                await new AzureRepository().StartVirtualMachineAsync(subscriptionId, virtualMachineFormState.VirtualMachine);
+
+                var accessToken = context.GetAccessToken();
+                await new AzureRepository().StartVirtualMachineAsync(
+                    accessToken,
+                    virtualMachineFormState.SelectedVM.SubscriptionId,
+                    virtualMachineFormState.SelectedVM.ResourceGroup,
+                    virtualMachineFormState.SelectedVM.Name);
             }
             catch (FormCanceledException<VirtualMachineFormState>)
             {
@@ -218,10 +222,16 @@
             try
             {
                 var virtualMachineFormState = await result;
-                var subscriptionId = context.GetSubscriptionId();
 
                 await context.PostAsync($"Stopping the {virtualMachineFormState.VirtualMachine} virtual machine.");
-                await new AzureRepository().StartVirtualMachineAsync(subscriptionId, virtualMachineFormState.VirtualMachine);
+
+                var selectedVM = virtualMachineFormState.SelectedVM;
+                var accessToken = context.GetAccessToken();
+                await new AzureRepository().StopVirtualMachineAsync(
+                    accessToken, 
+                    virtualMachineFormState.SelectedVM.SubscriptionId,
+                    virtualMachineFormState.SelectedVM.ResourceGroup,
+                    virtualMachineFormState.SelectedVM.Name);
             }
             catch (FormCanceledException<VirtualMachineFormState>)
             {
