@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Data;
+    using Microsoft.Azure.Management.Automation;
     using Microsoft.Azure.Management.Compute;
     using Microsoft.Azure.Subscriptions;
     using Models;
@@ -14,14 +15,13 @@
         public async Task<IEnumerable<Subscription>> ListSubscriptionsAsync(string accessToken)
         {
             var credentials = new TokenCredentials(accessToken);
-
             IEnumerable<Subscription> subscriptions = new List<Subscription>();
 
             using (SubscriptionClient client = new SubscriptionClient(credentials))
             {
                 var result = await client.Subscriptions.ListAsync();
 
-                subscriptions = result.Subscriptions.Select(sub => new Subscription { SubscriptionId= sub.SubscriptionId, DisplayName= sub.DisplayName }).ToList();
+                subscriptions = result.Subscriptions.Select(sub => new Subscription { SubscriptionId = sub.SubscriptionId, DisplayName = sub.DisplayName }).ToList();
             }
 
             return subscriptions;
@@ -32,19 +32,17 @@
             var credentials = new TokenCredentials(subscriptionId, accessToken);
             using (var client = new ComputeManagementClient(credentials))
             {
-                var vmList = await client.VirtualMachines.ListAllAsync(null);
-                var all = vmList.VirtualMachines.Select(async (vm) =>
+                var virtualMachinesResult = await client.VirtualMachines.ListAllAsync(null);
+                var all = virtualMachinesResult.VirtualMachines.Select(async (vm) =>
                 {
-                    var segments = vm.Id.Split('/');
-                    var resourceGroupName = segments.SkipWhile(segment => segment != "resourceGroups").ElementAtOrDefault(1);
-                    var vmName = segments.Last();
-                    var response = await client.VirtualMachines.GetWithInstanceViewAsync(resourceGroupName, vmName);
-                    var vmInfo = response.VirtualMachine;
-                    var vmStatus = vmInfo.InstanceView.Statuses.Where(p => p.Code.StartsWith("PowerState/")).FirstOrDefault();
-                    return new VirtualMachine {
+                    var resourceGroupName = GetResourceGroup(vm.Id);
+                    var response = await client.VirtualMachines.GetWithInstanceViewAsync(resourceGroupName, vm.Name);
+                    var vmStatus = response.VirtualMachine.InstanceView.Statuses.Where(p => p.Code.StartsWith("PowerState/")).FirstOrDefault();
+                    return new VirtualMachine
+                    {
                         SubscriptionId = subscriptionId,
                         ResourceGroup = resourceGroupName,
-                        Name = vmInfo.Name,
+                        Name = vm.Name,
                         Status = vmStatus?.DisplayStatus ?? "NA"
                     };
                 });
@@ -53,9 +51,42 @@
             }
         }
 
-        public async Task<IEnumerable<AutomationAccount>> ListAutomationAccountsAsync(string subscriptionId)
+        public async Task<IEnumerable<AutomationAccount>> ListAutomationAccountsAsync(string accessToken, string subscriptionId)
         {
-            return await Task.FromResult(MockData.GetAutomationAccounts());
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
+            IEnumerable<AutomationAccount> automationAccounts = new List<AutomationAccount>();
+
+            using (var automationClient = new AutomationManagementClient(credentials))
+            {
+                var automationAccountsResult = await automationClient.AutomationAccounts.ListAsync(null);
+
+                automationAccounts = await Task.WhenAll(
+                    automationAccountsResult.AutomationAccounts.Select(
+                        async account => new AutomationAccount
+                        {
+                            AutomationAccountId = account.Id,
+                            AutomationAccountName = account.Name,
+                            RunBooks = await this.ListAutomationRunBooks(accessToken, subscriptionId, GetResourceGroup(account.Id), account.Name)
+                        }).ToList());
+            }
+            
+            return automationAccounts;
+        }
+
+        public async Task<IEnumerable<RunBook>> ListAutomationRunBooks(string accessToken, string subscriptionId, string resourceGroupName, string automationAccountName)
+        {
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
+            IEnumerable<RunBook> automationRunBooks = new List<RunBook>();
+
+            using (var automationClient = new AutomationManagementClient(credentials))
+            {
+                var automationRunBooksResult = await automationClient.Runbooks.ListAsync(resourceGroupName, automationAccountName);
+
+                automationRunBooks = automationRunBooksResult.Runbooks.Select(
+                    runBook => new RunBook { RunBookId = runBook.Id, RunBookName = runBook.Name }).ToList();
+            }
+
+            return automationRunBooks;
         }
 
         public async Task<bool> StartVirtualMachineAsync(string accessToken, string subscriptionId, string resourceGroupName, string virtualMachineName)
@@ -82,5 +113,12 @@
         {
             return await Task.FromResult(true);
         }
+
+        private static string GetResourceGroup(string id)
+        {
+            var segments = id.Split('/');
+            var resourceGroupName = segments.SkipWhile(segment => segment != "resourceGroups").ElementAtOrDefault(1);
+            return resourceGroupName;
+    }
     }
 }

@@ -163,9 +163,10 @@
         [LuisIntent("RunRunbook")]
         public async Task RunRunbookAsync(IDialogContext context, LuisResult result)
         {
+            var accessToken = context.GetAccessToken();
             var subscriptionId = context.GetSubscriptionId();
 
-            var availableAutomationAccounts = (await new AzureRepository().ListAutomationAccountsAsync(subscriptionId)).ToList();
+            var availableAutomationAccounts = (await new AzureRepository().ListAutomationAccountsAsync(accessToken, subscriptionId)).ToList();
 
             var form = new FormDialog<RunBookFormState>(
                 new RunBookFormState(availableAutomationAccounts),
