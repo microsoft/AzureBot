@@ -117,7 +117,7 @@
                             Name = runBookName
                         }));
                 var jobCreateResult = await client.Jobs.CreateAsync(resourceGroupName, automationAccountName, parameters);
-                return jobCreateResult.StatusCode == System.Net.HttpStatusCode.OK;
+                return jobCreateResult.StatusCode == System.Net.HttpStatusCode.Created;
             }
         }
 
