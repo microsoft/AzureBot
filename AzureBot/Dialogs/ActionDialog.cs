@@ -180,11 +180,17 @@
         {
             try
             {
+                var accessToken = context.GetAccessToken();
                 var runBookFormState = await result;
-                var subscriptionId = context.GetSubscriptionId();
 
-                await context.PostAsync($"Running the {runBookFormState.RunBookName} runbook.");
-                await new AzureRepository().RunRunBookAsync(subscriptionId, runBookFormState.AutomationAccountName, runBookFormState.RunBookName);
+                await context.PostAsync($"Running the '{runBookFormState.RunBookName}' runbook in '{runBookFormState.AutomationAccountName}' automation account.");
+
+                await new AzureRepository().StartRunBookAsync(
+                    accessToken,
+                    runBookFormState.SelectedAutomationAccount.SubscriptionId, 
+                    runBookFormState.SelectedAutomationAccount.ResourceGroup,
+                    runBookFormState.SelectedAutomationAccount.AutomationAccountName, 
+                    runBookFormState.RunBookName);
             }
             catch (FormCanceledException<VirtualMachineFormState>)
             {
