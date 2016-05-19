@@ -142,7 +142,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
-    <Content Include="LuisModel\Azure Bot.json" />
+    <Content Include="LuisModel\AzureBot.json" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
