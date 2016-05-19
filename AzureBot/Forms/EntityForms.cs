@@ -1,9 +1,7 @@
-﻿namespace AzureBot
+﻿namespace AzureBot.Forms
 {
     using System.Linq;
     using System.Threading.Tasks;
-    using FormTemplates;
-    using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Builder.FormFlow;
     using Microsoft.Bot.Builder.FormFlow.Advanced;
 
@@ -96,18 +94,13 @@
                .Build();
         }
 
-        public static IForm<RunbookFormState> BuildRunbookParametersForm(RunbookFormState state)
+        public static IForm<RunbookParameterFormState> BuildRunbookParametersForm()
         {
-            var paramatersFormBuilder = new FormBuilder<RunbookFormState>()
-                .Confirm("The Runbook you selected has parameters. Would you like to enter their values?");
-
-            foreach (var parameter in state.SelectedRunbook.RunbookParameters)
-            {
-                paramatersFormBuilder.Field(new FieldReflector<RunbookFormState>(parameter.ParameterName)
-                    .SetPrompt(new PromptAttribute("Please enter the value for parameter: " + parameter.ParameterName)));
-            }
-
-            return paramatersFormBuilder.Build();
+            return new FormBuilder<RunbookParameterFormState>()
+                .Field(nameof(RunbookParameterFormState.ParameterName), (state) => false)
+                .Field(new FieldReflector<RunbookParameterFormState>(nameof(RunbookParameterFormState.ParameterValue))
+                .SetPrompt(new PromptAttribute("Please enter the value for parameter: {ParameterName}")))
+                .Build();
         }
 
         private static PromptAttribute PerLinePromptAttribute(string pattern)

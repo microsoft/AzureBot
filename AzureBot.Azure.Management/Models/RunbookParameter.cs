@@ -14,5 +14,7 @@
         public int Position { get; set; }
 
         public string Type { get; set; }
+
+        public string ParameterValue { get; set; }
     }
 }

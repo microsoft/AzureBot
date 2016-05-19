@@ -1,4 +1,4 @@
-﻿namespace AzureBot.FormTemplates
+﻿namespace AzureBot.Forms
 {
     using System;
 

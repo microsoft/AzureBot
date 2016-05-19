@@ -136,7 +136,13 @@
             }
         }
 
-        public async Task<bool> StartRunbookAsync(string accessToken, string subscriptionId, string resourceGroupName, string automationAccountName, string runbookName)
+        public async Task<bool> StartRunbookAsync(
+            string accessToken, 
+            string subscriptionId, 
+            string resourceGroupName, 
+            string automationAccountName, 
+            string runbookName, 
+            IDictionary<string, string> runbookParameters = null)
         {
             var credentials = new TokenCredentials(subscriptionId, accessToken);
 
@@ -147,7 +153,10 @@
                         new AzureModels.RunbookAssociationProperty
                         {
                             Name = runbookName
-                        }));
+                        })
+                    {
+                        Parameters = runbookParameters
+                    });
                 var jobCreateResult = await client.Jobs.CreateAsync(resourceGroupName, automationAccountName, parameters).ConfigureAwait(false);
                 return jobCreateResult.StatusCode == System.Net.HttpStatusCode.Created;
             }

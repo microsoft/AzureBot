@@ -1,4 +1,4 @@
-﻿namespace AzureBot.FormTemplates
+﻿namespace AzureBot.Forms
 {
     using System;
     using System.Collections.Generic;
@@ -11,13 +11,14 @@
         public RunbookFormState(IEnumerable<AutomationAccount> availableAutomationAccounts)
         {
             this.AvailableAutomationAccounts = availableAutomationAccounts;
+            this.RunbookParameters = new List<RunbookParameterFormState>();
         }
 
         public string AutomationAccountName { get; set; }
 
         public string RunbookName { get; set; }
 
-        public IEnumerable<RunbookParameter> AvailableRunbookParameters { get; set; }
+        public IList<RunbookParameterFormState> RunbookParameters { get; set; }
 
         public IEnumerable<AutomationAccount> AvailableAutomationAccounts { get; private set; }
 
