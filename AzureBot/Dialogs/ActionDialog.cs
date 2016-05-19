@@ -200,14 +200,22 @@
             {
                 var virtualMachineFormState = await result;
 
-                await context.PostAsync($"Starting the {virtualMachineFormState.VirtualMachine} virtual machine.");
+                await context.PostAsync($"Starting the {virtualMachineFormState.VirtualMachine} virtual machine...");
 
                 var accessToken = context.GetAccessToken();
-                await new AzureRepository().StartVirtualMachineAsync(
-                    accessToken,
-                    virtualMachineFormState.SelectedVM.SubscriptionId,
-                    virtualMachineFormState.SelectedVM.ResourceGroup,
-                    virtualMachineFormState.SelectedVM.Name);
+                new AzureRepository()
+                    .StartVirtualMachineAsync(
+                        accessToken,
+                        virtualMachineFormState.SelectedVM.SubscriptionId,
+                        virtualMachineFormState.SelectedVM.ResourceGroup,
+                        virtualMachineFormState.SelectedVM.Name)
+                    .NotifyLongRunningOperation(
+                        context, 
+                        (operationStatus, ctx) =>
+                        {
+                            var statusMessage = operationStatus ? "was started successfully" : "failed to start";
+                            return $"The {virtualMachineFormState.VirtualMachine} virtual machine {statusMessage}.";
+                        });
             }
             catch (FormCanceledException<VirtualMachineFormState>)
             {
@@ -223,15 +231,23 @@
             {
                 var virtualMachineFormState = await result;
 
-                await context.PostAsync($"Stopping the {virtualMachineFormState.VirtualMachine} virtual machine.");
+                await context.PostAsync($"Stopping the {virtualMachineFormState.VirtualMachine} virtual machine...");
 
                 var selectedVM = virtualMachineFormState.SelectedVM;
                 var accessToken = context.GetAccessToken();
-                await new AzureRepository().StopVirtualMachineAsync(
-                    accessToken, 
-                    virtualMachineFormState.SelectedVM.SubscriptionId,
-                    virtualMachineFormState.SelectedVM.ResourceGroup,
-                    virtualMachineFormState.SelectedVM.Name);
+                new AzureRepository()
+                    .StopVirtualMachineAsync(
+                        accessToken, 
+                        virtualMachineFormState.SelectedVM.SubscriptionId,
+                        virtualMachineFormState.SelectedVM.ResourceGroup,
+                        virtualMachineFormState.SelectedVM.Name)
+                    .NotifyLongRunningOperation(
+                        context, 
+                        (operationStatus, ctx) =>
+                        {
+                            var statusMessage = operationStatus ? "was stopped successfully" : "failed to stop";
+                            return $"The {virtualMachineFormState.VirtualMachine} virtual machine {statusMessage}.";
+                        });
             }
             catch (FormCanceledException<VirtualMachineFormState>)
             {
