@@ -1,7 +1,7 @@
 {
   "luis_schema_version": "1.2.0",
-  "name": "Azure Bot",
-  "desc": "A bot that can manage your Azure subscriptions",
+  "name": "AzureBot",
+  "desc": "A bot that can interact with Azure",
   "culture": "en-us",
   "intents": [
     {
@@ -739,6 +739,21 @@
     {
       "text": "start the third one",
       "intent": "StartVm",
+      "entities": []
+    },
+    {
+      "text": "test",
+      "intent": "None",
+      "entities": [ ]
+    },
+    {
+      "text": "hi",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "start runbook",
+      "intent": "RunRunbook",
       "entities": []
     }
   ]

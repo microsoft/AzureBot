@@ -13,7 +13,7 @@
     using Microsoft.Bot.Builder.Luis;
     using Microsoft.Bot.Builder.Luis.Models;
 
-    [LuisModel("c9e598cb-0e5f-48f6-b14a-ebbb390a6fb3", "a7c1c493d0e244e796b83c6785c4be4d")]
+    [LuisModel("1b58a513-e98a-4a13-a5c4-f61ac6dc6c84", "0e64d2ae951547f692182b4ae74262cb")]
     [Serializable]
     public class ActionDialog : LuisDialog<string>
     {
@@ -199,11 +199,17 @@
         {
             try
             {
+                var accessToken = context.GetAccessToken();
                 var runBookFormState = await result;
-                var subscriptionId = context.GetSubscriptionId();
 
-                await context.PostAsync($"Running the {runBookFormState.RunBookName} runbook.");
-                await new AzureRepository().RunRunBookAsync(subscriptionId, runBookFormState.AutomationAccountName, runBookFormState.RunBookName);
+                await context.PostAsync($"Running the '{runBookFormState.RunBookName}' runbook in '{runBookFormState.AutomationAccountName}' automation account.");
+
+                await new AzureRepository().StartRunBookAsync(
+                    accessToken,
+                    runBookFormState.SelectedAutomationAccount.SubscriptionId, 
+                    runBookFormState.SelectedAutomationAccount.ResourceGroup,
+                    runBookFormState.SelectedAutomationAccount.AutomationAccountName, 
+                    runBookFormState.RunBookName);
             }
             catch (FormCanceledException<VirtualMachineFormState>)
             {

@@ -2,7 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using Azure.Management.Models;
+
     [Serializable]
     public class RunBookFormState
     {
@@ -16,5 +18,13 @@
         public string RunBookName { get; set; }
 
         public IEnumerable<AutomationAccount> AvailableAutomationAccounts { get; private set; }
+
+        public AutomationAccount SelectedAutomationAccount
+        {
+            get
+            {
+                return this.AvailableAutomationAccounts.SingleOrDefault(account => account.AutomationAccountName == this.AutomationAccountName);
+            }
+        }
     }
 }

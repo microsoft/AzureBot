@@ -6,6 +6,10 @@
     [Serializable]
     public class AutomationAccount
     {
+        public string SubscriptionId { get; set; }
+
+        public string ResourceGroup { get; set; }
+
         public string AutomationAccountName { get; set; }
 
         public string AutomationAccountId { get; set; }
