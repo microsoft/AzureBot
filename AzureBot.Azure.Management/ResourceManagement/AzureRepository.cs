@@ -19,7 +19,7 @@
 
             using (SubscriptionClient client = new SubscriptionClient(credentials))
             {
-                var result = await client.Subscriptions.ListAsync();
+                var result = await client.Subscriptions.ListAsync().ConfigureAwait(false);
 
                 subscriptions = result.Subscriptions.Select(sub => new Subscription { SubscriptionId = sub.SubscriptionId, DisplayName = sub.DisplayName }).ToList();
             }
@@ -32,7 +32,7 @@
             var credentials = new TokenCredentials(subscriptionId, accessToken);
             using (var client = new ComputeManagementClient(credentials))
             {
-                var virtualMachinesResult = await client.VirtualMachines.ListAllAsync(null);
+                var virtualMachinesResult = await client.VirtualMachines.ListAllAsync(null).ConfigureAwait(false);
                 var all = virtualMachinesResult.VirtualMachines.Select(async (vm) =>
                 {
                     var resourceGroupName = GetResourceGroup(vm.Id);
@@ -58,7 +58,7 @@
 
             using (var automationClient = new AutomationManagementClient(credentials))
             {
-                var automationAccountsResult = await automationClient.AutomationAccounts.ListAsync(null);
+                var automationAccountsResult = await automationClient.AutomationAccounts.ListAsync(null).ConfigureAwait(false);
 
                 automationAccounts = await Task.WhenAll(
                     automationAccountsResult.AutomationAccounts.Select(
@@ -80,7 +80,7 @@
 
             using (var automationClient = new AutomationManagementClient(credentials))
             {
-                var automationRunBooksResult = await automationClient.Runbooks.ListAsync(resourceGroupName, automationAccountName);
+                var automationRunBooksResult = await automationClient.Runbooks.ListAsync(resourceGroupName, automationAccountName).ConfigureAwait(false);
 
                 automationRunBooks = automationRunBooksResult.Runbooks.Select(
                     runBook => new RunBook { RunBookId = runBook.Id, RunBookName = runBook.Name }).ToList();
@@ -94,7 +94,7 @@
             var credentials = new TokenCredentials(subscriptionId, accessToken);
             using (var client = new ComputeManagementClient(credentials))
             {
-                var status = await client.VirtualMachines.StartAsync(resourceGroupName, virtualMachineName);
+                var status = await client.VirtualMachines.StartAsync(resourceGroupName, virtualMachineName).ConfigureAwait(false);
                 return status.Status != Microsoft.Azure.Management.Compute.Models.ComputeOperationStatus.Failed;
             }
         }
@@ -104,7 +104,7 @@
             var credentials = new TokenCredentials(subscriptionId, accessToken);
             using (var client = new ComputeManagementClient(credentials))
             {
-                var status = await client.VirtualMachines.PowerOffAsync(resourceGroupName, virtualMachineName);
+                var status = await client.VirtualMachines.PowerOffAsync(resourceGroupName, virtualMachineName).ConfigureAwait(false);
                 return status.Status != Microsoft.Azure.Management.Compute.Models.ComputeOperationStatus.Failed;
             }
         }
