@@ -211,7 +211,7 @@
                         virtualMachineFormState.SelectedVM.Name)
                     .NotifyLongRunningOperation(
                         context, 
-                        (operationStatus, ctx) =>
+                        (operationStatus) =>
                         {
                             var statusMessage = operationStatus ? "was started successfully" : "failed to start";
                             return $"The {virtualMachineFormState.VirtualMachine} virtual machine {statusMessage}.";
@@ -243,7 +243,7 @@
                         virtualMachineFormState.SelectedVM.Name)
                     .NotifyLongRunningOperation(
                         context, 
-                        (operationStatus, ctx) =>
+                        (operationStatus) =>
                         {
                             var statusMessage = operationStatus ? "was stopped successfully" : "failed to stop";
                             return $"The {virtualMachineFormState.VirtualMachine} virtual machine {statusMessage}.";
