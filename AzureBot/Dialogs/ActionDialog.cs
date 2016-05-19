@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
+    using Azure.Management.Models;
     using Azure.Management.ResourceManagement;
     using FormTemplates;
     using Microsoft.Bot.Builder.Dialogs;
@@ -119,7 +120,7 @@
                 string.Empty,
                 (current, next) =>
                     {
-                        return current += $"\n\r• {next.Name} ({next.Status})";
+                        return current += $"\n\r• {next.Name} ({next.PowerState})";
                     });
 
             await context.PostAsync($"Available VMs are:\r\n {virtualMachinesText}");
@@ -133,14 +134,23 @@
             var subscriptionId = context.GetSubscriptionId();
 
             var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId))
+                                .Where(vm => vm.PowerState == VirtualMachinePowerState.Stopped)
                                 .ToArray();
 
-            var form = new FormDialog<VirtualMachineFormState>(
-                new VirtualMachineFormState(availableVMs, Operations.Start),
-                EntityForms.BuildVirtualMachinesForm,
-                FormOptions.PromptInStart,
-                result.Entities);
-            context.Call(form, this.StartVirtualMachineFormComplete);
+            if (availableVMs.Any())
+            {
+                var form = new FormDialog<VirtualMachineFormState>(
+                    new VirtualMachineFormState(availableVMs, Operations.Start),
+                    EntityForms.BuildVirtualMachinesForm,
+                    FormOptions.PromptInStart,
+                    result.Entities);
+                context.Call(form, this.StartVirtualMachineFormComplete);
+            }
+            else
+            {
+                await context.PostAsync("No virtual machines that can be started were found.");
+                context.Wait(this.MessageReceived);
+            }
         }
 
         [LuisIntent("StopVm")]
@@ -150,14 +160,23 @@
             var subscriptionId = context.GetSubscriptionId();
 
             var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId))
+                                .Where(vm => vm.PowerState == VirtualMachinePowerState.Running)
                                 .ToArray();
 
-            var form = new FormDialog<VirtualMachineFormState>(
+            if (availableVMs.Any())
+            {
+                var form = new FormDialog<VirtualMachineFormState>(
                 new VirtualMachineFormState(availableVMs, Operations.Stop),
                 EntityForms.BuildVirtualMachinesForm,
                 FormOptions.PromptInStart,
                 result.Entities);
-            context.Call(form, this.StopVirtualMachineFormComplete);
+                context.Call(form, this.StopVirtualMachineFormComplete);
+            }
+            else
+            {
+                await context.PostAsync("No virtual machines that can be stopped were found.");
+                context.Wait(this.MessageReceived);
+            }
         }
 
         [LuisIntent("RunRunbook")]

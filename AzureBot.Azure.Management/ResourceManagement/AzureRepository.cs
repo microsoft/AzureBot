@@ -37,13 +37,13 @@
                 {
                     var resourceGroupName = GetResourceGroup(vm.Id);
                     var response = await client.VirtualMachines.GetWithInstanceViewAsync(resourceGroupName, vm.Name);
-                    var vmStatus = response.VirtualMachine.InstanceView.Statuses.Where(p => p.Code.StartsWith("PowerState/")).FirstOrDefault();
+                    var vmStatus = response.VirtualMachine.InstanceView.Statuses.Where(p => p.Code.ToLower().StartsWith("powerstate/")).FirstOrDefault();
                     return new VirtualMachine
                     {
                         SubscriptionId = subscriptionId,
                         ResourceGroup = resourceGroupName,
                         Name = vm.Name,
-                        Status = vmStatus?.DisplayStatus ?? "NA"
+                        PowerState = GetVirtualMachinePowerState(vmStatus?.Code.ToLower() ?? "na")
                     };
                 });
 
@@ -119,6 +119,22 @@
             var segments = id.Split('/');
             var resourceGroupName = segments.SkipWhile(segment => segment != "resourceGroups").ElementAtOrDefault(1);
             return resourceGroupName;
-    }
+        }
+
+        private VirtualMachinePowerState GetVirtualMachinePowerState(string code)
+        {
+            if (code.EndsWith("/runnning"))
+            {
+                return VirtualMachinePowerState.Running;
+            }
+            else if (code.EndsWith("/stopped"))
+            {
+                return VirtualMachinePowerState.Stopped;
+            }
+            else
+            {
+                return VirtualMachinePowerState.Unknown;
+            }
+        }
     }
 }
