@@ -180,36 +180,51 @@
         }
 
         [LuisIntent("RunRunbook")]
-        public async Task RunRunbookAsync(IDialogContext context, LuisResult result)
+        public async Task StartRunbookAsync(IDialogContext context, LuisResult result)
         {
             var accessToken = context.GetAccessToken();
             var subscriptionId = context.GetSubscriptionId();
 
             var availableAutomationAccounts = (await new AzureRepository().ListAutomationAccountsAsync(accessToken, subscriptionId)).ToList();
 
-            var form = new FormDialog<RunBookFormState>(
-                new RunBookFormState(availableAutomationAccounts),
-                EntityForms.BuildRunBookForm,
+            var form = new FormDialog<RunbookFormState>(
+                new RunbookFormState(availableAutomationAccounts),
+                EntityForms.BuildRunbookForm,
                 FormOptions.PromptInStart,
                 result.Entities);
-            context.Call(form, this.RunBookFormComplete);
+            context.Call(form, this.StartRunbookParametersAsync);
         }
 
-        private async Task RunBookFormComplete(IDialogContext context, IAwaitable<RunBookFormState> result)
+        public async Task StartRunbookParametersAsync(IDialogContext context, IAwaitable<RunbookFormState> result)
+        {
+            var runbookFormState = await result;
+            if (!runbookFormState.SelectedRunbook.RunbookParameters.Any())
+            {
+                await this.RunbookFormComplete(context, result);
+            }
+
+            var form = new FormDialog<RunbookFormState>(
+                await result,
+                () => EntityForms.BuildRunbookParametersForm(runbookFormState),
+                FormOptions.PromptInStart);
+            context.Call(form, this.RunbookFormComplete);
+        }
+
+        private async Task RunbookFormComplete(IDialogContext context, IAwaitable<RunbookFormState> result)
         {
             try
             {
                 var accessToken = context.GetAccessToken();
-                var runBookFormState = await result;
+                var runbookFormState = await result;
 
-                await context.PostAsync($"Running the '{runBookFormState.RunBookName}' runbook in '{runBookFormState.AutomationAccountName}' automation account.");
+                await context.PostAsync($"Running the '{runbookFormState.RunbookName}' runbook in '{runbookFormState.AutomationAccountName}' automation account.");
 
-                await new AzureRepository().StartRunBookAsync(
+                await new AzureRepository().StartRunbookAsync(
                     accessToken,
-                    runBookFormState.SelectedAutomationAccount.SubscriptionId, 
-                    runBookFormState.SelectedAutomationAccount.ResourceGroup,
-                    runBookFormState.SelectedAutomationAccount.AutomationAccountName, 
-                    runBookFormState.RunBookName);
+                    runbookFormState.SelectedAutomationAccount.SubscriptionId, 
+                    runbookFormState.SelectedAutomationAccount.ResourceGroup,
+                    runbookFormState.SelectedAutomationAccount.AutomationAccountName, 
+                    runbookFormState.RunbookName);
             }
             catch (FormCanceledException<VirtualMachineFormState>)
             {

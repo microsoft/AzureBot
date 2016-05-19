@@ -14,6 +14,6 @@
 
         public string AutomationAccountId { get; set; }
 
-        public IEnumerable<RunBook> RunBooks { get; set; }
+        public IEnumerable<Runbook> Runbooks { get; set; }
     }
 }

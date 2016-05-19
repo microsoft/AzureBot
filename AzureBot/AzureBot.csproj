@@ -127,11 +127,11 @@
     <Compile Include="Controllers\OAuthCallbackController.cs" />
     <Compile Include="Dialogs\ActionDialog.cs" />
     <Compile Include="Dialogs\DialogExtensions.cs" />
-    <Compile Include="EntityForms.cs" />
-    <Compile Include="FormTemplates\Operations.cs" />
-    <Compile Include="FormTemplates\RunBookFormState.cs" />
-    <Compile Include="FormTemplates\SubscriptionFormState.cs" />
-    <Compile Include="FormTemplates\VirtualMachineFormState.cs" />
+    <Compile Include="Forms\EntityForms.cs" />
+    <Compile Include="Forms\Operations.cs" />
+    <Compile Include="Forms\RunbookFormState.cs" />
+    <Compile Include="Forms\SubscriptionFormState.cs" />
+    <Compile Include="Forms\VirtualMachineFormState.cs" />
     <Compile Include="Helpers\AzureActiveDirectoryHelper.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
     <Compile Include="Dialogs\AzureAuthDialog.cs" />

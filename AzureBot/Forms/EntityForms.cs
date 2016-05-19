@@ -3,6 +3,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using FormTemplates;
+    using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Builder.FormFlow;
     using Microsoft.Bot.Builder.FormFlow.Advanced;
 
@@ -53,10 +54,10 @@
                .Build();
         }
 
-        public static IForm<RunBookFormState> BuildRunBookForm()
+        public static IForm<RunbookFormState> BuildRunbookForm()
         {
-            return new FormBuilder<RunBookFormState>()
-                .Field(new FieldReflector<RunBookFormState>(nameof(RunBookFormState.AutomationAccountName))
+            return new FormBuilder<RunbookFormState>()
+                .Field(new FieldReflector<RunbookFormState>(nameof(RunbookFormState.AutomationAccountName))
                     .SetType(null)
                     .SetPrompt(PerLinePromptAttribute("Please select the automation account you want to use: {||}"))
                     .SetDefine((state, field) =>
@@ -70,7 +71,7 @@
 
                         return Task.FromResult(true);
                     }))
-                .Field(new FieldReflector<RunBookFormState>(nameof(RunBookFormState.RunBookName))
+                .Field(new FieldReflector<RunbookFormState>(nameof(RunbookFormState.RunbookName))
                     .SetType(null)
                     .SetPrompt(PerLinePromptAttribute("Please select the runbook you want to run: {||}"))
                     .SetActive(state => !string.IsNullOrWhiteSpace(state.AutomationAccountName))
@@ -81,18 +82,32 @@
                             return Task.FromResult(false);
                         }
 
-                        foreach (var runBook in state.AvailableAutomationAccounts.Single(
-                            a => a.AutomationAccountName == state.AutomationAccountName).RunBooks)
+                        foreach (var runbook in state.AvailableAutomationAccounts.Single(
+                            a => a.AutomationAccountName == state.AutomationAccountName).Runbooks)
                         {
                             field
-                                .AddDescription(runBook.RunBookName, runBook.RunBookName)
-                                .AddTerms(runBook.RunBookName, runBook.RunBookName);
+                                .AddDescription(runbook.RunbookName, runbook.RunbookName)
+                                .AddTerms(runbook.RunbookName, runbook.RunbookName);
                         }
 
                         return Task.FromResult(true);
                     }))
-               .Confirm("Would you like to run runbook '{RunBookName}'?")
+               .Confirm("Would you like to run runbook '{RunbookName}'?")
                .Build();
+        }
+
+        public static IForm<RunbookFormState> BuildRunbookParametersForm(RunbookFormState state)
+        {
+            var paramatersFormBuilder = new FormBuilder<RunbookFormState>()
+                .Confirm("The Runbook you selected has parameters. Would you like to enter their values?");
+
+            foreach (var parameter in state.SelectedRunbook.RunbookParameters)
+            {
+                paramatersFormBuilder.Field(new FieldReflector<RunbookFormState>(parameter.ParameterName)
+                    .SetPrompt(new PromptAttribute("Please enter the value for parameter: " + parameter.ParameterName)));
+            }
+
+            return paramatersFormBuilder.Build();
         }
 
         private static PromptAttribute PerLinePromptAttribute(string pattern)

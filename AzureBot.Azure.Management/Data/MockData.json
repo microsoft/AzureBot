@@ -71,28 +71,28 @@
     {
       "AutomationAccountName": "DevOps Automation Account",
       "AutomationAccountId": "C5A58D5F-F21F-4027-9800-38BC5C4820B9",
-      "RunBooks": [
+      "Runbooks": [
         {
-          "RunBookName": "Subscription-Cleanup",
-          "RunBookId": "11111111-802B-42CA-8EBC-AAAAAAAAAAAA"
+          "RunbookName": "Subscription-Cleanup",
+          "RunbookId": "11111111-802B-42CA-8EBC-AAAAAAAAAAAA"
         },
         {
-          "RunBookName": "Provision-Dev-Environments",
-          "RunBookId": "11111111-802B-42CA-8EBC-BBBBBBBBBBBB"
+          "RunbookName": "Provision-Dev-Environments",
+          "RunbookId": "11111111-802B-42CA-8EBC-BBBBBBBBBBBB"
         }
       ]
     },
     {
       "AutomationAccountName": "Dev Automation Account",
       "AutomationAccountId": "0F1648EA-802B-42CA-8EBC-1071F90A5B9D",
-      "RunBooks": [
+      "Runbooks": [
         {
-          "RunBookName": "runBook2.a",
-          "RunBookId": "22222222-802B-42CA-8EBC-AAAAAAAAAAAA"
+          "RunbookName": "runbook2.a",
+          "RunbookId": "22222222-802B-42CA-8EBC-AAAAAAAAAAAA"
         },
         {
-          "RunBookName": "runBook2.b",
-          "RunBookId": "22222222-802B-42CA-8EBC-BBBBBBBBBBBB"
+          "RunbookName": "runbook2.b",
+          "RunbookId": "22222222-802B-42CA-8EBC-BBBBBBBBBBBB"
         }
       ]
     }
