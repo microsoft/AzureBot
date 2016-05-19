@@ -119,7 +119,7 @@
                 string.Empty,
                 (current, next) =>
                     {
-                        return current += $"\r\n• {next.Name} ({next.Status})";
+                        return current += $"\n\r• {next.Name} ({next.Status})";
                     });
 
             await context.PostAsync($"Available VMs are:\r\n {virtualMachinesText}");
@@ -150,7 +150,7 @@
             var subscriptionId = context.GetSubscriptionId();
 
             var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId))
-                               .ToArray();
+                                .ToArray();
 
             var form = new FormDialog<VirtualMachineFormState>(
                 new VirtualMachineFormState(availableVMs, Operations.Stop),
@@ -200,7 +200,7 @@
             {
                 var virtualMachineFormState = await result;
 
-                await context.PostAsync($"Starting the {virtualMachineFormState.VirtualMachine} virtual machine...");
+                await context.PostAsync($"Starting the '{virtualMachineFormState.VirtualMachine}' virtual machine...");
 
                 var accessToken = context.GetAccessToken();
                 new AzureRepository()
@@ -214,7 +214,7 @@
                         (operationStatus) =>
                         {
                             var statusMessage = operationStatus ? "was started successfully" : "failed to start";
-                            return $"The {virtualMachineFormState.VirtualMachine} virtual machine {statusMessage}.";
+                            return $"The '{virtualMachineFormState.VirtualMachine}' virtual machine {statusMessage}.";
                         });
             }
             catch (FormCanceledException<VirtualMachineFormState>)
@@ -231,7 +231,7 @@
             {
                 var virtualMachineFormState = await result;
 
-                await context.PostAsync($"Stopping the {virtualMachineFormState.VirtualMachine} virtual machine...");
+                await context.PostAsync($"Stopping the '{virtualMachineFormState.VirtualMachine}' virtual machine...");
 
                 var selectedVM = virtualMachineFormState.SelectedVM;
                 var accessToken = context.GetAccessToken();
@@ -246,7 +246,7 @@
                         (operationStatus) =>
                         {
                             var statusMessage = operationStatus ? "was stopped successfully" : "failed to stop";
-                            return $"The {virtualMachineFormState.VirtualMachine} virtual machine {statusMessage}.";
+                            return $"The '{virtualMachineFormState.VirtualMachine}' virtual machine {statusMessage}.";
                         });
             }
             catch (FormCanceledException<VirtualMachineFormState>)
