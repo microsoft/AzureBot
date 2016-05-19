@@ -130,7 +130,7 @@
 
         private VirtualMachinePowerState GetVirtualMachinePowerState(string code)
         {
-            if (code.EndsWith("/runnning"))
+            if (code.EndsWith("/running"))
             {
                 return VirtualMachinePowerState.Running;
             }
