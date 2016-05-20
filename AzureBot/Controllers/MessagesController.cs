@@ -4,7 +4,7 @@
     using System.Web.Http;
     using Azure.Management.ResourceManagement;
     using Dialogs;
-    using FormTemplates;
+    using Forms;
     using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Builder.FormFlow;
     using Microsoft.Bot.Connector;

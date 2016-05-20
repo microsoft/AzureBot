@@ -9,5 +9,7 @@
         public const string AuthTokenKey = "authToken";
 
         public const string OriginalMessageKey = "originalMessage";
+
+        public const string RunbookFormStateKey = "runbookFormState";
     }
 }

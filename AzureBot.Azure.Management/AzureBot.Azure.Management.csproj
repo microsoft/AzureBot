@@ -94,7 +94,8 @@
   <ItemGroup>
     <Compile Include="Data\MockData.cs" />
     <Compile Include="Models\AutomationAccount.cs" />
-    <Compile Include="Models\RunBook.cs" />
+    <Compile Include="Models\Runbook.cs" />
+    <Compile Include="Models\RunbookParameter.cs" />
     <Compile Include="Models\VirtualMachine.cs" />
     <Compile Include="Models\Subscription.cs" />
     <Compile Include="Models\VirtualMachinePowerState.cs" />

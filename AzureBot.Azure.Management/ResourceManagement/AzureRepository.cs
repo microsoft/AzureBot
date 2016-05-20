@@ -63,24 +63,56 @@
                             ResourceGroup = GetResourceGroup(account.Id),
                             AutomationAccountId = account.Id,
                             AutomationAccountName = account.Name,
-                            RunBooks = await this.ListAutomationRunBooks(accessToken, subscriptionId, GetResourceGroup(account.Id), account.Name)
+                            Runbooks = await this.ListAutomationRunbooks(accessToken, subscriptionId, GetResourceGroup(account.Id), account.Name)
                         }).ToList());
                 return automationAccounts;
             }
         }
 
-        public async Task<IEnumerable<RunBook>> ListAutomationRunBooks(string accessToken, string subscriptionId, string resourceGroupName, string automationAccountName)
+        public async Task<IEnumerable<Runbook>> ListAutomationRunbooks(string accessToken, string subscriptionId, string resourceGroupName, string automationAccountName)
         {
             var credentials = new TokenCredentials(subscriptionId, accessToken);
 
             using (var automationClient = new AutomationManagementClient(credentials))
             {
-                var automationRunBooksResult = await automationClient.Runbooks.ListAsync(resourceGroupName, automationAccountName).ConfigureAwait(false);
+                var automationRunbooksResult = await automationClient.Runbooks.ListAsync(resourceGroupName, automationAccountName);
 
-                var automationRunBooks = automationRunBooksResult.Runbooks.Select(
-                    runBook => new RunBook { RunBookId = runBook.Id, RunBookName = runBook.Name }).ToList();
+                var automationRunbooks = await Task.WhenAll(automationRunbooksResult.Runbooks.Select(
+                    async runbook => new Runbook
+                    {
+                        RunbookId = runbook.Id,
+                        RunbookName = runbook.Name,
+                        RunbookParameters = await this.ListAutomationRunbookParameters(accessToken, subscriptionId, resourceGroupName, automationAccountName, runbook.Name)
+                    }).ToList());
 
-                return automationRunBooks;
+                return automationRunbooks;
+            }
+        }
+
+        public async Task<IEnumerable<RunbookParameter>> ListAutomationRunbookParameters(
+            string accessToken, 
+            string subscriptionId, 
+            string resourceGroupName, 
+            string automationAccountName, 
+            string runbookName)
+        {
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
+
+            using (var automationClient = new AutomationManagementClient(credentials))
+            {
+                var automationRunbookResult = await automationClient.Runbooks.GetAsync(resourceGroupName, automationAccountName, runbookName);
+
+                var automationRunbookPrameters = automationRunbookResult.Runbook.Properties.Parameters.Select(
+                    parameter => new RunbookParameter
+                    {
+                        ParameterName = parameter.Key,
+                        DefaultValue = parameter.Value.DefaultValue,
+                        IsMandatory = parameter.Value.IsMandatory,
+                        Position = parameter.Value.Position,
+                        Type = parameter.Value.Type
+                    }).ToList();
+
+                return automationRunbookPrameters;
             }
         }
 
@@ -104,7 +136,13 @@
             }
         }
 
-        public async Task<bool> StartRunBookAsync(string accessToken, string subscriptionId, string resourceGroupName, string automationAccountName, string runBookName)
+        public async Task<bool> StartRunbookAsync(
+            string accessToken, 
+            string subscriptionId, 
+            string resourceGroupName, 
+            string automationAccountName, 
+            string runbookName, 
+            IDictionary<string, string> runbookParameters = null)
         {
             var credentials = new TokenCredentials(subscriptionId, accessToken);
 
@@ -114,8 +152,11 @@
                     new AzureModels.JobCreateProperties(
                         new AzureModels.RunbookAssociationProperty
                         {
-                            Name = runBookName
-                        }));
+                            Name = runbookName
+                        })
+                    {
+                        Parameters = runbookParameters
+                    });
                 var jobCreateResult = await client.Jobs.CreateAsync(resourceGroupName, automationAccountName, parameters).ConfigureAwait(false);
                 return jobCreateResult.StatusCode == System.Net.HttpStatusCode.Created;
             }

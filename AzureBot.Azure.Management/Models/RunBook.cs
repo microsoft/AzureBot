@@ -1,12 +1,15 @@
 ﻿namespace AzureBot.Azure.Management.Models
 {
     using System;
+    using System.Collections.Generic;
 
     [Serializable]
-    public class RunBook
+    public class Runbook
     {
-        public string RunBookName { get; set; }
+        public string RunbookName { get; set; }
 
-        public string RunBookId { get; set; }
+        public string RunbookId { get; set; }
+
+        public IEnumerable<RunbookParameter> RunbookParameters { get; set; }
     }
 }
