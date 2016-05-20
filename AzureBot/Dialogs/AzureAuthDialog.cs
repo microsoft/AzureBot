@@ -51,7 +51,7 @@
 
                 var authenticationUrl = await AzureActiveDirectoryHelper.GetAuthUrlAsync(this.resumptionCookie);
 
-                await context.PostAsync($"You must be authenticated in Azure to access your subscription. Please, use the following url to log into your Azure account: {authenticationUrl}");
+                await context.PostAsync($"You must be authenticated in Azure to access your subscription. Please, click [here]({authenticationUrl}) to log into your Azure account.");
 
                 context.Wait(this.MessageReceivedAsync);
             }
