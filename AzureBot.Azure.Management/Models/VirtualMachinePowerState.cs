@@ -3,7 +3,9 @@
     public enum VirtualMachinePowerState
     {
         Unknown = 0,
+        Stopping,
         Stopped,
-        Running
+        Starting,
+        Running,
     }
 }

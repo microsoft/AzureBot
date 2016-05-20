@@ -1,5 +1,6 @@
 ﻿namespace AzureBot.Azure.Management.ResourceManagement
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -40,11 +41,11 @@
                         SubscriptionId = subscriptionId,
                         ResourceGroup = resourceGroupName,
                         Name = vm.Name,
-                        PowerState = GetVirtualMachinePowerState(vmStatus?.Code.ToLower() ?? "na")
+                        PowerState = GetVirtualMachinePowerState(vmStatus?.Code.ToLower() ?? VirtualMachinePowerState.Unknown.ToString())
                     };
                 });
 
-                return await Task.WhenAll(all.ToArray());
+                return await Task.WhenAll(all.ToList());
             }
         }
 
@@ -171,18 +172,23 @@
 
         private VirtualMachinePowerState GetVirtualMachinePowerState(string code)
         {
-            if (code.EndsWith("/running"))
-            {
-                return VirtualMachinePowerState.Running;
-            }
-            else if (code.EndsWith("/stopped"))
-            {
-                return VirtualMachinePowerState.Stopped;
-            }
-            else
+            string[] powerStateElements = code.Split('/');
+
+            if (powerStateElements.Length != 2)
             {
                 return VirtualMachinePowerState.Unknown;
             }
+
+            var status = powerStateElements[1];
+
+            VirtualMachinePowerState powerState;
+
+            if (!Enum.TryParse(status, true, out powerState))
+            {
+                return VirtualMachinePowerState.Unknown;
+            }
+
+            return powerState;
         }
     }
 }
