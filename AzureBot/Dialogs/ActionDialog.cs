@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
+    using Azure.Management.Models;
     using Azure.Management.ResourceManagement;
     using FormTemplates;
     using Microsoft.Bot.Builder.Dialogs;
@@ -119,7 +120,7 @@
                 string.Empty,
                 (current, next) =>
                     {
-                        return current += $"\r\n• {next.Name} ({next.Status})";
+                        return current += $"\n\r• {next.Name} ({next.PowerState})";
                     });
 
             await context.PostAsync($"Available VMs are:\r\n {virtualMachinesText}");
@@ -133,14 +134,23 @@
             var subscriptionId = context.GetSubscriptionId();
 
             var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId))
+                                .Where(vm => vm.PowerState == VirtualMachinePowerState.Stopped)
                                 .ToArray();
 
-            var form = new FormDialog<VirtualMachineFormState>(
-                new VirtualMachineFormState(availableVMs, Operations.Start),
-                EntityForms.BuildVirtualMachinesForm,
-                FormOptions.PromptInStart,
-                result.Entities);
-            context.Call(form, this.StartVirtualMachineFormComplete);
+            if (availableVMs.Any())
+            {
+                var form = new FormDialog<VirtualMachineFormState>(
+                    new VirtualMachineFormState(availableVMs, Operations.Start),
+                    EntityForms.BuildVirtualMachinesForm,
+                    FormOptions.PromptInStart,
+                    result.Entities);
+                context.Call(form, this.StartVirtualMachineFormComplete);
+            }
+            else
+            {
+                await context.PostAsync("No virtual machines that can be started were found.");
+                context.Wait(this.MessageReceived);
+            }
         }
 
         [LuisIntent("StopVm")]
@@ -150,14 +160,23 @@
             var subscriptionId = context.GetSubscriptionId();
 
             var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId))
-                               .ToArray();
+                                .Where(vm => vm.PowerState == VirtualMachinePowerState.Running)
+                                .ToArray();
 
-            var form = new FormDialog<VirtualMachineFormState>(
+            if (availableVMs.Any())
+            {
+                var form = new FormDialog<VirtualMachineFormState>(
                 new VirtualMachineFormState(availableVMs, Operations.Stop),
                 EntityForms.BuildVirtualMachinesForm,
                 FormOptions.PromptInStart,
                 result.Entities);
-            context.Call(form, this.StopVirtualMachineFormComplete);
+                context.Call(form, this.StopVirtualMachineFormComplete);
+            }
+            else
+            {
+                await context.PostAsync("No virtual machines that can be stopped were found.");
+                context.Wait(this.MessageReceived);
+            }
         }
 
         [LuisIntent("RunRunbook")]
@@ -206,14 +225,22 @@
             {
                 var virtualMachineFormState = await result;
 
-                await context.PostAsync($"Starting the {virtualMachineFormState.VirtualMachine} virtual machine.");
+                await context.PostAsync($"Starting the '{virtualMachineFormState.VirtualMachine}' virtual machine...");
 
                 var accessToken = context.GetAccessToken();
-                await new AzureRepository().StartVirtualMachineAsync(
-                    accessToken,
-                    virtualMachineFormState.SelectedVM.SubscriptionId,
-                    virtualMachineFormState.SelectedVM.ResourceGroup,
-                    virtualMachineFormState.SelectedVM.Name);
+                new AzureRepository()
+                    .StartVirtualMachineAsync(
+                        accessToken,
+                        virtualMachineFormState.SelectedVM.SubscriptionId,
+                        virtualMachineFormState.SelectedVM.ResourceGroup,
+                        virtualMachineFormState.SelectedVM.Name)
+                    .NotifyLongRunningOperation(
+                        context, 
+                        (operationStatus) =>
+                        {
+                            var statusMessage = operationStatus ? "was started successfully" : "failed to start";
+                            return $"The '{virtualMachineFormState.VirtualMachine}' virtual machine {statusMessage}.";
+                        });
             }
             catch (FormCanceledException<VirtualMachineFormState>)
             {
@@ -229,15 +256,23 @@
             {
                 var virtualMachineFormState = await result;
 
-                await context.PostAsync($"Stopping the {virtualMachineFormState.VirtualMachine} virtual machine.");
+                await context.PostAsync($"Stopping the '{virtualMachineFormState.VirtualMachine}' virtual machine...");
 
                 var selectedVM = virtualMachineFormState.SelectedVM;
                 var accessToken = context.GetAccessToken();
-                await new AzureRepository().StopVirtualMachineAsync(
-                    accessToken, 
-                    virtualMachineFormState.SelectedVM.SubscriptionId,
-                    virtualMachineFormState.SelectedVM.ResourceGroup,
-                    virtualMachineFormState.SelectedVM.Name);
+                new AzureRepository()
+                    .StopVirtualMachineAsync(
+                        accessToken, 
+                        virtualMachineFormState.SelectedVM.SubscriptionId,
+                        virtualMachineFormState.SelectedVM.ResourceGroup,
+                        virtualMachineFormState.SelectedVM.Name)
+                    .NotifyLongRunningOperation(
+                        context, 
+                        (operationStatus) =>
+                        {
+                            var statusMessage = operationStatus ? "was stopped successfully" : "failed to stop";
+                            return $"The '{virtualMachineFormState.VirtualMachine}' virtual machine {statusMessage}.";
+                        });
             }
             catch (FormCanceledException<VirtualMachineFormState>)
             {

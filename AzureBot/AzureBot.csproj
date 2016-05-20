@@ -126,6 +126,7 @@
     <Compile Include="ContextExtensions.cs" />
     <Compile Include="Controllers\OAuthCallbackController.cs" />
     <Compile Include="Dialogs\ActionDialog.cs" />
+    <Compile Include="Dialogs\DialogExtensions.cs" />
     <Compile Include="EntityForms.cs" />
     <Compile Include="FormTemplates\Operations.cs" />
     <Compile Include="FormTemplates\RunBookFormState.cs" />

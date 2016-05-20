@@ -11,6 +11,6 @@
 
         public string Name { get; set; }
 
-        public string Status { get; set; }
+        public VirtualMachinePowerState PowerState { get; set; }
     }
 }
