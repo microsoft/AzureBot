@@ -135,7 +135,7 @@
 
             var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId))
                                 .Where(vm => vm.PowerState == VirtualMachinePowerState.Stopped)
-                                .ToArray();
+                                .ToList();
 
             if (availableVMs.Any())
             {
@@ -161,7 +161,7 @@
 
             var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId))
                                 .Where(vm => vm.PowerState == VirtualMachinePowerState.Running)
-                                .ToArray();
+                                .ToList();
 
             if (availableVMs.Any())
             {
@@ -185,7 +185,7 @@
             var accessToken = context.GetAccessToken();
             var subscriptionId = context.GetSubscriptionId();
 
-            var availableAutomationAccounts = (await new AzureRepository().ListAutomationAccountsAsync(accessToken, subscriptionId)).ToList();
+            var availableAutomationAccounts = await new AzureRepository().ListAutomationAccountsAsync(accessToken, subscriptionId);
 
             var form = new FormDialog<RunBookFormState>(
                 new RunBookFormState(availableAutomationAccounts),
