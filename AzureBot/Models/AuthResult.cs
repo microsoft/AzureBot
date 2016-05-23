@@ -9,6 +9,6 @@
 
         public long ExpiresOnUtcTicks { get; set; }
 
-        public string UserDisplayableId { get; set; }
+        public string UserUniqueId { get; set; }
     }
 }
