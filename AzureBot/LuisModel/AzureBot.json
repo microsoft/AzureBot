@@ -5,7 +5,7 @@
   "culture": "en-us",
   "intents": [
     {
-      "Name": "ListSubscriptions",
+      "Name": "StartVm",
       "Children": []
     },
     {
@@ -13,15 +13,11 @@
       "Children": []
     },
     {
-      "Name": "StartVm",
+      "Name": "None",
       "Children": []
     },
     {
       "Name": "StopVm",
-      "Children": []
-    },
-    {
-      "Name": "None",
       "Children": []
     },
     {
@@ -31,6 +27,10 @@
     {
       "Name": "UseSubscription",
       "Children": []
+    },
+    {
+      "Name": "ListSubscriptions",
+      "Children": []
     }
   ],
   "entities": [
@@ -39,19 +39,30 @@
       "Children": []
     },
     {
-      "Name": "Subscription",
+      "Name": "VirtualMachine",
       "Children": []
     },
     {
-      "Name": "VirtualMachine",
+      "Name": "Subscription",
       "Children": []
     }
   ],
   "bing_entities": [
-    "number",
-    "ordinal"
+    "ordinal",
+    "number"
   ],
   "actions": [
+    {
+      "actionName": "RunRunbook",
+      "intentName": "RunRunbook",
+      "actionParameters": [
+        {
+          "parameterName": "runbookName",
+          "entityName": "Runbook",
+          "required": false
+        }
+      ]
+    },
     {
       "actionName": "StartVm",
       "intentName": "StartVm",
@@ -59,7 +70,7 @@
         {
           "parameterName": "vmName",
           "entityName": "VirtualMachine",
-          "required": true
+          "required": false
         }
       ]
     },
@@ -70,17 +81,6 @@
         {
           "parameterName": "subscriptionName",
           "entityName": "Subscription",
-          "required": true
-        }
-      ]
-    },
-    {
-      "actionName": "RunRunbook",
-      "intentName": "RunRunbook",
-      "actionParameters": [
-        {
-          "parameterName": "runbookName",
-          "entityName": "Runbook",
           "required": false
         }
       ]
@@ -102,6 +102,12 @@
       "name": "VmSynonyms",
       "mode": true,
       "words": "vm,virtual machine",
+      "activated": true
+    },
+    {
+      "name": "RunbookSynonyms",
+      "mode": true,
+      "words": "runbook,run book",
       "activated": true
     }
   ],
@@ -744,7 +750,12 @@
     {
       "text": "test",
       "intent": "None",
-      "entities": [ ]
+      "entities": []
+    },
+    {
+      "text": "start runbook",
+      "intent": "RunRunbook",
+      "entities": []
     },
     {
       "text": "hi",
@@ -752,9 +763,453 @@
       "entities": []
     },
     {
-      "text": "start runbook",
+      "text": "remove vm xxxx",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "delete vm xxxx",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "remove virtual machine xxxx",
+      "intent": "None",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "remove vm xyasda",
+      "intent": "None",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "create vm xyzs",
+      "intent": "None",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "create virtual machine xysz",
+      "intent": "None",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "delete virtual machine",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "delete vm",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "create vm",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "remove vm",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "start run book",
+      "intent": "RunRunbook",
+      "entities": [
+        {
+          "entity": "Runbook",
+          "startPos": 0,
+          "endPos": 0
+        }
+      ]
+    },
+    {
+      "text": "5",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "run runbook",
       "intent": "RunRunbook",
       "entities": []
+    },
+    {
+      "text": "list my virtual machines",
+      "intent": "ListVms",
+      "entities": []
+    },
+    {
+      "text": "start vm pilea-vm",
+      "intent": "StartVm",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 2,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "stop vm pilea-vm",
+      "intent": "StopVm",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 2,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "start the pilea-vm vm",
+      "intent": "StartVm",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 2,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "stop the pilea-vm vm",
+      "intent": "StopVm",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 2,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "start the pilea-vm virtual machine",
+      "intent": "StartVm",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 2,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "stop the pilea-vm virtual machine",
+      "intent": "StopVm",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 2,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "start virtual machine pilea-vm",
+      "intent": "StartVm",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 3,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "stop virtual machine pilea-vm",
+      "intent": "StopVm",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 3,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "start vm server-01",
+      "intent": "StartVm",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 2,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "stop vm integration-server",
+      "intent": "StopVm",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 2,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "switch to the dev-test subscription",
+      "intent": "UseSubscription",
+      "entities": [
+        {
+          "entity": "Subscription",
+          "startPos": 3,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "change to the acom-test subscription",
+      "intent": "UseSubscription",
+      "entities": [
+        {
+          "entity": "Subscription",
+          "startPos": 3,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "select the acom-test subscription",
+      "intent": "UseSubscription",
+      "entities": [
+        {
+          "entity": "Subscription",
+          "startPos": 2,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "select subscription wenham-qa",
+      "intent": "UseSubscription",
+      "entities": [
+        {
+          "entity": "Subscription",
+          "startPos": 2,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "use subscription manifold-test",
+      "intent": "UseSubscription",
+      "entities": [
+        {
+          "entity": "Subscription",
+          "startPos": 2,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "change to subscription media service private prod",
+      "intent": "UseSubscription",
+      "entities": [
+        {
+          "entity": "Subscription",
+          "startPos": 3,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "change to subscription ximbus deployment test",
+      "intent": "UseSubscription",
+      "entities": [
+        {
+          "entity": "Subscription",
+          "startPos": 3,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "use the ximbustestlab subcription",
+      "intent": "UseSubscription",
+      "entities": [
+        {
+          "entity": "Subscription",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "use the ximbustestcloud subscription",
+      "intent": "UseSubscription",
+      "entities": [
+        {
+          "entity": "Subscription",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "select the azure training kit subscription",
+      "intent": "UseSubscription",
+      "entities": [
+        {
+          "entity": "Subscription",
+          "startPos": 2,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "start vm encta02",
+      "intent": "StartVm",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "use subscription",
+      "intent": "UseSubscription",
+      "entities": []
+    },
+    {
+      "text": "user subscription 5",
+      "intent": "UseSubscription",
+      "entities": []
+    },
+    {
+      "text": "change my subscription",
+      "intent": "UseSubscription",
+      "entities": []
+    },
+    {
+      "text": "start vm",
+      "intent": "StartVm",
+      "entities": []
+    },
+    {
+      "text": "stop vm",
+      "intent": "StopVm",
+      "entities": []
+    },
+    {
+      "text": "stop vm winservervm",
+      "intent": "StopVm",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "can you please list my virtual machines",
+      "intent": "ListVms",
+      "entities": []
+    },
+    {
+      "text": "start vm \"pilea-vm\"",
+      "intent": "StartVm",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 3,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "stop the pilea vm",
+      "intent": "StopVm",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "start the pilea vm",
+      "intent": "StartVm",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "start the cloudsvr vm",
+      "intent": "StartVm",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "stop the cloudsvr vm",
+      "intent": "StopVm",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "start vm cloudsvr",
+      "intent": "StartVm",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "stop vm cloudsvr",
+      "intent": "StopVm",
+      "entities": [
+        {
+          "entity": "VirtualMachine",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
     }
   ]
 }
