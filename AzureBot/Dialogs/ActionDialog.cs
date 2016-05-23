@@ -114,16 +114,23 @@
             var accessToken = await context.GetAccessToken();
             var subscriptionId = context.GetSubscriptionId();
 
-            var virtualMachines = await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId);
-
-            var virtualMachinesText = virtualMachines.Aggregate(
-                string.Empty,
-                (current, next) =>
+            var virtualMachines = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId)).ToList();
+            if (virtualMachines.Any())
+            {
+                var virtualMachinesText = virtualMachines.Aggregate(
+                    string.Empty,
+                    (current, next) =>
                     {
                         return current += $"\n\r• {next.Name} ({next.PowerState})";
                     });
 
-            await context.PostAsync($"Available VMs are:\r\n {virtualMachinesText}");
+                await context.PostAsync($"Available VMs are:\r\n {virtualMachinesText}");
+            }
+            else
+            {
+                await context.PostAsync("No virtual machines were found in the current subscription.");
+            }
+
             context.Wait(this.MessageReceived);
         }
 
