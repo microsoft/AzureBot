@@ -34,9 +34,9 @@
                 context);
         }
 
-        public static EntityRecommendation ResolveEntity(this EntityRecommendation recommendation, IEnumerable<string> entitySet, string originalText)
+        public static EntityRecommendation ResolveEntity<T>(this EntityRecommendation recommendation, IEnumerable<T> entitySet, Func<T, string> selector, string originalText)
         {
-            var matchingName = entitySet.FirstOrDefault(p => p == originalText);
+            var matchingName = entitySet.Select(selector).FirstOrDefault(p => p == originalText);
             if (matchingName != null)
             {
                 return new EntityRecommendation(

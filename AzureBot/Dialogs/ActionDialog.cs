@@ -140,7 +140,7 @@
             if (result.TryFindEntity("VirtualMachine", out virtualMachine))
             {
                 var virtualMachineName = virtualMachine.GetEntityOriginalText(result.Query);
-                var matchEntity = virtualMachine.ResolveEntity(availableVMs.Select(p => p.Name), virtualMachineName);
+                var matchEntity = virtualMachine.ResolveEntity(availableVMs, p => p.Name, virtualMachineName);
                 if (matchEntity != null)
                 {
                     var selectedVM = availableVMs.SingleOrDefault(p => p.Name == matchEntity.Entity);
@@ -189,7 +189,7 @@
             if (result.TryFindEntity("VirtualMachine", out virtualMachine))
             {
                 var virtualMachineName = virtualMachine.GetEntityOriginalText(result.Query);
-                var matchEntity = virtualMachine.ResolveEntity(availableVMs.Select(p => p.Name), virtualMachineName);
+                var matchEntity = virtualMachine.ResolveEntity(availableVMs, p => p.Name, virtualMachineName);
                 if (matchEntity != null)
                 {
                     var selectedVM = availableVMs.SingleOrDefault(p => p.Name == matchEntity.Entity);
