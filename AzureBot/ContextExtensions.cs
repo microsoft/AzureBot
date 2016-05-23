@@ -37,9 +37,18 @@
             context.PerUserInConversationData.SetValue(ContextConstants.AuthResultKey, authResult);
         }
 
+        public static void Logout(this IBotContext context)
+        {
+            context.PerUserInConversationData.RemoveValue(ContextConstants.AuthResultKey);
+        }
+
         public static string GetSubscriptionId(this IBotContext context)
         {
-            return context.PerUserInConversationData.Get<string>(ContextConstants.SubscriptionIdKey);
+            string subscriptionId;
+
+            context.PerUserInConversationData.TryGetValue<string>(ContextConstants.SubscriptionIdKey, out subscriptionId);
+
+            return subscriptionId;
         }
 
         public static void StoreSubscriptionId(this IBotContext context, string subscriptionId)

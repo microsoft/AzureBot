@@ -16,6 +16,7 @@
             return new FormBuilder<SubscriptionFormState>()
                 .Field(new FieldReflector<SubscriptionFormState>(nameof(SubscriptionFormState.SubscriptionId))
                 .SetType(null)
+                .SetActive(x => x.AvailableSubscriptions.Any())
                 .SetPrompt(PerLinePromptAttribute("Please select the subscription you want to work with: {||}"))
                 .SetDefine((state, field) =>
                 {
