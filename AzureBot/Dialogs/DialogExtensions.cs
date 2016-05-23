@@ -1,10 +1,13 @@
 ﻿namespace AzureBot.Dialogs
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Autofac;
     using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Builder.Dialogs.Internals;
+    using Microsoft.Bot.Builder.Luis.Models;
     using Microsoft.Bot.Connector;
 
     public static class DialogExtensions
@@ -29,6 +32,28 @@
                     await NotifyUser((IDialogContext)ctx, messageText);
                 }, 
                 context);
+        }
+
+        public static EntityRecommendation ResolveEntity(this EntityRecommendation recommendation, string query, IEnumerable<string> entitySet)
+        {
+            if (recommendation.StartIndex.HasValue && recommendation.EndIndex.HasValue)
+            {
+                var originalName = query.Substring(recommendation.StartIndex.Value, recommendation.EndIndex.Value - recommendation.StartIndex.Value + 1);
+                var matchingName = entitySet.FirstOrDefault(p => p == originalName);
+                if (matchingName != null)
+                {
+                    return new EntityRecommendation(
+                        role: recommendation.Role,
+                        entity: entitySet.FirstOrDefault(p => p == originalName) ?? recommendation.Entity,
+                        type: recommendation.Type,
+                        startIndex: recommendation.StartIndex,
+                        endIndex: recommendation.EndIndex,
+                        score: recommendation.Score,
+                        resolution: recommendation.Resolution);
+                }
+            }
+
+            return null;
         }
 
         private static async Task NotifyUser(IDialogContext context, string messageText)
