@@ -34,23 +34,29 @@
                 context);
         }
 
-        public static EntityRecommendation ResolveEntity(this EntityRecommendation recommendation, string query, IEnumerable<string> entitySet)
+        public static EntityRecommendation ResolveEntity(this EntityRecommendation recommendation, IEnumerable<string> entitySet, string originalText)
+        {
+            var matchingName = entitySet.FirstOrDefault(p => p == originalText);
+            if (matchingName != null)
+            {
+                return new EntityRecommendation(
+                    role: recommendation.Role,
+                    entity: matchingName,
+                    type: recommendation.Type,
+                    startIndex: recommendation.StartIndex,
+                    endIndex: recommendation.EndIndex,
+                    score: recommendation.Score,
+                    resolution: recommendation.Resolution);
+            }
+
+            return null;
+        }
+
+        public static string GetEntityOriginalText(this EntityRecommendation recommendation, string query)
         {
             if (recommendation.StartIndex.HasValue && recommendation.EndIndex.HasValue)
             {
-                var originalName = query.Substring(recommendation.StartIndex.Value, recommendation.EndIndex.Value - recommendation.StartIndex.Value + 1);
-                var matchingName = entitySet.FirstOrDefault(p => p == originalName);
-                if (matchingName != null)
-                {
-                    return new EntityRecommendation(
-                        role: recommendation.Role,
-                        entity: entitySet.FirstOrDefault(p => p == originalName) ?? recommendation.Entity,
-                        type: recommendation.Type,
-                        startIndex: recommendation.StartIndex,
-                        endIndex: recommendation.EndIndex,
-                        score: recommendation.Score,
-                        resolution: recommendation.Resolution);
-                }
+                return query.Substring(recommendation.StartIndex.Value, recommendation.EndIndex.Value - recommendation.StartIndex.Value + 1);
             }
 
             return null;

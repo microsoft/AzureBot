@@ -139,13 +139,14 @@
             EntityRecommendation virtualMachine;
             if (result.TryFindEntity("VirtualMachine", out virtualMachine))
             {
-                var matchEntity = virtualMachine.ResolveEntity(result.Query, availableVMs.Select(p => p.Name));
+                var virtualMachineName = virtualMachine.GetEntityOriginalText(result.Query);
+                var matchEntity = virtualMachine.ResolveEntity(availableVMs.Select(p => p.Name), virtualMachineName);
                 if (matchEntity != null)
                 {
                     var selectedVM = availableVMs.SingleOrDefault(p => p.Name == matchEntity.Entity);
                     if (selectedVM != null && (selectedVM.PowerState == VirtualMachinePowerState.Starting || selectedVM.PowerState == VirtualMachinePowerState.Running))
                     {
-                        await context.PostAsync($"The '{matchEntity.Entity}' virtual machine is already {selectedVM.PowerState}.");
+                        await context.PostAsync($"The '{virtualMachineName}' virtual machine is already {selectedVM.PowerState}.");
                         context.Wait(this.MessageReceived);
                         return;
                     }
@@ -154,7 +155,7 @@
                 }
                 else
                 {
-                    await context.PostAsync($"The '{virtualMachine.Entity}' virtual machine was not found in the current subscription.");
+                    await context.PostAsync($"The '{virtualMachineName}' virtual machine was not found in the current subscription.");
                 }
             }
 
@@ -187,13 +188,14 @@
             EntityRecommendation virtualMachine;
             if (result.TryFindEntity("VirtualMachine", out virtualMachine))
             {
-                var matchEntity = virtualMachine.ResolveEntity(result.Query, availableVMs.Select(p => p.Name));
+                var virtualMachineName = virtualMachine.GetEntityOriginalText(result.Query);
+                var matchEntity = virtualMachine.ResolveEntity(availableVMs.Select(p => p.Name), virtualMachineName);
                 if (matchEntity != null)
                 {
                     var selectedVM = availableVMs.SingleOrDefault(p => p.Name == matchEntity.Entity);
                     if (selectedVM != null && (selectedVM.PowerState == VirtualMachinePowerState.Stopping || selectedVM.PowerState == VirtualMachinePowerState.Stopped))
                     {
-                        await context.PostAsync($"The '{matchEntity.Entity}' virtual machine is already {selectedVM.PowerState}.");
+                        await context.PostAsync($"The '{virtualMachineName}' virtual machine is already {selectedVM.PowerState}.");
                         context.Wait(this.MessageReceived);
                         return;
                     }
@@ -202,7 +204,7 @@
                 }
                 else
                 {
-                    await context.PostAsync($"The '{virtualMachine.Entity}' virtual machine was not found in the current subscription.");
+                    await context.PostAsync($"The '{virtualMachineName}' virtual machine was not found in the current subscription.");
                 }
             }
 
