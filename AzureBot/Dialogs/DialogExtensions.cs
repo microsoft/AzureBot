@@ -34,24 +34,6 @@
                 context);
         }
 
-        public static EntityRecommendation ResolveEntity<T>(this EntityRecommendation recommendation, IEnumerable<T> entitySet, Func<T, string> selector, string originalText)
-        {
-            var matchingName = entitySet.Select(selector).FirstOrDefault(p => p == originalText);
-            if (matchingName != null)
-            {
-                return new EntityRecommendation(
-                    role: recommendation.Role,
-                    entity: matchingName,
-                    type: recommendation.Type,
-                    startIndex: recommendation.StartIndex,
-                    endIndex: recommendation.EndIndex,
-                    score: recommendation.Score,
-                    resolution: recommendation.Resolution);
-            }
-
-            return null;
-        }
-
         public static string GetEntityOriginalText(this EntityRecommendation recommendation, string query)
         {
             if (recommendation.StartIndex.HasValue && recommendation.EndIndex.HasValue)
