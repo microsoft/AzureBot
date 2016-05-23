@@ -75,7 +75,7 @@
         public async Task ListSubscriptionsAsync(IDialogContext context, LuisResult result)
         {
             int index = 0;
-            var accessToken = context.GetAccessToken();
+            var accessToken = await context.GetAccessToken();
 
             var subscriptions = await new AzureRepository().ListSubscriptionsAsync(accessToken);
 
@@ -95,7 +95,7 @@
         [LuisIntent("UseSubscription")]
         public async Task UseSubscriptionAsync(IDialogContext context, LuisResult result)
         {
-            var accessToken = context.GetAccessToken();
+            var accessToken = await context.GetAccessToken();
 
             var availableSubscriptions = await new AzureRepository().ListSubscriptionsAsync(accessToken);
 
@@ -111,7 +111,7 @@
         [LuisIntent("ListVms")]
         public async Task ListVmsAsync(IDialogContext context, LuisResult result)
         {
-            var accessToken = context.GetAccessToken();
+            var accessToken = await context.GetAccessToken();
             var subscriptionId = context.GetSubscriptionId();
 
             var virtualMachines = await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId);
@@ -130,7 +130,7 @@
         [LuisIntent("StartVm")]
         public async Task StartVmAsync(IDialogContext context, LuisResult result)
         {
-            var accessToken = context.GetAccessToken();
+            var accessToken = await context.GetAccessToken();
             var subscriptionId = context.GetSubscriptionId();
 
             var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId))
@@ -156,7 +156,7 @@
         [LuisIntent("StopVm")]
         public async Task StopVmAsync(IDialogContext context, LuisResult result)
         {
-            var accessToken = context.GetAccessToken();
+            var accessToken = await context.GetAccessToken();
             var subscriptionId = context.GetSubscriptionId();
 
             var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId))
@@ -182,7 +182,7 @@
         [LuisIntent("RunRunbook")]
         public async Task StartRunbookAsync(IDialogContext context, LuisResult result)
         {
-            var accessToken = context.GetAccessToken();
+            var accessToken = await context.GetAccessToken();
             var subscriptionId = context.GetSubscriptionId();
 
             var availableAutomationAccounts = await new AzureRepository().ListAutomationAccountsAsync(accessToken, subscriptionId);
@@ -225,17 +225,20 @@
                 new RunbookParameterFormState { ParameterName = nextRunbookParameter.ParameterName },
                 EntityForms.BuildRunbookParametersForm,
                 FormOptions.PromptInStart);
-            context.Call(form, async (parameterContext, parameterResult) =>
-            {
-                await this.RunbookParameterFormComplete(parameterContext, await parameterResult);
-            });
+
+            context.Call(
+                form, 
+                async (parameterContext, parameterResult) =>
+                {
+                    await this.RunbookParameterFormComplete(parameterContext, await parameterResult);
+                });
         }
 
         private async Task RunbookFormComplete(IDialogContext context, RunbookFormState runbookFormState)
         {
             try
             {
-                var accessToken = context.GetAccessToken();
+                var accessToken = await context.GetAccessToken();
 
                 await context.PostAsync($"Running the '{runbookFormState.RunbookName}' runbook in '{runbookFormState.AutomationAccountName}' automation account.");
 
@@ -263,7 +266,7 @@
 
                 await context.PostAsync($"Starting the '{virtualMachineFormState.VirtualMachine}' virtual machine...");
 
-                var accessToken = context.GetAccessToken();
+                var accessToken = await context.GetAccessToken();
                 new AzureRepository()
                     .StartVirtualMachineAsync(
                         accessToken,
@@ -295,7 +298,8 @@
                 await context.PostAsync($"Stopping the '{virtualMachineFormState.VirtualMachine}' virtual machine...");
 
                 var selectedVM = virtualMachineFormState.SelectedVM;
-                var accessToken = context.GetAccessToken();
+                var accessToken = await context.GetAccessToken();
+
                 new AzureRepository()
                     .StopVirtualMachineAsync(
                         accessToken, 

@@ -42,5 +42,14 @@
 
             return await context.AcquireTokenByAuthorizationCodeAsync(authorizationCode, redirectUri, new ClientCredential(clientId.Value, clientSecret.Value));
         }
+
+        internal static async Task<AuthenticationResult> GetToken(string userDisplayableId)
+        {
+            AuthenticationContext context = new AuthenticationContext(activeDirectoryEndpointUrl.Value + "/" + activeDirectoryTenant.Value);
+
+            Uri redirectUri = new Uri(redirectUrl.Value);
+
+            return await context.AcquireTokenSilentAsync(activeDirectoryResourceId.Value, new ClientCredential(clientId.Value, clientSecret.Value), new UserIdentifier(userDisplayableId, UserIdentifierType.RequiredDisplayableId));
+        }
     }
 }
