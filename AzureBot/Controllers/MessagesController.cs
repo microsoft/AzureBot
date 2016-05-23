@@ -33,7 +33,8 @@
             return Chain.PostToChain()
                 .ContinueWith<Message, string>(MessageDialogCallback)
                 .ContinueWith<string, string>(AzureSubscriptionDialogCallback)
-                .ContinueWith<string, string>(AzureActionsDialogCallback);
+                .ContinueWith<string, string>(AzureActionsDialogCallback)
+                .Loop();
         }
 
         private static async Task<IDialog<string>> MessageDialogCallback(IBotContext context, IAwaitable<Message> message)
@@ -74,14 +75,37 @@
         {
             var subscriptionFormState = await result;
 
+            if (string.IsNullOrEmpty(subscriptionFormState.SubscriptionId))
+            {
+                string prompt = "Oops! You don't have any Azure subscriptions under the account you used to log in. To continue using the bot, log in with a different account. Do you want to log out and start over?";
+                return Chain.ContinueWith<bool, string>(new PromptDialog.PromptConfirm(prompt, prompt, 3), OnLogoutRequested);
+            }
+
             context.StoreSubscriptionId(subscriptionFormState.SubscriptionId);
 
             return Chain.Return(subscriptionFormState.DisplayName);
         }
 
+        private static async Task<IDialog<string>> OnLogoutRequested(IBotContext context, IAwaitable<bool> confirmation)
+        {
+            var result = await confirmation;
+
+            if (result)
+            {
+                context.Logout();
+            }
+
+            return Chain.Return(string.Empty);
+        }
+
         private static async Task<IDialog<string>> AzureActionsDialogCallback(IBotContext context, IAwaitable<string> message)
         {
             string msg;
+
+            if (string.IsNullOrEmpty(context.GetSubscriptionId()))
+            {
+                return Chain.Return(string.Empty);
+            }
 
             if (context.PerUserInConversationData.TryGetValue(ContextConstants.OriginalMessageKey, out msg))
             {
