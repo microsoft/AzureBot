@@ -5,7 +5,7 @@
     using Helpers;
     using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Connector;
-
+    using Models;
     [Serializable]
     public class AzureAuthDialog : IDialog<string>
     {
@@ -25,14 +25,23 @@
         {
             var msg = await argument;
 
-            if (msg.Text.StartsWith("token:"))
+            if (msg.Text.StartsWith("token&"))
             {
-                var index = msg.Text.IndexOf("&user:");
-                var token = msg.Text.Substring("token:".Length, index - "token:".Length);
-                var user = msg.Text.Substring(index + "&user:".Length);
+                string[] messageParts = msg.Text.Split('&');
+                var token = messageParts[1];
+                var user = messageParts[2];
+                var userDisplayableId = messageParts[3];
+                var expiresOn = messageParts[4];
 
-                context.PerUserInConversationData.SetValue(ContextConstants.AuthTokenKey, token);
+                AuthResult authResult = new AuthResult
+                {
+                    AccessToken = token,
+                    UserDisplayableId = userDisplayableId,
+                    ExpiresOnUtcTicks = long.Parse(expiresOn)
+                };
 
+                context.StoreAuthResult(authResult);
+                
                 context.Done($"Thanks {user}. You are now logged in. What do you want to do next?");
             }
             else
@@ -44,8 +53,9 @@
 
         private async Task LogIn(IDialogContext context)
         {
-            string token;
-            if (!context.PerUserInConversationData.TryGetValue(ContextConstants.AuthTokenKey, out token))
+            string token = await context.GetAccessToken();
+
+            if (string.IsNullOrEmpty(token))
             {
                 context.PerUserInConversationData.SetValue(ContextConstants.PersistedCookieKey, this.resumptionCookie);
 

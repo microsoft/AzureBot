@@ -58,7 +58,7 @@
         {
             var msg = await message;
 
-            var accessToken = context.GetAccessToken();
+            var accessToken = await context.GetAccessToken();
 
             var availableSubscriptions = await new AzureRepository().ListSubscriptionsAsync(accessToken);
 

@@ -6,7 +6,7 @@
 
         public const string PersistedCookieKey = "persistedCookie";
 
-        public const string AuthTokenKey = "authToken";
+        public const string AuthResultKey = "authResult";
 
         public const string OriginalMessageKey = "originalMessage";
 
