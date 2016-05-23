@@ -30,13 +30,13 @@
                 string[] messageParts = msg.Text.Split('&');
                 var token = messageParts[1];
                 var user = messageParts[2];
-                var userDisplayableId = messageParts[3];
+                var userUniqueId = messageParts[3];
                 var expiresOn = messageParts[4];
 
                 AuthResult authResult = new AuthResult
                 {
                     AccessToken = token,
-                    UserDisplayableId = userDisplayableId,
+                    UserUniqueId = userUniqueId,
                     ExpiresOnUtcTicks = long.Parse(expiresOn)
                 };
 

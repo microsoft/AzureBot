@@ -18,7 +18,7 @@
 
                 if (DateTime.UtcNow >= expires)
                 {
-                    var result = await AzureActiveDirectoryHelper.GetToken(authResult.UserDisplayableId);
+                    var result = await AzureActiveDirectoryHelper.GetToken(authResult.UserUniqueId);
 
                     authResult.AccessToken = result.AccessToken;
                     authResult.ExpiresOnUtcTicks = result.ExpiresOn.UtcTicks;
