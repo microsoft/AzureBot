@@ -1,5 +1,6 @@
 ﻿namespace AzureBot
 {
+    using System.Linq;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using System.Web.Http;
@@ -68,8 +69,16 @@
 
             var availableSubscriptions = await new AzureRepository().ListSubscriptionsAsync(accessToken);
 
+            var formState = new SubscriptionFormState(availableSubscriptions);
+
+            if (availableSubscriptions.Count() == 1)
+            {
+                formState.SubscriptionId = availableSubscriptions.Single().SubscriptionId;
+                formState.DisplayName = availableSubscriptions.Single().DisplayName;
+            };
+
             var form = new FormDialog<SubscriptionFormState>(
-                new SubscriptionFormState(availableSubscriptions),
+                formState,
                 EntityForms.BuildSubscriptionForm,
                 FormOptions.PromptInStart);
 
@@ -134,6 +143,8 @@
 
             if (context.PerUserInConversationData.TryGetValue(ContextConstants.OriginalMessageKey, out msg))
             {
+                var subscription = await message;
+                await context.PostAsync($"Setting {subscription} as the current subscription.");
                 context.PerUserInConversationData.RemoveValue(ContextConstants.OriginalMessageKey);
             }
             else
