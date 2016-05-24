@@ -17,11 +17,9 @@
     [Serializable]
     public class ActionDialog : LuisDialog<string>
     {
-        private static string[] ordinals = { "first", "second", "third", "fourth", "fifth" };
-
         private readonly string originalMessage;
-
         private readonly ILuisService luisService;
+        private readonly bool exitAfterExecutingIntent;
 
         public ActionDialog(string originalMessage)
         {
@@ -42,6 +40,11 @@
             this.handlerByIntent = new Dictionary<string, IntentHandler>(this.GetHandlersByIntent());
         }
 
+        public ActionDialog(string originalMessage, bool exitAfterExecutingIntent) : this(originalMessage)
+        {
+            this.exitAfterExecutingIntent = exitAfterExecutingIntent;
+        }
+
         public override async Task StartAsync(IDialogContext context)
         {
             var luisResult = await this.luisService.QueryAsync(this.originalMessage);
@@ -59,12 +62,31 @@
             {
                 await this.None(context, luisResult);
             }
+
+            if (this.exitAfterExecutingIntent)
+            {
+                context.Done(string.Empty);
+            }
         }
 
         [LuisIntent("")]
+        [LuisIntent("None")]
         public async Task None(IDialogContext context, LuisResult result)
         {
-            string message = $"Sorry I did not understand: " + string.Join(", ", result.Intents.Select(i => i.Intent));
+            string message = $"Sorry, I did not understand '{result.Query}'. Type 'help' if you need assistance.";
+
+            await context.PostAsync(message);
+
+            context.Wait(this.MessageReceived);
+        }
+
+        [LuisIntent("Help")]
+        public async Task Help(IDialogContext context, LuisResult result)
+        {
+            string message = "Hello! You can use the Azure Bot to: \n";
+            message += $"* List and select an Azure subscription (e.g. 'list all subscriptions', 'use the QA subscription')\n";
+            message += $"* List, start and stop your virtual machines (e.g. 'show me my VMs', 'start vm serverProd01', 'stop the devEnv01 virtual machine')\n";
+            message += $"* Start a runbook\n";
 
             await context.PostAsync(message);
 
