@@ -70,9 +70,16 @@
             var accessToken = await context.GetAccessToken();
 
             var availableSubscriptions = await new AzureRepository().ListSubscriptionsAsync(accessToken);
+            var formState = new SubscriptionFormState(availableSubscriptions);
+
+            if (availableSubscriptions.Count() == 1)
+            {
+                formState.SubscriptionId = availableSubscriptions.Single().SubscriptionId;
+                formState.DisplayName = availableSubscriptions.Single().DisplayName;
+            }
 
             var form = new FormDialog<SubscriptionFormState>(
-                new SubscriptionFormState(availableSubscriptions),
+                formState,
                 EntityForms.BuildSubscriptionForm,
                 FormOptions.PromptInStart,
                 result.Entities);
@@ -405,9 +412,22 @@
             try
             {
                 var subscriptionFormState = await result;
-                var selectedSubscription = subscriptionFormState.AvailableSubscriptions.Single(sub => sub.SubscriptionId == subscriptionFormState.SubscriptionId);
-                context.StoreSubscriptionId(subscriptionFormState.SubscriptionId);
-                await context.PostAsync($"Setting {selectedSubscription.DisplayName} as the current subscription.");
+                if (!string.IsNullOrEmpty(subscriptionFormState.SubscriptionId))
+                {
+                    var selectedSubscription = subscriptionFormState.AvailableSubscriptions.Single(sub => sub.SubscriptionId == subscriptionFormState.SubscriptionId);
+                    context.StoreSubscriptionId(subscriptionFormState.SubscriptionId);
+                    await context.PostAsync($"Setting {selectedSubscription.DisplayName} as the current subscription.");
+                    context.Wait(this.MessageReceived);
+                }
+                else
+                {
+                    PromptDialog.Confirm(
+                        context,
+                        this.OnLogoutRequested,
+                        "Oops! You don't have any Azure subscriptions under the account you used to log in. To continue using the bot, log in with a different account. Do you want to log out and start over?",
+                        "Didn't get that!",
+                        promptStyle: PromptStyle.None);
+                }
             }
             catch (FormCanceledException<SubscriptionFormState> e)
             {
@@ -423,6 +443,19 @@
                 }
 
                 await context.PostAsync(reply);
+                context.Wait(this.MessageReceived);
+            }
+        }
+
+        private async Task OnLogoutRequested(IDialogContext context, IAwaitable<bool> confirmation)
+        {
+            var result = await confirmation;
+
+            if (result)
+            {
+                context.Logout();
+                await context.Forward(new AzureAuthDialog(), this.ResumeAfterAuth, context.MakeMessage(), CancellationToken.None);
+                return;
             }
 
             context.Wait(this.MessageReceived);
