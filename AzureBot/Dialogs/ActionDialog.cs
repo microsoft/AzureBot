@@ -48,6 +48,10 @@
         {
             int index = 0;
             var accessToken = await context.GetAccessToken();
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return;
+            }
 
             var subscriptions = await new AzureRepository().ListSubscriptionsAsync(accessToken);
 
@@ -68,6 +72,10 @@
         public async Task UseSubscriptionAsync(IDialogContext context, LuisResult result)
         {
             var accessToken = await context.GetAccessToken();
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return;
+            }
 
             var availableSubscriptions = await new AzureRepository().ListSubscriptionsAsync(accessToken);
             var formState = new SubscriptionFormState(availableSubscriptions);
@@ -91,6 +99,11 @@
         public async Task ListVmsAsync(IDialogContext context, LuisResult result)
         {
             var accessToken = await context.GetAccessToken();
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return;
+            }
+
             var subscriptionId = context.GetSubscriptionId();
 
             var virtualMachines = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId)).ToList();
@@ -129,6 +142,11 @@
         public async Task StartRunbookAsync(IDialogContext context, LuisResult result)
         {
             var accessToken = await context.GetAccessToken();
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return;
+            }
+
             var subscriptionId = context.GetSubscriptionId();
 
             var availableAutomationAccounts = await new AzureRepository().ListAutomationAccountsAsync(accessToken, subscriptionId);
@@ -256,6 +274,10 @@
             try
             {
                 var accessToken = await context.GetAccessToken();
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    return;
+                }
 
                 await context.PostAsync($"Running the '{runbookFormState.RunbookName}' runbook in '{runbookFormState.AutomationAccountName}' automation account.");
 
@@ -286,6 +308,11 @@
 
             // retrieve the list virtual machines from the subscription
             var accessToken = await context.GetAccessToken();
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return;
+            }
+
             var subscriptionId = context.GetSubscriptionId();
             var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId)).ToList();
 
@@ -356,6 +383,11 @@
                 await context.PostAsync($"Starting the '{virtualMachineFormState.VirtualMachine}' virtual machine...");
 
                 var accessToken = await context.GetAccessToken();
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    return;
+                }
+
                 new AzureRepository()
                     .StartVirtualMachineAsync(
                         accessToken,
@@ -388,6 +420,10 @@
 
                 var selectedVM = virtualMachineFormState.SelectedVM;
                 var accessToken = await context.GetAccessToken();
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    return;
+                }
 
                 new AzureRepository()
                     .StopVirtualMachineAsync(
