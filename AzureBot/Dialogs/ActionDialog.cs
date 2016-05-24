@@ -197,13 +197,33 @@
 
         public async Task StartRunbookParametersAsync(IDialogContext context, IAwaitable<RunbookFormState> result)
         {
-            var runbookFormState = await result;
-            context.PerUserInConversationData.SetValue(ContextConstants.RunbookFormStateKey, runbookFormState);
+            try
+            {
+                var runbookFormState = await result;
+                context.PerUserInConversationData.SetValue(ContextConstants.RunbookFormStateKey, runbookFormState);
 
-            await this.RunbookParameterFormComplete(context, null);
+                await this.RunbookParametersFormComplete(context, null);
+            }
+            catch (FormCanceledException<RunbookFormState> e)
+            {
+                string reply;
+
+                if (e.InnerException == null)
+                {
+                    reply = "You have canceled the operation. What would you like to do next?";
+                }
+                else
+                {
+                    reply = $"Oops! Something went wrong :(. Technical Details: {e.InnerException.Message}";
+                }
+
+                await context.PostAsync(reply);
+
+                context.Wait(this.MessageReceived);
+            }
         }
 
-        private async Task RunbookParameterFormComplete(IDialogContext context, RunbookParameterFormState runbookParameterFormState)
+        private async Task RunbookParametersFormComplete(IDialogContext context, RunbookParameterFormState runbookParameterFormState)
         {
             var runbookFormState = context.PerUserInConversationData.Get<RunbookFormState>(ContextConstants.RunbookFormStateKey);
             if (runbookParameterFormState != null)
@@ -226,12 +246,34 @@
                 EntityForms.BuildRunbookParametersForm,
                 FormOptions.PromptInStart);
 
-            context.Call(
-                form, 
-                async (parameterContext, parameterResult) =>
+            context.Call(form, this.RunbookParameterFormComplete);
+        }
+
+        private async Task RunbookParameterFormComplete(IDialogContext context, IAwaitable<RunbookParameterFormState> result)
+        {
+            try
+            {
+                var runbookParameterFormState = await result;
+
+                await this.RunbookParametersFormComplete(context, runbookParameterFormState);
+            }
+            catch (FormCanceledException<RunbookParameterFormState> e)
+            {
+                string reply;
+
+                if (e.InnerException == null)
                 {
-                    await this.RunbookParameterFormComplete(parameterContext, await parameterResult);
-                });
+                    reply = "You have canceled the operation. What would you like to do next?";
+                }
+                else
+                {
+                    reply = $"Oops! Something went wrong :(. Technical Details: {e.InnerException.Message}";
+                }
+
+                await context.PostAsync(reply);
+
+                context.Wait(this.MessageReceived);
+            }
         }
 
         private async Task RunbookFormComplete(IDialogContext context, RunbookFormState runbookFormState)
@@ -250,9 +292,9 @@
                     runbookFormState.RunbookName,
                     runbookFormState.RunbookParameters.ToDictionary(param => param.ParameterName, param => param.ParameterValue));
             }
-            catch (FormCanceledException<VirtualMachineFormState>)
+            catch (Exception e)
             {
-                await context.PostAsync("You have canceled the operation. What would you like to do next?");
+                await context.PostAsync($"Oops! Something went wrong :(. Technical Details: {e.InnerException.Message}");
             }
 
             context.Wait(this.MessageReceived);
@@ -274,7 +316,7 @@
                         virtualMachineFormState.SelectedVM.ResourceGroup,
                         virtualMachineFormState.SelectedVM.Name)
                     .NotifyLongRunningOperation(
-                        context, 
+                        context,
                         (operationStatus) =>
                         {
                             var statusMessage = operationStatus ? "was started successfully" : "failed to start";
@@ -302,12 +344,12 @@
 
                 new AzureRepository()
                     .StopVirtualMachineAsync(
-                        accessToken, 
+                        accessToken,
                         virtualMachineFormState.SelectedVM.SubscriptionId,
                         virtualMachineFormState.SelectedVM.ResourceGroup,
                         virtualMachineFormState.SelectedVM.Name)
                     .NotifyLongRunningOperation(
-                        context, 
+                        context,
                         (operationStatus) =>
                         {
                             var statusMessage = operationStatus ? "was stopped successfully" : "failed to stop";
