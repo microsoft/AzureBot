@@ -114,69 +114,36 @@
             var accessToken = await context.GetAccessToken();
             var subscriptionId = context.GetSubscriptionId();
 
-            var virtualMachines = await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId);
-
-            var virtualMachinesText = virtualMachines.Aggregate(
-                string.Empty,
-                (current, next) =>
+            var virtualMachines = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId)).ToList();
+            if (virtualMachines.Any())
+            {
+                var virtualMachinesText = virtualMachines.Aggregate(
+                    string.Empty,
+                    (current, next) =>
                     {
                         return current += $"\n\r• {next.Name} ({next.PowerState})";
                     });
 
-            await context.PostAsync($"Available VMs are:\r\n {virtualMachinesText}");
+                await context.PostAsync($"Available VMs are:\r\n {virtualMachinesText}");
+            }
+            else
+            {
+                await context.PostAsync("No virtual machines were found in the current subscription.");
+            }
+
             context.Wait(this.MessageReceived);
         }
 
         [LuisIntent("StartVm")]
         public async Task StartVmAsync(IDialogContext context, LuisResult result)
         {
-            var accessToken = await context.GetAccessToken();
-            var subscriptionId = context.GetSubscriptionId();
-
-            var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId))
-                                .Where(vm => vm.PowerState == VirtualMachinePowerState.Stopped)
-                                .ToList();
-
-            if (availableVMs.Any())
-            {
-                var form = new FormDialog<VirtualMachineFormState>(
-                    new VirtualMachineFormState(availableVMs, Operations.Start),
-                    EntityForms.BuildVirtualMachinesForm,
-                    FormOptions.PromptInStart,
-                    result.Entities);
-                context.Call(form, this.StartVirtualMachineFormComplete);
-            }
-            else
-            {
-                await context.PostAsync("No virtual machines that can be started were found.");
-                context.Wait(this.MessageReceived);
-            }
+            await this.ProcessVirtualMachineActionAsync(context, result, Operations.Start, this.StartVirtualMachineFormComplete);
         }
 
         [LuisIntent("StopVm")]
         public async Task StopVmAsync(IDialogContext context, LuisResult result)
         {
-            var accessToken = await context.GetAccessToken();
-            var subscriptionId = context.GetSubscriptionId();
-
-            var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId))
-                                .Where(vm => vm.PowerState == VirtualMachinePowerState.Running)
-                                .ToList();
-
-            if (availableVMs.Any())
-            {
-                var form = new FormDialog<VirtualMachineFormState>(
-                new VirtualMachineFormState(availableVMs, Operations.Stop),
-                EntityForms.BuildVirtualMachinesForm,
-                FormOptions.PromptInStart,
-                result.Entities);
-                context.Call(form, this.StopVirtualMachineFormComplete);
-            }
-            else
-            {
-                await context.PostAsync("No virtual machines that can be stopped were found.");
-                context.Wait(this.MessageReceived);
-            }
+            await this.ProcessVirtualMachineActionAsync(context, result, Operations.Stop, this.StopVirtualMachineFormComplete);
         }
 
         [LuisIntent("RunRunbook")]
@@ -256,6 +223,78 @@
             }
 
             context.Wait(this.MessageReceived);
+        }
+
+        private async Task ProcessVirtualMachineActionAsync(
+            IDialogContext context,
+            LuisResult result,
+            Operations operation,
+            ResumeAfter<VirtualMachineFormState> resume)
+        {
+            EntityRecommendation virtualMachine;
+            List<EntityRecommendation> entities = new List<EntityRecommendation>();
+
+            // retrieve the list virtual machines from the subscription
+            var accessToken = await context.GetAccessToken();
+            var subscriptionId = context.GetSubscriptionId();
+            var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId)).ToList();
+
+            // check if the user specified a virtual machine name in the command
+            if (result.TryFindEntity("VirtualMachine", out virtualMachine))
+            {
+                // obtain the name specified by the user - text in LUIS result is different
+                var virtualMachineName = virtualMachine.GetEntityOriginalText(result.Query);
+
+                // ensure that the virtual machine exists in the subscription
+                var selectedVM = availableVMs.FirstOrDefault(p => p.Name == virtualMachineName);
+                if (selectedVM == null)
+                {
+                    await context.PostAsync($"The '{virtualMachineName}' virtual machine was not found in the current subscription.");
+                    context.Wait(this.MessageReceived);
+                    return;
+                }
+
+                // ensure that the virtual machine is in the correct power state for the requested operation
+                if ((operation == Operations.Start && (selectedVM.PowerState == VirtualMachinePowerState.Starting || selectedVM.PowerState == VirtualMachinePowerState.Running))
+                   || (operation == Operations.Stop && (selectedVM.PowerState == VirtualMachinePowerState.Stopping || selectedVM.PowerState == VirtualMachinePowerState.Stopped)))
+                {
+                    var powerState = selectedVM.PowerState.ToString().ToLower();
+                    await context.PostAsync($"The '{virtualMachineName}' virtual machine is already {powerState}.");
+                    context.Wait(this.MessageReceived);
+                    return;
+                }
+
+                // add the virtual machine name to the list of entities passed to the form
+                entities.Add(new EntityRecommendation(
+                            role: virtualMachine.Role,
+                            entity: virtualMachineName,
+                            type: virtualMachine.Type,
+                            startIndex: virtualMachine.StartIndex,
+                            endIndex: virtualMachine.EndIndex,
+                            score: virtualMachine.Score,
+                            resolution: virtualMachine.Resolution));
+            }
+
+            // retrieve the list of VMs that are in the correct power state
+            var validPowerState = operation == Operations.Start ? VirtualMachinePowerState.Stopped : VirtualMachinePowerState.Running;
+            var candidateVMs = availableVMs.Where(vm => vm.PowerState == validPowerState).ToList();
+            if (candidateVMs.Any())
+            {
+                // prompt the user to select a VM from the list
+                var form = new FormDialog<VirtualMachineFormState>(
+                    new VirtualMachineFormState(candidateVMs, operation),
+                    EntityForms.BuildVirtualMachinesForm,
+                    FormOptions.PromptInStart,
+                    entities);
+
+                context.Call(form, resume);
+            }
+            else
+            {
+                var operationText = operation == Operations.Start ? "started" : "stopped";
+                await context.PostAsync($"No virtual machines that can be {operationText} were found in the current subscription.");
+                context.Wait(this.MessageReceived);
+            }
         }
 
         private async Task StartVirtualMachineFormComplete(IDialogContext context, IAwaitable<VirtualMachineFormState> result)

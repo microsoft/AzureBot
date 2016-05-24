@@ -11,14 +11,14 @@
         public VirtualMachineFormState(IEnumerable<VirtualMachine> availableVMs, Operations operation)
         {
             this.AvailableVMs = availableVMs;
-            this.Operation = operation;
+            this.Operation = operation.ToString().ToLower();
         }
 
         public string VirtualMachine { get; set; }
 
         public IEnumerable<VirtualMachine> AvailableVMs { get; private set; }
 
-        public Operations Operation { get; private set; }
+        public string Operation { get; private set; }
 
         public VirtualMachine SelectedVM
         {
