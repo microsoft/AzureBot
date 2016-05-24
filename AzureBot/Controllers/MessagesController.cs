@@ -1,5 +1,6 @@
 ﻿namespace AzureBot
 {
+    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using System.Web.Http;
     using Azure.Management.ResourceManagement;
@@ -31,17 +32,21 @@
         private static IDialog<string> MakeRoot()
         {
             return Chain.PostToChain()
-                .ContinueWith<Message, string>(MessageDialogCallback)
-                .ContinueWith<string, string>(AzureSubscriptionDialogCallback)
-                .ContinueWith<string, string>(AzureActionsDialogCallback)
-                .Loop();
-        }
-
-        private static async Task<IDialog<string>> MessageDialogCallback(IBotContext context, IAwaitable<Message> message)
-        {
-            var msg = await message;
-
-            return Chain.ContinueWith<string, string>(new AzureAuthDialog(msg), AzureAuthDialogContinuation);
+                .Switch<Message, IDialog<string>>(
+                    new Case<Message, IDialog<string>>(
+                        (message) =>
+                            {
+                                var regex = new Regex("^help", RegexOptions.IgnoreCase);
+                                return regex.IsMatch(message.Text);
+                            }, 
+                        (ctx, message) => Chain.ContinueWith(new ActionDialog(message.Text, true), AzureActionsDialogCallback)),
+                    new DefaultCase<Message, IDialog<string>>((context, message) =>
+                    {
+                        return Chain.ContinueWith<string, string>(new AzureAuthDialog(message), AzureAuthDialogContinuation)
+                        .ContinueWith<string, string>(AzureSubscriptionDialogCallback)
+                        .ContinueWith<string, string>(AzureActionsDialogCallback)
+                        .Loop();
+                    })).Unwrap();
         }
 
         private static async Task<IDialog<string>> AzureAuthDialogContinuation(IBotContext context, IAwaitable<string> item)
@@ -51,7 +56,7 @@
             {
                 await context.PostAsync(msg);
             }
-            
+
             return Chain.Return(msg);
         }
 
