@@ -73,17 +73,37 @@
 
         private static async Task<IDialog<string>> AzureSubscriptionDialogContinuation(IBotContext context, IAwaitable<SubscriptionFormState> result)
         {
-            var subscriptionFormState = await result;
-
-            if (string.IsNullOrEmpty(subscriptionFormState.SubscriptionId))
+            try
             {
-                string prompt = "Oops! You don't have any Azure subscriptions under the account you used to log in. To continue using the bot, log in with a different account. Do you want to log out and start over?";
-                return Chain.ContinueWith<bool, string>(new PromptDialog.PromptConfirm(prompt, prompt, 3), OnLogoutRequested);
+                var subscriptionFormState = await result;
+
+                if (string.IsNullOrEmpty(subscriptionFormState.SubscriptionId))
+                {
+                    string prompt = "Oops! You don't have any Azure subscriptions under the account you used to log in. To continue using the bot, log in with a different account. Do you want to log out and start over?";
+                    return Chain.ContinueWith<bool, string>(new PromptDialog.PromptConfirm(prompt, prompt, 3), OnLogoutRequested);
+                }
+
+                context.StoreSubscriptionId(subscriptionFormState.SubscriptionId);
+
+                return Chain.Return(subscriptionFormState.DisplayName);
             }
+            catch (FormCanceledException<SubscriptionFormState> e)
+            {
+                string reply;
 
-            context.StoreSubscriptionId(subscriptionFormState.SubscriptionId);
+                if (e.InnerException == null)
+                {
+                    reply = "You have canceled the operation.";
+                }
+                else
+                {
+                    reply = $"Oops! Something went wrong :(. Technical Details: {e.InnerException.Message}";
+                }
 
-            return Chain.Return(subscriptionFormState.DisplayName);
+                await context.PostAsync(reply);
+
+                return Chain.Return(string.Empty);
+            }
         }
 
         private static async Task<IDialog<string>> OnLogoutRequested(IBotContext context, IAwaitable<bool> confirmation)
