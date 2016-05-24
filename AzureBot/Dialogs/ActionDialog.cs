@@ -137,13 +137,13 @@
         [LuisIntent("StartVm")]
         public async Task StartVmAsync(IDialogContext context, LuisResult result)
         {
-            await this.ProcessVirtualMachineAction(context, result, Operations.Start, this.StartVirtualMachineFormComplete);
+            await this.ProcessVirtualMachineActionAsync(context, result, Operations.Start, this.StartVirtualMachineFormComplete);
         }
 
         [LuisIntent("StopVm")]
         public async Task StopVmAsync(IDialogContext context, LuisResult result)
         {
-            await this.ProcessVirtualMachineAction(context, result, Operations.Stop, this.StopVirtualMachineFormComplete);
+            await this.ProcessVirtualMachineActionAsync(context, result, Operations.Stop, this.StopVirtualMachineFormComplete);
         }
 
         [LuisIntent("RunRunbook")]
@@ -225,7 +225,7 @@
             context.Wait(this.MessageReceived);
         }
 
-        private async Task ProcessVirtualMachineAction(
+        private async Task ProcessVirtualMachineActionAsync(
             IDialogContext context,
             LuisResult result,
             Operations operation,
