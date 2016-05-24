@@ -36,7 +36,7 @@
 
                 context.StoreAuthResult(authResult);
 
-                context.Done($"Thanks {user}. You are now logged in. What do you want to do next?");
+                context.Done($"Thanks {user}. You are now logged in.");
             }
             else
             {
