@@ -18,12 +18,19 @@
 
                 if (DateTime.UtcNow >= expires)
                 {
-                    var result = await AzureActiveDirectoryHelper.GetToken(authResult.UserUniqueId);
+                    try
+                    {
+                        var result = await AzureActiveDirectoryHelper.GetToken(authResult.UserUniqueId);
 
-                    authResult.AccessToken = result.AccessToken;
-                    authResult.ExpiresOnUtcTicks = result.ExpiresOn.UtcTicks;
+                        authResult.AccessToken = result.AccessToken;
+                        authResult.ExpiresOnUtcTicks = result.ExpiresOn.UtcTicks;
 
-                    context.StoreAuthResult(authResult);
+                        context.StoreAuthResult(authResult);
+                    }
+                    catch (Exception ex)
+                    {
+                        await context.PostAsync(ex.Message);
+                    }
                 }
 
                 return authResult.AccessToken;
