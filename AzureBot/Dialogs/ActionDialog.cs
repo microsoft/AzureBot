@@ -73,7 +73,7 @@
         [LuisIntent("None")]
         public async Task None(IDialogContext context, LuisResult result)
         {
-            string message = $"Sorry I did not understand: " + string.Join(", ", result.Intents.Select(i => i.Intent));
+            string message = $"Sorry, I did not understand '{result.Query}'. Type 'help' if you need assistance.";
 
             await context.PostAsync(message);
 
@@ -83,7 +83,10 @@
         [LuisIntent("Help")]
         public async Task Help(IDialogContext context, LuisResult result)
         {
-            string message = "help command called";
+            string message = "Hello! You can use the Azure Bot to: \n";
+            message += $"* List and select an Azure subscription (e.g. 'list all subscriptions', 'use the QA subscription')\n";
+            message += $"* List, start and stop your virtual machines (e.g. 'show me my VMs', 'start vm serverProd01', 'stop the devEnv01 virtual machine')\n";
+            message += $"* Start a runbook\n";
 
             await context.PostAsync(message);
 
