@@ -5,9 +5,11 @@
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
+    using Autofac;
     using Helpers;
     using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Builder.Dialogs.Internals;
+    using Microsoft.Bot.Connector;
 
     public class OAuthCallbackController : ApiController
     {
@@ -35,16 +37,18 @@
             {
                 dataBag.PerUserInConversationData.RemoveValue(ContextConstants.PersistedCookieKey);
 
-                // using (var scope = DialogModule.BeginLifetimeScope(Conversation.Container, reply))
-                // {
-                //    // make sure that we have the right Channel info for the outgoing message
-                //    var persistedCookie = pending.GetMessage();
-                //    reply.To = persistedCookie.From;
-                //    reply.From = persistedCookie.To;
-                //    // Send the login success asynchronously to user
-                //    var client = scope.Resolve<IConnectorClient>();
-                //    await client.Messages.SendMessageAsync(reply);
-                // }
+                using (var scope = DialogModule.BeginLifetimeScope(Conversation.Container, reply))
+                {
+                    // make sure that we have the right Channel info for the outgoing message
+                    var persistedCookie = pending.GetMessage();
+                    reply.To = persistedCookie.From;
+                    reply.From = persistedCookie.To;
+
+                    // Send the login success asynchronously to user
+                    var client = scope.Resolve<IConnectorClient>();
+                    await client.Messages.SendMessageAsync(reply);
+                }
+
                 return Request.CreateResponse("You are now logged in! Continue talking to the bot.");
             }
             else

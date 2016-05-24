@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using System.Threading;
     using System.Threading.Tasks;
     using Azure.Management.Models;
     using Azure.Management.ResourceManagement;
@@ -12,63 +13,12 @@
     using Microsoft.Bot.Builder.FormFlow;
     using Microsoft.Bot.Builder.Luis;
     using Microsoft.Bot.Builder.Luis.Models;
+    using Microsoft.Bot.Connector;
 
     [LuisModel("1b58a513-e98a-4a13-a5c4-f61ac6dc6c84", "0e64d2ae951547f692182b4ae74262cb")]
     [Serializable]
     public class ActionDialog : LuisDialog<string>
     {
-        private readonly string originalMessage;
-        private readonly ILuisService luisService;
-        private readonly bool exitAfterExecutingIntent;
-
-        public ActionDialog(string originalMessage)
-        {
-            this.originalMessage = originalMessage;
-
-            if (this.luisService == null)
-            {
-                var type = this.GetType();
-                var luisModel = type.GetCustomAttribute<LuisModelAttribute>(inherit: true);
-                if (luisModel == null)
-                {
-                    throw new Exception("Luis model attribute is not set for the class");
-                }
-
-                this.luisService = new LuisService(luisModel);
-            }
-
-            this.handlerByIntent = new Dictionary<string, IntentHandler>(this.GetHandlersByIntent());
-        }
-
-        public ActionDialog(string originalMessage, bool exitAfterExecutingIntent) : this(originalMessage)
-        {
-            this.exitAfterExecutingIntent = exitAfterExecutingIntent;
-        }
-
-        public override async Task StartAsync(IDialogContext context)
-        {
-            var luisResult = await this.luisService.QueryAsync(this.originalMessage);
-
-            var intent = luisResult.Intents.OrderByDescending(i => i.Score).FirstOrDefault();
-
-            IntentHandler intentHandler;
-
-            if (intent != null &&
-                this.handlerByIntent.TryGetValue(intent.Intent, out intentHandler))
-            {
-                await intentHandler(context, luisResult);
-            }
-            else
-            {
-                await this.None(context, luisResult);
-            }
-
-            if (this.exitAfterExecutingIntent)
-            {
-                context.Done(string.Empty);
-            }
-        }
-
         [LuisIntent("")]
         [LuisIntent("None")]
         public async Task None(IDialogContext context, LuisResult result)
@@ -184,7 +134,32 @@
             context.Call(form, this.StartRunbookParametersAsync);
         }
 
-        public async Task StartRunbookParametersAsync(IDialogContext context, IAwaitable<RunbookFormState> result)
+        protected override async Task MessageReceived(IDialogContext context, IAwaitable<Message> item)
+        {
+            if (string.IsNullOrEmpty(await context.GetAccessToken()))
+            {
+                await context.Forward(new AzureAuthDialog(), this.ResumeAfterAuth, await item, CancellationToken.None);
+            }
+            else if (string.IsNullOrEmpty(context.GetSubscriptionId()))
+            {
+                await this.UseSubscriptionAsync(context, new LuisResult());
+            }
+            else
+            {
+                await base.MessageReceived(context, item);
+            }
+        }
+
+        private async Task ResumeAfterAuth(IDialogContext context, IAwaitable<string> result)
+        {
+            var message = await result;
+
+            await context.PostAsync(message);
+
+            await this.UseSubscriptionAsync(context, new LuisResult());
+        }
+
+        private async Task StartRunbookParametersAsync(IDialogContext context, IAwaitable<RunbookFormState> result)
         {
             try
             {

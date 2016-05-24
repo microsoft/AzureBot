@@ -22,32 +22,12 @@
         {
             if (message.Type == "Message")
             {
-                return await Conversation.SendAsync(message, MakeRoot);
+                return await Conversation.SendAsync(message, () => new ActionDialog());
             }
             else
             {
                 return this.HandleSystemMessage(message);
             }
-        }
-
-        private static IDialog<string> MakeRoot()
-        {
-            return Chain.PostToChain()
-                .Switch<Message, IDialog<string>>(
-                    new Case<Message, IDialog<string>>(
-                        (message) =>
-                            {
-                                var regex = new Regex("^help", RegexOptions.IgnoreCase);
-                                return regex.IsMatch(message.Text);
-                            }, 
-                        (ctx, message) => Chain.ContinueWith(new ActionDialog(message.Text, true), AzureActionsDialogCallback)),
-                    new DefaultCase<Message, IDialog<string>>((context, message) =>
-                    {
-                        return Chain.ContinueWith<string, string>(new AzureAuthDialog(message), AzureAuthDialogContinuation)
-                        .ContinueWith<string, string>(AzureSubscriptionDialogCallback)
-                        .ContinueWith<string, string>(AzureActionsDialogCallback)
-                        .Loop();
-                    })).Unwrap();
         }
 
         private static async Task<IDialog<string>> AzureAuthDialogContinuation(IBotContext context, IAwaitable<string> item)
@@ -75,7 +55,7 @@
             {
                 formState.SubscriptionId = availableSubscriptions.Single().SubscriptionId;
                 formState.DisplayName = availableSubscriptions.Single().DisplayName;
-            };
+            }
 
             var form = new FormDialog<SubscriptionFormState>(
                 formState,
@@ -152,7 +132,7 @@
                 msg = await message;
             }
 
-            return Chain.ContinueWith<string, string>(new ActionDialog(msg), AzureActionsDialogContinuation);
+            return Chain.ContinueWith<string, string>(new ActionDialog(), AzureActionsDialogContinuation);
         }
 
         private static async Task<IDialog<string>> AzureActionsDialogContinuation(IBotContext context, IAwaitable<string> item)
