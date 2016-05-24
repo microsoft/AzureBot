@@ -143,9 +143,13 @@
 
         protected override async Task MessageReceived(IDialogContext context, IAwaitable<Message> item)
         {
+            var message = await item;
+            context.PerUserInConversationData.SetValue(ContextConstants.CurrentMessageFromKey, message.From);
+            context.PerUserInConversationData.SetValue(ContextConstants.CurrentMessageToKey, message.To);
+
             if (string.IsNullOrEmpty(await context.GetAccessToken()))
             {
-                await context.Forward(new AzureAuthDialog(), this.ResumeAfterAuth, await item, CancellationToken.None);
+                await context.Forward(new AzureAuthDialog(), this.ResumeAfterAuth, message, CancellationToken.None);
             }
             else if (string.IsNullOrEmpty(context.GetSubscriptionId()))
             {
@@ -453,8 +457,12 @@
 
             if (result)
             {
+                var message = context.MakeMessage();
+                message.From = context.PerUserInConversationData.Get<ChannelAccount>(ContextConstants.CurrentMessageFromKey);
+                message.To = context.PerUserInConversationData.Get<ChannelAccount>(ContextConstants.CurrentMessageToKey);
+
                 context.Logout();
-                await context.Forward(new AzureAuthDialog(), this.ResumeAfterAuth, context.MakeMessage(), CancellationToken.None);
+                await context.Forward(new AzureAuthDialog(), this.ResumeAfterAuth, message, CancellationToken.None);
                 return;
             }
 

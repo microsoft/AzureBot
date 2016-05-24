@@ -11,5 +11,9 @@
         public const string OriginalMessageKey = "originalMessage";
 
         public const string RunbookFormStateKey = "runbookFormState";
+
+        public const string CurrentMessageFromKey = "messageFrom";
+
+        public const string CurrentMessageToKey = "messageTo";
     }
 }
