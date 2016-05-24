@@ -331,9 +331,20 @@
                 context.StoreSubscriptionId(subscriptionFormState.SubscriptionId);
                 await context.PostAsync($"Setting {selectedSubscription.DisplayName} as the current subscription.");
             }
-            catch (FormCanceledException<SubscriptionFormState>)
+            catch (FormCanceledException<SubscriptionFormState> e)
             {
-                await context.PostAsync("You have canceled the operation. What would you like to do next?");
+                string reply;
+
+                if (e.InnerException == null)
+                {
+                    reply = "You have canceled the operation. What would you like to do next?";
+                }
+                else
+                {
+                    reply = $"Oops! Something went wrong :(. Technical Details: {e.InnerException.Message}";
+                }
+
+                await context.PostAsync(reply);
             }
 
             context.Wait(this.MessageReceived);
