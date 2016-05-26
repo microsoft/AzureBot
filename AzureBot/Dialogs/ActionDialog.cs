@@ -162,8 +162,17 @@
         protected override async Task MessageReceived(IDialogContext context, IAwaitable<Message> item)
         {
             var message = await item;
+
             context.PerUserInConversationData.SetValue(ContextConstants.CurrentMessageFromKey, message.From);
             context.PerUserInConversationData.SetValue(ContextConstants.CurrentMessageToKey, message.To);
+
+
+            if (message.Text.StartsWith("help", StringComparison.InvariantCultureIgnoreCase))
+            {
+                await base.MessageReceived(context, item);
+
+                return;
+            }
 
             if (string.IsNullOrEmpty(await context.GetAccessToken()))
             {
@@ -456,7 +465,7 @@
                 {
                     var selectedSubscription = subscriptionFormState.AvailableSubscriptions.Single(sub => sub.SubscriptionId == subscriptionFormState.SubscriptionId);
                     context.StoreSubscriptionId(subscriptionFormState.SubscriptionId);
-                    await context.PostAsync($"Setting {selectedSubscription.DisplayName} as the current subscription.");
+                    await context.PostAsync($"Setting {selectedSubscription.DisplayName} as the current subscription. What would you like to do next?");
                     context.Wait(this.MessageReceived);
                 }
                 else
