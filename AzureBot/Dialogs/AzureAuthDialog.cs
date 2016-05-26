@@ -6,19 +6,13 @@
     using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Connector;
     using Models;
+
     [Serializable]
     public class AzureAuthDialog : IDialog<string>
     {
-        private readonly ResumptionCookie resumptionCookie;
-
-        public AzureAuthDialog(Message msg)
-        {
-            this.resumptionCookie = new ResumptionCookie(msg);
-        }
-
         public async Task StartAsync(IDialogContext context)
         {
-            await this.LogIn(context);
+            context.Wait(this.MessageReceivedAsync);
         }
 
         private async Task MessageReceivedAsync(IDialogContext context, IAwaitable<Message> argument)
@@ -41,25 +35,25 @@
                 };
 
                 context.StoreAuthResult(authResult);
-                
-                context.Done($"Thanks {user}. You are now logged in. What do you want to do next?");
+
+                context.Done($"Thanks {user}. You are now logged in.");
             }
             else
             {
-                context.PerUserInConversationData.SetValue(ContextConstants.OriginalMessageKey, msg.Text);
-                await this.LogIn(context);
+                await this.LogIn(context, msg);
             }
         }
 
-        private async Task LogIn(IDialogContext context)
+        private async Task LogIn(IDialogContext context, Message msg)
         {
             string token = await context.GetAccessToken();
 
             if (string.IsNullOrEmpty(token))
             {
-                context.PerUserInConversationData.SetValue(ContextConstants.PersistedCookieKey, this.resumptionCookie);
+                var resumptionCookie = new ResumptionCookie(msg);
+                context.PerUserInConversationData.SetValue(ContextConstants.PersistedCookieKey, resumptionCookie);
 
-                var authenticationUrl = await AzureActiveDirectoryHelper.GetAuthUrlAsync(this.resumptionCookie);
+                var authenticationUrl = await AzureActiveDirectoryHelper.GetAuthUrlAsync(resumptionCookie);
 
                 await context.PostAsync($"You must be authenticated in Azure to access your subscription. Please, click [here]({authenticationUrl}) to log into your Azure account.");
 
@@ -67,13 +61,8 @@
             }
             else
             {
-                this.ReturnPendingMessage(context);
+                context.Done(string.Empty);
             }
-        }
-
-        private void ReturnPendingMessage(IDialogContext context)
-        {
-            context.Done(string.Empty);
         }
     }
 }
