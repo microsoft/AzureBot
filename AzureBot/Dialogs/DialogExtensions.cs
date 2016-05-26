@@ -30,7 +30,7 @@
                 {
                     var messageText = handler(t.Result, (IDialogContext)ctx);
                     await NotifyUser((IDialogContext)ctx, messageText);
-                }, 
+                },
                 context);
         }
 
@@ -44,15 +44,18 @@
             return null;
         }
 
-        private static async Task NotifyUser(IDialogContext context, string messageText)
+        public static async Task NotifyUser(this IDialogContext context, string messageText)
         {
-            var reply = context.MakeMessage();
-            reply.Text = messageText;
-
-            using (var scope = DialogModule.BeginLifetimeScope(Conversation.Container, reply))
+            if (!string.IsNullOrEmpty(messageText))
             {
-                var client = scope.Resolve<IConnectorClient>();
-                await client.Messages.SendMessageAsync(reply);
+                var reply = context.MakeMessage();
+                reply.Text = messageText;
+
+                using (var scope = DialogModule.BeginLifetimeScope(Conversation.Container, reply))
+                {
+                    var client = scope.Resolve<IConnectorClient>();
+                    await client.Messages.SendMessageAsync(reply);
+                }
             }
         }
     }

@@ -15,5 +15,7 @@
         public string AutomationAccountId { get; set; }
 
         public IEnumerable<Runbook> Runbooks { get; set; }
+
+        public IEnumerable<RunbookJob> RunbookJobs { get; set; }
     }
 }
