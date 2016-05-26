@@ -48,6 +48,7 @@
 
         public static void Logout(this IBotContext context)
         {
+            context.PerUserInConversationData.RemoveValue(ContextConstants.SubscriptionIdKey);
             context.PerUserInConversationData.RemoveValue(ContextConstants.AuthResultKey);
         }
 
