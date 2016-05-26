@@ -12,7 +12,7 @@
         {
             AuthResult authResult;
 
-            if (context.PerUserInConversationData.TryGetValue<AuthResult>(ContextConstants.AuthResultKey, out authResult))
+            if (context.PerUserInConversationData.TryGetValue(ContextConstants.AuthResultKey, out authResult))
             {
                 DateTime expires = new DateTime(authResult.ExpiresOnUtcTicks);
 
@@ -27,9 +27,11 @@
 
                         context.StoreAuthResult(authResult);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        await context.PostAsync(ex.Message);
+                        await context.PostAsync("Your credentials expired and could not be renewed automatically!");
+                        context.Logout();
+                        return null;
                     }
                 }
 
