@@ -71,6 +71,8 @@
         [LuisIntent("UseSubscription")]
         public async Task UseSubscriptionAsync(IDialogContext context, LuisResult result)
         {
+            EntityRecommendation subscriptionEntity;
+
             var accessToken = await context.GetAccessToken();
             if (string.IsNullOrEmpty(accessToken))
             {
@@ -78,6 +80,26 @@
             }
 
             var availableSubscriptions = await new AzureRepository().ListSubscriptionsAsync(accessToken);
+
+            // check if the user specified a subscription name in the command
+            if (result.TryFindEntity("Subscription", out subscriptionEntity))
+            {
+                // obtain the name specified by the user - text in LUIS result is different
+                var subscriptionName = subscriptionEntity.GetEntityOriginalText(result.Query);
+
+                // ensure that the subscription exists
+                var selectedSubscription = availableSubscriptions.FirstOrDefault(p => p.DisplayName == subscriptionName);
+                if (selectedSubscription == null)
+                {
+                    await context.PostAsync($"The '{subscriptionName}' subscription was not found.");
+                    context.Wait(this.MessageReceived);
+                    return;
+                }
+
+                subscriptionEntity.Entity = selectedSubscription.DisplayName;
+                subscriptionEntity.Type = "SubscriptionId";
+            }
+
             var formState = new SubscriptionFormState(availableSubscriptions);
 
             if (availableSubscriptions.Count() == 1)
