@@ -20,7 +20,7 @@
             using (SubscriptionClient client = new SubscriptionClient(credentials))
             {
                 var subscriptionsResult = await client.Subscriptions.ListAsync().ConfigureAwait(false);
-                var subscriptions = subscriptionsResult.Subscriptions.Select(sub => new Subscription { SubscriptionId = sub.SubscriptionId, DisplayName = sub.DisplayName }).ToList();
+                var subscriptions = subscriptionsResult.Subscriptions.OrderBy(x => x.DisplayName).Select(sub => new Subscription { SubscriptionId = sub.SubscriptionId, DisplayName = sub.DisplayName }).ToList();
                 return subscriptions;
             }
         }
