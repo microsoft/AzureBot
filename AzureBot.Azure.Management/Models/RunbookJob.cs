@@ -5,9 +5,9 @@
     [Serializable]
     public class RunbookJob
     {
-        public string ResourceGroupName { get; internal set; }
+        public string ResourceGroupName { get; set; }
 
-        public string AutomationAccountName { get; internal set; }
+        public string AutomationAccountName { get; set; }
 
         public string RunbookName { get; set; }
 

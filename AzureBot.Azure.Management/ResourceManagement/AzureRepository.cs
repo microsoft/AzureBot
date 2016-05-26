@@ -138,6 +138,9 @@
                 return new RunbookJob
                 {
                     JobId = jobCreateResult.Job.Properties.JobId.ToString(),
+                    StartDateTime = jobCreateResult.Job.Properties.StartTime,
+                    EndDateTime = jobCreateResult.Job.Properties.EndTime,
+                    Status = jobCreateResult.Job.Properties.Status,
                     ResourceGroupName = resourceGroupName,
                     AutomationAccountName = automationAccountName,
                     RunbookName = runbookName
@@ -145,13 +148,14 @@
             }
         }
 
-        public async Task<RunbookJob> GetAutomationJobAsync(string accessToken, string subscriptionId, string resourceGroupName, string automationAccountName, string jobId)
+        public async Task<RunbookJob> GetAutomationJobAsync(string accessToken, string subscriptionId, string resourceGroupName, string automationAccountName, string jobId, bool configureAwait = false)
         {
             var credentials = new TokenCredentials(subscriptionId, accessToken);
 
             using (var automationClient = new AutomationManagementClient(credentials))
             {
-                var automationJobResult = await automationClient.Jobs.GetAsync(resourceGroupName, automationAccountName, new Guid(jobId)).ConfigureAwait(false);
+                var automationJobResult = configureAwait ? await automationClient.Jobs.GetAsync(resourceGroupName, automationAccountName, new Guid(jobId)).ConfigureAwait(false) :
+                    await automationClient.Jobs.GetAsync(resourceGroupName, automationAccountName, new Guid(jobId));
 
                 var automationJob = new RunbookJob
                 {
@@ -166,6 +170,13 @@
 
                 return automationJob;
             }
+        }
+
+        private static string GetResourceGroup(string id)
+        {
+            var segments = id.Split('/');
+            var resourceGroupName = segments.SkipWhile(segment => segment != "resourceGroups").ElementAtOrDefault(1);
+            return resourceGroupName;
         }
 
         private async Task<IEnumerable<Runbook>> ListAutomationRunbooks(string accessToken, string subscriptionId, string resourceGroupName, string automationAccountName)
@@ -233,13 +244,6 @@
 
                 return automationRunbookPrameters;
             }
-        }
-
-        private static string GetResourceGroup(string id)
-        {
-            var segments = id.Split('/');
-            var resourceGroupName = segments.SkipWhile(segment => segment != "resourceGroups").ElementAtOrDefault(1);
-            return resourceGroupName;
         }
 
         private VirtualMachinePowerState GetVirtualMachinePowerState(string code)

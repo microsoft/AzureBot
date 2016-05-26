@@ -126,7 +126,6 @@
     <Compile Include="Forms\EntityForms.cs" />
     <Compile Include="Forms\Operations.cs" />
     <Compile Include="Forms\RunbookFormState.cs" />
-    <Compile Include="Forms\RunbookJobFormState.cs" />
     <Compile Include="Forms\RunbookParameterFormState.cs" />
     <Compile Include="Forms\SubscriptionFormState.cs" />
     <Compile Include="Forms\VirtualMachineFormState.cs" />

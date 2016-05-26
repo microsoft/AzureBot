@@ -95,47 +95,6 @@
                .Build();
         }
 
-        public static IForm<RunbookJobFormState> BuildRunbookJobForm()
-        {
-            return new FormBuilder<RunbookJobFormState>()
-                .Field(new FieldReflector<RunbookJobFormState>(nameof(RunbookFormState.AutomationAccountName))
-                    .SetType(null)
-                    .SetPrompt(PerLinePromptAttribute("Please select the automation account you want to use: {||}"))
-                    .SetDefine((state, field) =>
-                    {
-                        foreach (var account in state.AvailableAutomationAccounts)
-                        {
-                            field
-                                .AddDescription(account.AutomationAccountName, account.AutomationAccountName)
-                                .AddTerms(account.AutomationAccountName, account.AutomationAccountName);
-                        }
-
-                        return Task.FromResult(true);
-                    }))
-                .Field(new FieldReflector<RunbookJobFormState>(nameof(RunbookJobFormState.RunbookJobId))
-                    .SetType(null)
-                    .SetPrompt(PerLinePromptAttribute("Please select the runbook you want to get the status for: {||}"))
-                    .SetActive(state => !string.IsNullOrWhiteSpace(state.AutomationAccountName))
-                    .SetDefine((state, field) =>
-                    {
-                        if (string.IsNullOrWhiteSpace(state.AutomationAccountName))
-                        {
-                            return Task.FromResult(false);
-                        }
-
-                        foreach (var runbook in state.AvailableAutomationAccounts.Single(
-                            a => a.AutomationAccountName == state.AutomationAccountName).RunbookJobs)
-                        {
-                            field
-                                .AddDescription(runbook.JobId, runbook.JobId.ToString())
-                                .AddTerms(runbook.JobId, runbook.JobId.ToString());
-                        }
-
-                        return Task.FromResult(true);
-                    }))
-               .Build();
-        }
-
         public static IForm<RunbookParameterFormState> BuildRunbookParametersForm()
         {
             return new FormBuilder<RunbookParameterFormState>()

@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using Autofac;
@@ -194,14 +195,30 @@
 
             var subscriptionId = context.GetSubscriptionId();
 
-            var availableAutomationAccounts = await new AzureRepository().ListRunbookJobsAsync(accessToken, subscriptionId);
+            List<RunbookJob> runbookJobList;
+            if (context.PerUserInConversationData.TryGetValue(ContextConstants.RunbookJobListKey, out runbookJobList) &&
+                runbookJobList.Any())
+            {
+                var messageBuilder = new StringBuilder();
+                messageBuilder.AppendLine("|**Runbook**|**Start Time**|**End Time**|**Status**|");
+                messageBuilder.AppendLine("|---|---|---|---|");
+                foreach (var rj in runbookJobList)
+                {
+                    var runbookJob = await new AzureRepository().GetAutomationJobAsync(accessToken, subscriptionId, rj.ResourceGroupName, rj.AutomationAccountName, rj.JobId, configureAwait: false);
+                    var startDateTime = runbookJob.StartDateTime?.ToString("g") ?? string.Empty;
+                    var endDateTime = runbookJob.EndDateTime?.ToString("g") ?? string.Empty;
+                    var status = runbookJob.Status ?? string.Empty;
+                    messageBuilder.AppendLine($"|{runbookJob.RunbookName}|{startDateTime}|{endDateTime}|_{status}_|");
+                }
 
-            var form = new FormDialog<RunbookJobFormState>(
-                new RunbookJobFormState(availableAutomationAccounts),
-                EntityForms.BuildRunbookJobForm,
-                FormOptions.PromptInStart,
-                result.Entities);
-            context.Call(form, this.StatusJobComplete);
+                await context.PostAsync(messageBuilder.ToString());
+            }
+            else
+            {
+                await context.PostAsync("No Runbook Jobs were created in the current session. To create a new Runbook Job type: Start Runbook.");
+            }
+
+            context.Wait(this.MessageReceived);
         }
 
         protected override async Task MessageReceived(IDialogContext context, IAwaitable<Message> item)
@@ -235,7 +252,7 @@
         private static async Task CheckLongRunningOperationStatus<T>(
             IDialogContext context,
             RunbookJob runbookJob,
-            Func<string, string, string, string, string, Task<T>> getOperationStatusAsync,
+            Func<string, string, string, string, string, bool, Task<T>> getOperationStatusAsync,
             Func<T, bool> completionCondition,
             Func<T, T, string> getOperationStatusMessage,
             int delayBetweenPoolingInSeconds = 2)
@@ -246,7 +263,7 @@
                 var accessToken = await context.GetAccessToken().ConfigureAwait(false);
                 var subscriptionId = context.GetSubscriptionId();
 
-                var newOperationStatus = await getOperationStatusAsync(accessToken, subscriptionId, runbookJob.ResourceGroupName, runbookJob.AutomationAccountName, runbookJob.JobId).ConfigureAwait(false);
+                var newOperationStatus = await getOperationStatusAsync(accessToken, subscriptionId, runbookJob.ResourceGroupName, runbookJob.AutomationAccountName, runbookJob.JobId, true).ConfigureAwait(false);
 
                 var message = getOperationStatusMessage(lastOperationStatus, newOperationStatus);
                 await context.NotifyUser(message);
@@ -352,6 +369,7 @@
             try
             {
                 var accessToken = await context.GetAccessToken();
+
                 if (string.IsNullOrEmpty(accessToken))
                 {
                     return;
@@ -364,6 +382,18 @@
                     runbookFormState.SelectedAutomationAccount.AutomationAccountName,
                     runbookFormState.RunbookName,
                     runbookFormState.RunbookParameters.ToDictionary(param => param.ParameterName, param => param.ParameterValue));
+
+                List<RunbookJob> runbookJobList;
+                if (!context.PerUserInConversationData.TryGetValue(ContextConstants.RunbookJobListKey, out runbookJobList))
+                {
+                    runbookJobList = new List<RunbookJob> { runbookJob };
+                }
+                else
+                {
+                    runbookJobList.Add(runbookJob);
+                }
+
+                context.PerUserInConversationData.SetValue(ContextConstants.RunbookJobListKey, runbookJobList);
 
                 await context.PostAsync($"Created Job '{runbookJob.JobId}' for the '{runbookFormState.RunbookName}' runbook in '{runbookFormState.AutomationAccountName}' automation account. You'll receive a message when it is completed.");
 
@@ -384,28 +414,6 @@
 
                         return null;
                     });
-            }
-            catch (Exception e)
-            {
-                await context.PostAsync($"Oops! Something went wrong :(. Technical Details: {e.InnerException.Message}");
-            }
-
-            context.Wait(this.MessageReceived);
-        }
-
-        private async Task StatusJobComplete(IDialogContext context, IAwaitable<RunbookJobFormState> result)
-        {
-            try
-            {
-                var runbookJobState = await result;
-                var runbookJob = runbookJobState.SelectedRunbookJob;
-                var accessToken = await context.GetAccessToken();
-                if (string.IsNullOrEmpty(accessToken))
-                {
-                    return;
-                }
-
-                await context.PostAsync($"The Job '{runbookJob.JobId}' for the '{runbookJob.RunbookName}' runbook is '{runbookJob.Status}'");
             }
             catch (Exception e)
             {

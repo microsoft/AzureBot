@@ -15,5 +15,7 @@
         public const string CurrentMessageFromKey = "messageFrom";
 
         public const string CurrentMessageToKey = "messageTo";
+
+        public const string RunbookJobListKey = "runbookJobList";
     }
 }
