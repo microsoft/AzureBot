@@ -132,13 +132,13 @@
             if (virtualMachines.Any())
             {
                 var virtualMachinesText = virtualMachines.Aggregate(
-                    string.Empty,
+                    " **Virtual Machine** | **Status** \n---|---\n-------------------------|-------------------------\n",
                     (current, next) =>
                     {
-                        return current += $"\n\r• {next.Name} ({next.PowerState})";
+                        return current += $"{next.Name} | *{next.PowerState}*\n";
                     });
 
-                await context.PostAsync($"Available VMs are:\r\n {virtualMachinesText}");
+                await context.PostAsync(virtualMachinesText);
             }
             else
             {
