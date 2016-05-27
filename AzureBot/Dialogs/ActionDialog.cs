@@ -243,7 +243,7 @@
             context.PerUserInConversationData.SetValue(ContextConstants.CurrentMessageFromKey, message.From);
             context.PerUserInConversationData.SetValue(ContextConstants.CurrentMessageToKey, message.To);
 
-            if (message.Text.StartsWith("help", StringComparison.InvariantCultureIgnoreCase))
+            if (message.Text.ToLowerInvariant().Contains("help"))
             {
                 await base.MessageReceived(context, item);
 
