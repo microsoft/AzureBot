@@ -131,12 +131,17 @@
             var virtualMachines = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId)).ToList();
             if (virtualMachines.Any())
             {
+                // Output is rendered as a markdown table. However, Slack doesn't support the 
+                // required markup and is rendered as a bullet list instead. Other platforms may need
+                // to be handled differently too.
+                var isSlack = context.MakeMessage().To.ChannelId == "slack";
+
                 var virtualMachinesText = virtualMachines.Aggregate(
-                    " **Virtual Machine** | **Status** \n---|---\n-------------------------|-------------------------\n",
+                    isSlack ? " Available VMs are:\n\n" : " **Virtual Machine** | **Status** \n---|---\n-------------------------|-------------------------\n",
                     (current, next) =>
                     {
-                        return current += $"{next.Name} | *{next.PowerState}*\n";
-                    });
+                        return current += isSlack ? $"• {next.Name} (_{next.PowerState}_)\n" : $"{next.Name} | *{next.PowerState}*\n";
+                });
 
                 await context.PostAsync(virtualMachinesText);
             }
@@ -187,7 +192,6 @@
 
             context.PerUserInConversationData.SetValue(ContextConstants.CurrentMessageFromKey, message.From);
             context.PerUserInConversationData.SetValue(ContextConstants.CurrentMessageToKey, message.To);
-
 
             if (message.Text.StartsWith("help", StringComparison.InvariantCultureIgnoreCase))
             {
