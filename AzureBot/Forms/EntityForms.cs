@@ -1,5 +1,6 @@
 ﻿namespace AzureBot.Forms
 {
+    using System;
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.Bot.Builder.FormFlow;
@@ -13,7 +14,8 @@
             {
                 ChoiceStyle = ChoiceStyleOptions.PerLine
             };
-            return new FormBuilder<SubscriptionFormState>()
+
+            return CreateCustomForm<SubscriptionFormState>()
                 .Field(new FieldReflector<SubscriptionFormState>(nameof(SubscriptionFormState.SubscriptionId))
                 .SetType(null)
                 .SetActive(x => x.AvailableSubscriptions.Any())
@@ -33,7 +35,7 @@
 
         public static IForm<VirtualMachineFormState> BuildVirtualMachinesForm()
         {
-            return new FormBuilder<VirtualMachineFormState>()
+            return CreateCustomForm<VirtualMachineFormState>()
                 .Field(nameof(VirtualMachineFormState.Operation), (state) => false)
                 .Field(new FieldReflector<VirtualMachineFormState>(nameof(VirtualMachineFormState.VirtualMachine))
                 .SetType(null)
@@ -55,7 +57,7 @@
 
         public static IForm<RunbookFormState> BuildRunbookForm()
         {
-            return new FormBuilder<RunbookFormState>()
+            return CreateCustomForm<RunbookFormState>()
                 .Field(new FieldReflector<RunbookFormState>(nameof(RunbookFormState.AutomationAccountName))
                     .SetType(null)
                     .SetPrompt(PerLinePromptAttribute("Please select the automation account you want to use: {||}"))
@@ -97,11 +99,23 @@
 
         public static IForm<RunbookParameterFormState> BuildRunbookParametersForm()
         {
-            return new FormBuilder<RunbookParameterFormState>()
+            return CreateCustomForm<RunbookParameterFormState>()
                 .Field(nameof(RunbookParameterFormState.ParameterName), (state) => false)
                 .Field(new FieldReflector<RunbookParameterFormState>(nameof(RunbookParameterFormState.ParameterValue))
                 .SetPrompt(new PromptAttribute("Please enter the value for parameter: {ParameterName}")))
                 .Build();
+        }
+
+        private static IFormBuilder<T> CreateCustomForm<T>()
+           where T : class
+        {
+            var form = new FormBuilder<T>();
+            var command = form.Configuration.Commands[FormCommand.Quit];
+            var terms = command.Terms.ToList();
+            terms.Add("cancel");
+            command.Terms = terms.ToArray();
+
+            return form;
         }
 
         private static PromptAttribute PerLinePromptAttribute(string pattern)
