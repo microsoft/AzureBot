@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using Azure.Management.Models;
@@ -68,6 +68,24 @@
             context.Wait(this.MessageReceived);
         }
 
+        [LuisIntent("CurrentSubscription")]
+        public async Task GetCurrentSubscriptionAsync(IDialogContext context, LuisResult result)
+        {
+            var accessToken = await context.GetAccessToken();
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return;
+            }
+
+            var subscriptionId = context.GetSubscriptionId();
+
+            var currentSubscription = await new AzureRepository().GetSubscription(accessToken, subscriptionId);
+
+            await context.PostAsync($"Your current subscription is '{currentSubscription.DisplayName}'.");
+
+            context.Wait(this.MessageReceived);
+        }
+
         [LuisIntent("UseSubscription")]
         public async Task UseSubscriptionAsync(IDialogContext context, LuisResult result)
         {
@@ -88,7 +106,7 @@
                 var subscriptionName = subscriptionEntity.GetEntityOriginalText(result.Query);
 
                 // ensure that the subscription exists
-                var selectedSubscription = availableSubscriptions.FirstOrDefault(p => p.DisplayName == subscriptionName);
+                var selectedSubscription = availableSubscriptions.FirstOrDefault(p => p.DisplayName.Equals(subscriptionName, StringComparison.InvariantCultureIgnoreCase));
                 if (selectedSubscription == null)
                 {
                     await context.PostAsync($"The '{subscriptionName}' subscription was not found.");
@@ -176,7 +194,7 @@
 
             var subscriptionId = context.GetSubscriptionId();
 
-            var availableAutomationAccounts = await new AzureRepository().ListAutomationAccountsAsync(accessToken, subscriptionId);
+            var availableAutomationAccounts = await new AzureRepository().ListRunbooksAsync(accessToken, subscriptionId);
 
             var form = new FormDialog<RunbookFormState>(
                 new RunbookFormState(availableAutomationAccounts),
@@ -184,6 +202,43 @@
                 FormOptions.PromptInStart,
                 result.Entities);
             context.Call(form, this.StartRunbookParametersAsync);
+        }
+
+        [LuisIntent("StatusJob")]
+        public async Task StatusJobAsync(IDialogContext context, LuisResult result)
+        {
+            var accessToken = await context.GetAccessToken();
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return;
+            }
+
+            var subscriptionId = context.GetSubscriptionId();
+
+            List<RunbookJob> runbookJobList;
+            if (context.PerUserInConversationData.TryGetValue(ContextConstants.RunbookJobListKey, out runbookJobList) &&
+                runbookJobList.Any())
+            {
+                var messageBuilder = new StringBuilder();
+                messageBuilder.AppendLine("|**Runbook**|**Start Time**|**End Time**|**Status**|");
+                messageBuilder.AppendLine("|---|---|---|---|");
+                foreach (var rj in runbookJobList)
+                {
+                    var runbookJob = await new AzureRepository().GetAutomationJobAsync(accessToken, subscriptionId, rj.ResourceGroupName, rj.AutomationAccountName, rj.JobId, configureAwait: false);
+                    var startDateTime = runbookJob.StartDateTime?.ToString("g") ?? string.Empty;
+                    var endDateTime = runbookJob.EndDateTime?.ToString("g") ?? string.Empty;
+                    var status = runbookJob.Status ?? string.Empty;
+                    messageBuilder.AppendLine($"|{runbookJob.RunbookName}|{startDateTime}|{endDateTime}|_{status}_|");
+                }
+
+                await context.PostAsync(messageBuilder.ToString());
+            }
+            else
+            {
+                await context.PostAsync("No Runbook Jobs were created in the current session. To create a new Runbook Job type: Start Runbook.");
+            }
+
+            context.Wait(this.MessageReceived);
         }
 
         protected override async Task MessageReceived(IDialogContext context, IAwaitable<Message> item)
@@ -212,6 +267,31 @@
             {
                 await base.MessageReceived(context, item);
             }
+        }
+
+        private static async Task CheckLongRunningOperationStatus<T>(
+            IDialogContext context,
+            RunbookJob runbookJob,
+            Func<string, string, string, string, string, bool, Task<T>> getOperationStatusAsync,
+            Func<T, bool> completionCondition,
+            Func<T, T, string> getOperationStatusMessage,
+            int delayBetweenPoolingInSeconds = 2)
+        {
+            var lastOperationStatus = default(T);
+            do
+            {
+                var accessToken = await context.GetAccessToken().ConfigureAwait(false);
+                var subscriptionId = context.GetSubscriptionId();
+
+                var newOperationStatus = await getOperationStatusAsync(accessToken, subscriptionId, runbookJob.ResourceGroupName, runbookJob.AutomationAccountName, runbookJob.JobId, true).ConfigureAwait(false);
+
+                var message = getOperationStatusMessage(lastOperationStatus, newOperationStatus);
+                await context.NotifyUser(message);
+
+                await Task.Delay(TimeSpan.FromSeconds(delayBetweenPoolingInSeconds)).ConfigureAwait(false);
+                lastOperationStatus = newOperationStatus;
+            }
+            while (!completionCondition(lastOperationStatus));
         }
 
         private async Task ResumeAfterAuth(IDialogContext context, IAwaitable<string> result)
@@ -309,20 +389,51 @@
             try
             {
                 var accessToken = await context.GetAccessToken();
+
                 if (string.IsNullOrEmpty(accessToken))
                 {
                     return;
                 }
 
-                await context.PostAsync($"Running the '{runbookFormState.RunbookName}' runbook in '{runbookFormState.AutomationAccountName}' automation account.");
-
-                await new AzureRepository().StartRunbookAsync(
+                var runbookJob = await new AzureRepository().StartRunbookAsync(
                     accessToken,
                     runbookFormState.SelectedAutomationAccount.SubscriptionId,
                     runbookFormState.SelectedAutomationAccount.ResourceGroup,
                     runbookFormState.SelectedAutomationAccount.AutomationAccountName,
                     runbookFormState.RunbookName,
                     runbookFormState.RunbookParameters.ToDictionary(param => param.ParameterName, param => param.ParameterValue));
+
+                List<RunbookJob> runbookJobList;
+                if (!context.PerUserInConversationData.TryGetValue(ContextConstants.RunbookJobListKey, out runbookJobList))
+                {
+                    runbookJobList = new List<RunbookJob> { runbookJob };
+                }
+                else
+                {
+                    runbookJobList.Add(runbookJob);
+                }
+
+                context.PerUserInConversationData.SetValue(ContextConstants.RunbookJobListKey, runbookJobList);
+
+                await context.PostAsync($"Created Job '{runbookJob.JobId}' for the '{runbookFormState.RunbookName}' runbook in '{runbookFormState.AutomationAccountName}' automation account. You'll receive a message when it is completed.");
+
+                var notifyStatusList = new List<string> { "Running", "Completed", "Failed" };
+
+                // no wait, just fire and forget
+                CheckLongRunningOperationStatus(
+                    context,
+                    runbookJob,
+                    new AzureRepository().GetAutomationJobAsync,
+                    rj => rj.EndDateTime.HasValue,
+                    (previous, last) =>
+                    {
+                        if (!string.Equals(previous?.Status, last?.Status) && notifyStatusList.Contains(last.Status))
+                        {
+                            return $"Runbook '{last.RunbookName}' job '{last.JobId}' is currently in '{last.Status}' status.";
+                        }
+
+                        return null;
+                    });
             }
             catch (Exception e)
             {
@@ -338,9 +449,8 @@
             Operations operation,
             ResumeAfter<VirtualMachineFormState> resume)
         {
-            EntityRecommendation virtualMachine;
-            List<EntityRecommendation> entities = new List<EntityRecommendation>();
-
+            EntityRecommendation virtualMachineEntity;
+            
             // retrieve the list virtual machines from the subscription
             var accessToken = await context.GetAccessToken();
             if (string.IsNullOrEmpty(accessToken))
@@ -352,13 +462,13 @@
             var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId)).ToList();
 
             // check if the user specified a virtual machine name in the command
-            if (result.TryFindEntity("VirtualMachine", out virtualMachine))
+            if (result.TryFindEntity("VirtualMachine", out virtualMachineEntity))
             {
                 // obtain the name specified by the user - text in LUIS result is different
-                var virtualMachineName = virtualMachine.GetEntityOriginalText(result.Query);
+                var virtualMachineName = virtualMachineEntity.GetEntityOriginalText(result.Query);
 
                 // ensure that the virtual machine exists in the subscription
-                var selectedVM = availableVMs.FirstOrDefault(p => p.Name == virtualMachineName);
+                var selectedVM = availableVMs.FirstOrDefault(p => p.Name.Equals(virtualMachineName, StringComparison.InvariantCultureIgnoreCase));
                 if (selectedVM == null)
                 {
                     await context.PostAsync($"The '{virtualMachineName}' virtual machine was not found in the current subscription.");
@@ -376,15 +486,7 @@
                     return;
                 }
 
-                // add the virtual machine name to the list of entities passed to the form
-                entities.Add(new EntityRecommendation(
-                            role: virtualMachine.Role,
-                            entity: virtualMachineName,
-                            type: virtualMachine.Type,
-                            startIndex: virtualMachine.StartIndex,
-                            endIndex: virtualMachine.EndIndex,
-                            score: virtualMachine.Score,
-                            resolution: virtualMachine.Resolution));
+                virtualMachineEntity.Entity = selectedVM.Name;
             }
 
             // retrieve the list of VMs that are in the correct power state
@@ -397,7 +499,7 @@
                     new VirtualMachineFormState(candidateVMs, operation),
                     EntityForms.BuildVirtualMachinesForm,
                     FormOptions.PromptInStart,
-                    entities);
+                    result.Entities);
 
                 context.Call(form, resume);
             }
