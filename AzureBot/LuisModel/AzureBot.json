@@ -5,46 +5,58 @@
   "culture": "en-us",
   "intents": [
     {
+      "Name": "CurrentSubscription",
+      "Children": [ ]
+    },
+    {
+      "Name": "StatusJob",
+      "Children": [ ]
+    },
+    {
       "Name": "StartVm",
-      "Children": []
+      "Children": [ ]
     },
     {
       "Name": "ListVms",
-      "Children": []
+      "Children": [ ]
     },
     {
       "Name": "None",
-      "Children": []
+      "Children": [ ]
     },
     {
       "Name": "StopVm",
-      "Children": []
+      "Children": [ ]
     },
     {
       "Name": "RunRunbook",
-      "Children": []
+      "Children": [ ]
     },
     {
       "Name": "UseSubscription",
-      "Children": []
+      "Children": [ ]
+    },
+    {
+      "Name": "Help",
+      "Children": [ ]
     },
     {
       "Name": "ListSubscriptions",
-      "Children": []
+      "Children": [ ]
     }
   ],
   "entities": [
     {
       "Name": "Runbook",
-      "Children": []
+      "Children": [ ]
     },
     {
       "Name": "VirtualMachine",
-      "Children": []
+      "Children": [ ]
     },
     {
       "Name": "Subscription",
-      "Children": []
+      "Children": [ ]
     }
   ],
   "bing_entities": [
@@ -86,6 +98,11 @@
       ]
     },
     {
+      "actionName": "StatusJob",
+      "intentName": "StatusJob",
+      "actionParameters": [ ]
+    },
+    {
       "actionName": "StopVm",
       "intentName": "StopVm",
       "actionParameters": [
@@ -111,7 +128,7 @@
       "activated": true
     }
   ],
-  "regex_features": [],
+  "regex_features": [ ],
   "utterances": [
     {
       "text": "start virtual machine xxxx",
@@ -215,7 +232,7 @@
     {
       "text": "stop vm x0324aa",
       "intent": "StopVm",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "start the abcdef23 vm",
@@ -363,32 +380,32 @@
     {
       "text": "list vms",
       "intent": "ListVms",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "list virtual machines",
       "intent": "ListVms",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "show me all virtual machines",
       "intent": "ListVms",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "list the virtual machines",
       "intent": "ListVms",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "list the vms",
       "intent": "ListVms",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "list vm",
       "intent": "ListVms",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "run runbook test01",
@@ -503,7 +520,7 @@
     {
       "text": "enumerate vms",
       "intent": "ListVms",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "use subscription devdev",
@@ -519,12 +536,12 @@
     {
       "text": "show vms",
       "intent": "ListVms",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "what are the virtual machines?",
       "intent": "ListVms",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "start vm server01",
@@ -606,7 +623,7 @@
     {
       "text": "list all vms",
       "intent": "ListVms",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "stop the abancc23 vm",
@@ -633,27 +650,27 @@
     {
       "text": "list subscriptions",
       "intent": "ListSubscriptions",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "show me the subscriptions",
       "intent": "ListSubscriptions",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "show subscriptions",
       "intent": "ListSubscriptions",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "which are my subscriptions?",
       "intent": "ListSubscriptions",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "show all subscriptions",
       "intent": "ListSubscriptions",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "select the first subscription",
@@ -669,7 +686,7 @@
     {
       "text": "hello",
       "intent": "None",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "use the staging-01 subscription",
@@ -678,7 +695,7 @@
         {
           "entity": "Subscription",
           "startPos": 2,
-          "endPos": 3
+          "endPos": 4
         }
       ]
     },
@@ -740,37 +757,37 @@
     {
       "text": "use the second one",
       "intent": "UseSubscription",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "start the third one",
       "intent": "StartVm",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "test",
       "intent": "None",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "start runbook",
       "intent": "RunRunbook",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "hi",
       "intent": "None",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "remove vm xxxx",
       "intent": "None",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "delete vm xxxx",
       "intent": "None",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "remove virtual machine xxxx",
@@ -819,22 +836,22 @@
     {
       "text": "delete virtual machine",
       "intent": "None",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "delete vm",
       "intent": "None",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "create vm",
       "intent": "None",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "remove vm",
       "intent": "None",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "start run book",
@@ -850,17 +867,17 @@
     {
       "text": "5",
       "intent": "None",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "run runbook",
       "intent": "RunRunbook",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "list my virtual machines",
       "intent": "ListVms",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "start vm pilea-vm",
@@ -1096,27 +1113,27 @@
     {
       "text": "use subscription",
       "intent": "UseSubscription",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "user subscription 5",
       "intent": "UseSubscription",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "change my subscription",
       "intent": "UseSubscription",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "start vm",
       "intent": "StartVm",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "stop vm",
       "intent": "StopVm",
-      "entities": []
+      "entities": [ ]
     },
     {
       "text": "stop vm winservervm",
@@ -1132,10 +1149,10 @@
     {
       "text": "can you please list my virtual machines",
       "intent": "ListVms",
-      "entities": []
+      "entities": [ ]
     },
     {
-      "text": "start vm \"pilea-vm\"",
+      "text": "start vm \"pilea-vm",
       "intent": "StartVm",
       "entities": [
         {
@@ -1210,6 +1227,128 @@
           "endPos": 2
         }
       ]
+    },
+    {
+      "text": "select dev-test subscription",
+      "intent": "UseSubscription",
+      "entities": [
+        {
+          "entity": "Subscription",
+          "startPos": 1,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "help",
+      "intent": "Help",
+      "entities": [ ]
+    },
+    {
+      "text": "help me",
+      "intent": "Help",
+      "entities": [ ]
+    },
+    {
+      "text": "show me the status of a job",
+      "intent": "StatusJob",
+      "entities": [ ]
+    },
+    {
+      "text": "job status",
+      "intent": "StatusJob",
+      "entities": [ ]
+    },
+    {
+      "text": "status job",
+      "intent": "StatusJob",
+      "entities": [ ]
+    },
+    {
+      "text": "my jobs",
+      "intent": "StatusJob",
+      "entities": [ ]
+    },
+    {
+      "text": "runbook status",
+      "intent": "StatusJob",
+      "entities": [
+        {
+          "entity": "Runbook",
+          "startPos": 1,
+          "endPos": 1
+        }
+      ]
+    },
+    {
+      "text": "show me the job status",
+      "intent": "StatusJob",
+      "entities": [ ]
+    },
+    {
+      "text": "give me the status of a job",
+      "intent": "StatusJob",
+      "entities": [ ]
+    },
+    {
+      "text": "what's my current subscription?",
+      "intent": "CurrentSubscription",
+      "entities": [ ]
+    },
+    {
+      "text": "what is my current subscription?",
+      "intent": "CurrentSubscription",
+      "entities": [ ]
+    },
+    {
+      "text": "current subscription",
+      "intent": "CurrentSubscription",
+      "entities": [ ]
+    },
+    {
+      "text": "what's subscription am i using?",
+      "intent": "None",
+      "entities": [ ]
+    },
+    {
+      "text": "what's my current subscription",
+      "intent": "CurrentSubscription",
+      "entities": [ ]
+    },
+    {
+      "text": "what is my current subscription",
+      "intent": "CurrentSubscription",
+      "entities": [ ]
+    },
+    {
+      "text": "what subscription am i using",
+      "intent": "None",
+      "entities": [ ]
+    },
+    {
+      "text": "what's the subscription am i using?",
+      "intent": "CurrentSubscription",
+      "entities": [ ]
+    },
+    {
+      "text": "what is the subscription am i using?",
+      "intent": "CurrentSubscription",
+      "entities": [ ]
+    },
+    {
+      "text": "what's the subscription am i using",
+      "intent": "CurrentSubscription",
+      "entities": [ ]
+    },
+    {
+      "text": "what is the subscription am i using",
+      "intent": "CurrentSubscription",
+      "entities": [ ]
+    },
+    {
+      "text": "what's my currrent subscription?",
+      "intent": "CurrentSubscription",
+      "entities": [ ]
     }
   ]
 }

@@ -71,6 +71,24 @@
             context.Wait(this.MessageReceived);
         }
 
+        [LuisIntent("CurrentSubscription")]
+        public async Task GetCurrentSubscriptionAsync(IDialogContext context, LuisResult result)
+        {
+            var accessToken = await context.GetAccessToken();
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return;
+            }
+
+            var subscriptionId = context.GetSubscriptionId();
+
+            var currentSubscription = await new AzureRepository().GetSubscription(accessToken, subscriptionId);
+
+            await context.PostAsync($"Your current subscription is: {currentSubscription.DisplayName}");
+
+            context.Wait(this.MessageReceived);
+        }
+
         [LuisIntent("UseSubscription")]
         public async Task UseSubscriptionAsync(IDialogContext context, LuisResult result)
         {
