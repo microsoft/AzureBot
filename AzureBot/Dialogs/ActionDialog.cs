@@ -84,7 +84,7 @@
 
             var currentSubscription = await new AzureRepository().GetSubscription(accessToken, subscriptionId);
 
-            await context.PostAsync($"Your current subscription is: {currentSubscription.DisplayName}");
+            await context.PostAsync($"Your current subscription is '{currentSubscription.DisplayName}'.");
 
             context.Wait(this.MessageReceived);
         }
