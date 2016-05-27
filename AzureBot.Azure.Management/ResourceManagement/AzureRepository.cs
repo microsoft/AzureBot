@@ -26,6 +26,21 @@
             }
         }
 
+        public async Task<Subscription> GetSubscription(string accessToken, string subscriptionId)
+        {
+            var credentials = new TokenCredentials(accessToken);
+
+            using (SubscriptionClient client = new SubscriptionClient(credentials))
+            {
+                var subscriptionsResult = await client.Subscriptions.GetAsync(subscriptionId, CancellationToken.None);
+                return new Subscription
+                {
+                    SubscriptionId = subscriptionsResult.Subscription.SubscriptionId,
+                    DisplayName = subscriptionsResult.Subscription.DisplayName
+                };
+            }
+        }
+
         public async Task<IEnumerable<VirtualMachine>> ListVirtualMachinesAsync(string accessToken, string subscriptionId)
         {
             var credentials = new TokenCredentials(subscriptionId, accessToken);
