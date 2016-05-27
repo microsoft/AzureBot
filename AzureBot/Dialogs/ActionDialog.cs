@@ -3,16 +3,13 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Autofac;
     using Azure.Management.Models;
     using Azure.Management.ResourceManagement;
     using Forms;
     using Microsoft.Bot.Builder.Dialogs;
-    using Microsoft.Bot.Builder.Dialogs.Internals;
     using Microsoft.Bot.Builder.FormFlow;
     using Microsoft.Bot.Builder.Luis;
     using Microsoft.Bot.Builder.Luis.Models;
@@ -91,7 +88,7 @@
                 var subscriptionName = subscriptionEntity.GetEntityOriginalText(result.Query);
 
                 // ensure that the subscription exists
-                var selectedSubscription = availableSubscriptions.FirstOrDefault(p => p.DisplayName == subscriptionName);
+                var selectedSubscription = availableSubscriptions.FirstOrDefault(p => p.DisplayName.Equals(subscriptionName, StringComparison.InvariantCultureIgnoreCase));
                 if (selectedSubscription == null)
                 {
                     await context.PostAsync($"The '{subscriptionName}' subscription was not found.");
@@ -429,9 +426,8 @@
             Operations operation,
             ResumeAfter<VirtualMachineFormState> resume)
         {
-            EntityRecommendation virtualMachine;
-            List<EntityRecommendation> entities = new List<EntityRecommendation>();
-
+            EntityRecommendation virtualMachineEntity;
+            
             // retrieve the list virtual machines from the subscription
             var accessToken = await context.GetAccessToken();
             if (string.IsNullOrEmpty(accessToken))
@@ -443,13 +439,13 @@
             var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId)).ToList();
 
             // check if the user specified a virtual machine name in the command
-            if (result.TryFindEntity("VirtualMachine", out virtualMachine))
+            if (result.TryFindEntity("VirtualMachine", out virtualMachineEntity))
             {
                 // obtain the name specified by the user - text in LUIS result is different
-                var virtualMachineName = virtualMachine.GetEntityOriginalText(result.Query);
+                var virtualMachineName = virtualMachineEntity.GetEntityOriginalText(result.Query);
 
                 // ensure that the virtual machine exists in the subscription
-                var selectedVM = availableVMs.FirstOrDefault(p => p.Name == virtualMachineName);
+                var selectedVM = availableVMs.FirstOrDefault(p => p.Name.Equals(virtualMachineName, StringComparison.InvariantCultureIgnoreCase));
                 if (selectedVM == null)
                 {
                     await context.PostAsync($"The '{virtualMachineName}' virtual machine was not found in the current subscription.");
@@ -467,15 +463,7 @@
                     return;
                 }
 
-                // add the virtual machine name to the list of entities passed to the form
-                entities.Add(new EntityRecommendation(
-                            role: virtualMachine.Role,
-                            entity: virtualMachineName,
-                            type: virtualMachine.Type,
-                            startIndex: virtualMachine.StartIndex,
-                            endIndex: virtualMachine.EndIndex,
-                            score: virtualMachine.Score,
-                            resolution: virtualMachine.Resolution));
+                virtualMachineEntity.Entity = selectedVM.Name;
             }
 
             // retrieve the list of VMs that are in the correct power state
@@ -488,7 +476,7 @@
                     new VirtualMachineFormState(candidateVMs, operation),
                     EntityForms.BuildVirtualMachinesForm,
                     FormOptions.PromptInStart,
-                    entities);
+                    result.Entities);
 
                 context.Call(form, resume);
             }
