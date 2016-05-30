@@ -19,24 +19,10 @@
         {
             var msg = await argument;
 
-            if (msg.Text.StartsWith("token&"))
+            AuthResult authResult;
+            if (context.PerUserInConversationData.TryGetValue(ContextConstants.AuthResultKey, out authResult))
             {
-                string[] messageParts = msg.Text.Split('&');
-                var token = messageParts[1];
-                var user = messageParts[2];
-                var userUniqueId = messageParts[3];
-                var expiresOn = messageParts[4];
-
-                AuthResult authResult = new AuthResult
-                {
-                    AccessToken = token,
-                    UserUniqueId = userUniqueId,
-                    ExpiresOnUtcTicks = long.Parse(expiresOn)
-                };
-
-                context.StoreAuthResult(authResult);
-
-                context.Done($"Thanks {user}. You are now logged in.");
+                context.Done($"Thanks {authResult.UserName}. You are now logged in.");
             }
             else
             {
@@ -51,7 +37,6 @@
             if (string.IsNullOrEmpty(token))
             {
                 var resumptionCookie = new ResumptionCookie(msg);
-                context.PerUserInConversationData.SetValue(ContextConstants.PersistedCookieKey, resumptionCookie);
 
                 var authenticationUrl = await AzureActiveDirectoryHelper.GetAuthUrlAsync(resumptionCookie);
 

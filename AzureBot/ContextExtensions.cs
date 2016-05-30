@@ -1,9 +1,11 @@
 ﻿namespace AzureBot
 {
     using System;
+    using System.Diagnostics;
     using System.Threading.Tasks;
     using Helpers;
     using Microsoft.Bot.Builder.Dialogs;
+    using Microsoft.IdentityModel.Clients.ActiveDirectory;
     using Models;
 
     public static class ContextExtensions
@@ -18,19 +20,30 @@
 
                 if (DateTime.UtcNow >= expires)
                 {
+                    Trace.TraceInformation("Token Expired");
+
                     try
                     {
-                        var result = await AzureActiveDirectoryHelper.GetToken(authResult.UserUniqueId);
+                        TokenCache tokenCache = new TokenCache(authResult.TokenCache);
+
+                        Trace.TraceInformation("Trying to renew token...");
+                        var result = await AzureActiveDirectoryHelper.GetToken(authResult.UserUniqueId, tokenCache);
 
                         authResult.AccessToken = result.AccessToken;
                         authResult.ExpiresOnUtcTicks = result.ExpiresOn.UtcTicks;
+                        authResult.TokenCache = tokenCache.Serialize();
 
                         context.StoreAuthResult(authResult);
+
+                        Trace.TraceInformation("Token renewed!");
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        Trace.TraceError("Failed to renew token: " + ex.Message);
+
                         await context.PostAsync("Your credentials expired and could not be renewed automatically!");
                         context.Logout();
+
                         return null;
                     }
                 }
