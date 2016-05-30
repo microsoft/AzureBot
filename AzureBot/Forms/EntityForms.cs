@@ -117,7 +117,7 @@
 
             var templateAttribute = form.Configuration.Template(TemplateUsage.NotUnderstood);
             var patterns = templateAttribute.Patterns;
-            patterns[0] += " Type *cancel* to quit or *help* if you want to get more information.";
+            patterns[0] += " Type *cancel* to quit or *help* if you want more information.";
             templateAttribute.Patterns = patterns;
 
             return form;
