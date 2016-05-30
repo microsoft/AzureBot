@@ -149,24 +149,14 @@
             var virtualMachines = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId)).ToList();
             if (virtualMachines.Any())
             {
-                // Output is rendered as a markdown table. However, Slack doesn't support the 
-                // required markup and is rendered using a code/pre block. Other platforms may need
-                // to be handled differently too.
-                var isSlack = context.MakeMessage().To.ChannelId == "slack";
-
                 var virtualMachinesText = virtualMachines.Aggregate(
-                    isSlack ? "```\nVirtual Machine               Status\n------------------------      --------------\n" : " **Virtual Machine** | **Status** \n---|---\n-------------------------|-------------------------\n",
+                     string.Empty,
                     (current, next) =>
                     {
-                        return current += isSlack ? $"{next.Name, -30}{next.PowerState, -15}\n" : $"{next.Name} | *{next.PowerState}*\n";
+                        return current += $"\n\r• {next.Name} ({next.PowerState})";
                     });
 
-                if (isSlack)
-                {
-                    virtualMachinesText += "```";
-                }
-
-                await context.PostAsync(virtualMachinesText);
+                await context.PostAsync($"Available VMs are:\r\n {virtualMachinesText}");
             }
             else
             {
@@ -225,7 +215,7 @@
                 runbookJobList.Any())
             {
                 var messageBuilder = new StringBuilder();
-                messageBuilder.AppendLine("|**Runbook**|**Start Time**|**End Time**|**Status**|");
+                messageBuilder.AppendLine("|Runbook|Start Time|End Time|Status|");
                 messageBuilder.AppendLine("|---|---|---|---|");
                 foreach (var rj in runbookJobList)
                 {
@@ -233,7 +223,7 @@
                     var startDateTime = runbookJob.StartDateTime?.ToString("g") ?? string.Empty;
                     var endDateTime = runbookJob.EndDateTime?.ToString("g") ?? string.Empty;
                     var status = runbookJob.Status ?? string.Empty;
-                    messageBuilder.AppendLine($"|{runbookJob.RunbookName}|{startDateTime}|{endDateTime}|_{status}_|");
+                    messageBuilder.AppendLine($"|{runbookJob.RunbookName}|{startDateTime}|{endDateTime}|{status}|");
                 }
 
                 await context.PostAsync(messageBuilder.ToString());
