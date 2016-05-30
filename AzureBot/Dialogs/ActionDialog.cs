@@ -149,12 +149,22 @@
             var virtualMachines = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId)).ToList();
             if (virtualMachines.Any())
             {
+                // Output is rendered as a markdown table. However, Slack doesn't support the 
+                // required markup and is rendered using a code/pre block. Other platforms may need
+                // to be handled differently too.
+                var isSlack = context.MakeMessage().To.ChannelId == "slack";
+
                 var virtualMachinesText = virtualMachines.Aggregate(
-                    " **Virtual Machine** | **Status** \n---|---\n-------------------------|-------------------------\n",
+                    isSlack ? "```\nVirtual Machine               Status\n------------------------      --------------\n" : " **Virtual Machine** | **Status** \n---|---\n-------------------------|-------------------------\n",
                     (current, next) =>
                     {
-                        return current += $"{next.Name} | *{next.PowerState}*\n";
+                        return current += isSlack ? $"{next.Name, -30}{next.PowerState, -15}\n" : $"{next.Name} | *{next.PowerState}*\n";
                     });
+
+                if (isSlack)
+                {
+                    virtualMachinesText += "```";
+                }
 
                 await context.PostAsync(virtualMachinesText);
             }
