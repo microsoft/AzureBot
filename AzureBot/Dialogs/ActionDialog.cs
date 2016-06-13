@@ -485,8 +485,8 @@
             }
 
             // retrieve the list of VMs that are in the correct power state
-            var validPowerState = operation == Operations.Start ? VirtualMachinePowerState.Stopped : VirtualMachinePowerState.Running;
-            var candidateVMs = availableVMs.Where(vm => vm.PowerState == validPowerState).ToList();
+            var validPowerStates = operation == Operations.Start ? (VirtualMachinePowerState.Stopped | VirtualMachinePowerState.Deallocated) : VirtualMachinePowerState.Running;
+            var candidateVMs = availableVMs.Where(vm => validPowerStates.HasFlag(vm.PowerState)).ToList();
             if (candidateVMs.Any())
             {
                 // prompt the user to select a VM from the list
