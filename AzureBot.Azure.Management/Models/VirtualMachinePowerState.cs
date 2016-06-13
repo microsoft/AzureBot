@@ -7,5 +7,7 @@
         Stopped,
         Starting,
         Running,
+        Deallocating,
+        Deallocated
     }
 }
