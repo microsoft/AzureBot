@@ -117,12 +117,22 @@
             }
         }
 
-        public async Task<bool> StopVirtualMachineAsync(string accessToken, string subscriptionId, string resourceGroupName, string virtualMachineName)
+        public async Task<bool> PowerOffVirtualMachineAsync(string accessToken, string subscriptionId, string resourceGroupName, string virtualMachineName)
         {
             var credentials = new TokenCredentials(subscriptionId, accessToken);
             using (var client = new ComputeManagementClient(credentials))
             {
                 var status = await client.VirtualMachines.PowerOffAsync(resourceGroupName, virtualMachineName).ConfigureAwait(false);
+                return status.Status != Microsoft.Azure.Management.Compute.Models.ComputeOperationStatus.Failed;
+            }
+        }
+
+        public async Task<bool> DeallocateVirtualMachineAsync(string accessToken, string subscriptionId, string resourceGroupName, string virtualMachineName)
+        {
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
+            using (var client = new ComputeManagementClient(credentials))
+            {
+                var status = await client.VirtualMachines.DeallocateAsync(resourceGroupName, virtualMachineName).ConfigureAwait(false);
                 return status.Status != Microsoft.Azure.Management.Compute.Models.ComputeOperationStatus.Failed;
             }
         }

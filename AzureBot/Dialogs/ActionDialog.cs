@@ -9,6 +9,7 @@
     using Azure.Management.Models;
     using Azure.Management.ResourceManagement;
     using Forms;
+    using Helpers;
     using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Builder.FormFlow;
     using Microsoft.Bot.Builder.Luis;
@@ -176,6 +177,12 @@
         public async Task StopVmAsync(IDialogContext context, LuisResult result)
         {
             await this.ProcessVirtualMachineActionAsync(context, result, Operations.Stop, this.StopVirtualMachineFormComplete);
+        }
+
+        [LuisIntent("ShutdownVm")]
+        public async Task ShutdownVmAsync(IDialogContext context, LuisResult result)
+        {
+            await this.ProcessVirtualMachineActionAsync(context, result, Operations.Shutdown, this.ShutdownVirtualMachineFormComplete);
         }
 
         [LuisIntent("RunRunbook")]
@@ -473,7 +480,8 @@
 
                 // ensure that the virtual machine is in the correct power state for the requested operation
                 if ((operation == Operations.Start && (selectedVM.PowerState == VirtualMachinePowerState.Starting || selectedVM.PowerState == VirtualMachinePowerState.Running))
-                   || (operation == Operations.Stop && (selectedVM.PowerState == VirtualMachinePowerState.Stopping || selectedVM.PowerState == VirtualMachinePowerState.Stopped)))
+                   || (operation == Operations.Shutdown && (selectedVM.PowerState == VirtualMachinePowerState.Stopping || selectedVM.PowerState == VirtualMachinePowerState.Stopped))
+                   || (operation == Operations.Stop && (selectedVM.PowerState == VirtualMachinePowerState.Deallocating || selectedVM.PowerState == VirtualMachinePowerState.Deallocated)))
                 {
                     var powerState = selectedVM.PowerState.ToString().ToLower();
                     await context.PostAsync($"The '{virtualMachineName}' virtual machine is already {powerState}.");
@@ -485,8 +493,9 @@
             }
 
             // retrieve the list of VMs that are in the correct power state
-            var validPowerStates = operation == Operations.Start ? (VirtualMachinePowerState.Stopped | VirtualMachinePowerState.Deallocated) : VirtualMachinePowerState.Running;
-            var candidateVMs = availableVMs.Where(vm => validPowerStates.HasFlag(vm.PowerState)).ToList();
+            var validPowerStates = VirtualMachineHelper.RetrieveValidPowerStateByOperation(operation);
+
+            var candidateVMs = availableVMs.Where(vm => validPowerStates.Contains(vm.PowerState)).ToList();
             if (candidateVMs.Any())
             {
                 // prompt the user to select a VM from the list
@@ -500,7 +509,7 @@
             }
             else
             {
-                var operationText = operation == Operations.Start ? "started" : "stopped";
+                var operationText = VirtualMachineHelper.RetrieveOperationTextByOperation(operation);
                 await context.PostAsync($"No virtual machines that can be {operationText} were found in the current subscription.");
                 context.Wait(this.MessageReceived);
             }
@@ -558,7 +567,7 @@
                 }
 
                 new AzureRepository()
-                    .StopVirtualMachineAsync(
+                    .DeallocateVirtualMachineAsync(
                         accessToken,
                         virtualMachineFormState.SelectedVM.SubscriptionId,
                         virtualMachineFormState.SelectedVM.ResourceGroup,
@@ -568,6 +577,43 @@
                         (operationStatus) =>
                         {
                             var statusMessage = operationStatus ? "was stopped successfully" : "failed to stop";
+                            return $"The '{virtualMachineFormState.VirtualMachine}' virtual machine {statusMessage}.";
+                        });
+            }
+            catch (FormCanceledException<VirtualMachineFormState>)
+            {
+                await context.PostAsync("You have canceled the operation. What would you like to do next?");
+            }
+
+            context.Wait(this.MessageReceived);
+        }
+
+        private async Task ShutdownVirtualMachineFormComplete(IDialogContext context, IAwaitable<VirtualMachineFormState> result)
+        {
+            try
+            {
+                var virtualMachineFormState = await result;
+
+                await context.PostAsync($"Shutting down the '{virtualMachineFormState.VirtualMachine}' virtual machine...");
+
+                var selectedVM = virtualMachineFormState.SelectedVM;
+                var accessToken = await context.GetAccessToken();
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    return;
+                }
+
+                new AzureRepository()
+                    .PowerOffVirtualMachineAsync(
+                        accessToken,
+                        virtualMachineFormState.SelectedVM.SubscriptionId,
+                        virtualMachineFormState.SelectedVM.ResourceGroup,
+                        virtualMachineFormState.SelectedVM.Name)
+                    .NotifyLongRunningOperation(
+                        context,
+                        (operationStatus) =>
+                        {
+                            var statusMessage = operationStatus ? "was shut down successfully" : "failed to shutdown";
                             return $"The '{virtualMachineFormState.VirtualMachine}' virtual machine {statusMessage}.";
                         });
             }
