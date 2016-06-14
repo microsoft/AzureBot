@@ -7,6 +7,8 @@
     {
         Start = 1,
 
+        Shutdown,
+
         Stop
     }
 }
