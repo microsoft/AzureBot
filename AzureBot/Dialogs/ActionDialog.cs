@@ -2,10 +2,13 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Configuration;
     using System.Linq;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using AuthBot;
+    using AuthBot.Dialogs;
     using Azure.Management.Models;
     using Azure.Management.ResourceManagement;
     using Forms;
@@ -20,6 +23,8 @@
     [Serializable]
     public class ActionDialog : LuisDialog<string>
     {
+        private static Lazy<string> resourceId = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectory.ResourceId"]);
+
         [LuisIntent("")]
         [LuisIntent("None")]
         public async Task None(IDialogContext context, LuisResult result)
@@ -48,7 +53,7 @@
         public async Task ListSubscriptionsAsync(IDialogContext context, LuisResult result)
         {
             int index = 0;
-            var accessToken = await context.GetAccessToken();
+            var accessToken = await context.GetAccessToken(resourceId.Value);
             if (string.IsNullOrEmpty(accessToken))
             {
                 return;
@@ -72,7 +77,7 @@
         [LuisIntent("CurrentSubscription")]
         public async Task GetCurrentSubscriptionAsync(IDialogContext context, LuisResult result)
         {
-            var accessToken = await context.GetAccessToken();
+            var accessToken = await context.GetAccessToken(resourceId.Value);
             if (string.IsNullOrEmpty(accessToken))
             {
                 return;
@@ -92,7 +97,7 @@
         {
             EntityRecommendation subscriptionEntity;
 
-            var accessToken = await context.GetAccessToken();
+            var accessToken = await context.GetAccessToken(resourceId.Value);
             if (string.IsNullOrEmpty(accessToken))
             {
                 return;
@@ -139,7 +144,7 @@
         [LuisIntent("ListVms")]
         public async Task ListVmsAsync(IDialogContext context, LuisResult result)
         {
-            var accessToken = await context.GetAccessToken();
+            var accessToken = await context.GetAccessToken(resourceId.Value);
             if (string.IsNullOrEmpty(accessToken))
             {
                 return;
@@ -188,7 +193,7 @@
         [LuisIntent("RunRunbook")]
         public async Task StartRunbookAsync(IDialogContext context, LuisResult result)
         {
-            var accessToken = await context.GetAccessToken();
+            var accessToken = await context.GetAccessToken(resourceId.Value);
             if (string.IsNullOrEmpty(accessToken))
             {
                 return;
@@ -209,7 +214,7 @@
         [LuisIntent("StatusJob")]
         public async Task StatusJobAsync(IDialogContext context, LuisResult result)
         {
-            var accessToken = await context.GetAccessToken();
+            var accessToken = await context.GetAccessToken(resourceId.Value);
             if (string.IsNullOrEmpty(accessToken))
             {
                 return;
@@ -218,7 +223,7 @@
             var subscriptionId = context.GetSubscriptionId();
 
             List<RunbookJob> runbookJobList;
-            if (context.PerUserInConversationData.TryGetValue(ContextConstants.RunbookJobListKey, out runbookJobList) &&
+            if (context.PerUserInConversationData.TryGetValue(AzureBot.ContextConstants.RunbookJobListKey, out runbookJobList) &&
                 runbookJobList.Any())
             {
                 var messageBuilder = new StringBuilder();
@@ -257,9 +262,9 @@
                 return;
             }
 
-            if (string.IsNullOrEmpty(await context.GetAccessToken()))
+            if (string.IsNullOrEmpty(await context.GetAccessToken(resourceId.Value)))
             {
-                await context.Forward(new AzureAuthDialog(), this.ResumeAfterAuth, message, CancellationToken.None);
+                await context.Forward(new AzureAuthDialog(resourceId.Value), this.ResumeAfterAuth, message, CancellationToken.None);
             }
             else if (string.IsNullOrEmpty(context.GetSubscriptionId()))
             {
@@ -282,7 +287,7 @@
             var lastOperationStatus = default(T);
             do
             {
-                var accessToken = await context.GetAccessToken().ConfigureAwait(false);
+                var accessToken = await context.GetAccessToken(resourceId.Value).ConfigureAwait(false);
                 var subscriptionId = context.GetSubscriptionId();
 
                 var newOperationStatus = await getOperationStatusAsync(accessToken, subscriptionId, runbookJob.ResourceGroupName, runbookJob.AutomationAccountName, runbookJob.JobId, true).ConfigureAwait(false);
@@ -310,7 +315,7 @@
             try
             {
                 var runbookFormState = await result;
-                context.PerUserInConversationData.SetValue(ContextConstants.RunbookFormStateKey, runbookFormState);
+                context.PerUserInConversationData.SetValue(AzureBot.ContextConstants.RunbookFormStateKey, runbookFormState);
 
                 await this.RunbookParametersFormComplete(context, null);
             }
@@ -335,11 +340,11 @@
 
         private async Task RunbookParametersFormComplete(IDialogContext context, RunbookParameterFormState runbookParameterFormState)
         {
-            var runbookFormState = context.PerUserInConversationData.Get<RunbookFormState>(ContextConstants.RunbookFormStateKey);
+            var runbookFormState = context.PerUserInConversationData.Get<RunbookFormState>(AzureBot.ContextConstants.RunbookFormStateKey);
             if (runbookParameterFormState != null)
             {
                 runbookFormState.RunbookParameters.Add(runbookParameterFormState);
-                context.PerUserInConversationData.SetValue(ContextConstants.RunbookFormStateKey, runbookFormState);
+                context.PerUserInConversationData.SetValue(AzureBot.ContextConstants.RunbookFormStateKey, runbookFormState);
             }
 
             var nextRunbookParameter = runbookFormState.SelectedRunbook.RunbookParameters.OrderBy(param => param.Position).FirstOrDefault(
@@ -390,7 +395,7 @@
         {
             try
             {
-                var accessToken = await context.GetAccessToken();
+                var accessToken = await context.GetAccessToken(resourceId.Value);
 
                 if (string.IsNullOrEmpty(accessToken))
                 {
@@ -406,7 +411,7 @@
                     runbookFormState.RunbookParameters.ToDictionary(param => param.ParameterName, param => param.ParameterValue));
 
                 List<RunbookJob> runbookJobList;
-                if (!context.PerUserInConversationData.TryGetValue(ContextConstants.RunbookJobListKey, out runbookJobList))
+                if (!context.PerUserInConversationData.TryGetValue(AzureBot.ContextConstants.RunbookJobListKey, out runbookJobList))
                 {
                     runbookJobList = new List<RunbookJob> { runbookJob };
                 }
@@ -415,7 +420,7 @@
                     runbookJobList.Add(runbookJob);
                 }
 
-                context.PerUserInConversationData.SetValue(ContextConstants.RunbookJobListKey, runbookJobList);
+                context.PerUserInConversationData.SetValue(AzureBot.ContextConstants.RunbookJobListKey, runbookJobList);
 
                 await context.PostAsync($"Created Job '{runbookJob.JobId}' for the '{runbookFormState.RunbookName}' runbook in '{runbookFormState.AutomationAccountName}' automation account. You'll receive a message when it is completed.");
 
@@ -454,7 +459,7 @@
             EntityRecommendation virtualMachineEntity;
             
             // retrieve the list virtual machines from the subscription
-            var accessToken = await context.GetAccessToken();
+            var accessToken = await context.GetAccessToken(resourceId.Value);
             if (string.IsNullOrEmpty(accessToken))
             {
                 return;
@@ -523,7 +528,7 @@
 
                 await context.PostAsync($"Starting the '{virtualMachineFormState.VirtualMachine}' virtual machine...");
 
-                var accessToken = await context.GetAccessToken();
+                var accessToken = await context.GetAccessToken(resourceId.Value);
                 if (string.IsNullOrEmpty(accessToken))
                 {
                     return;
@@ -560,7 +565,7 @@
                 await context.PostAsync($"Stopping the '{virtualMachineFormState.VirtualMachine}' virtual machine...");
 
                 var selectedVM = virtualMachineFormState.SelectedVM;
-                var accessToken = await context.GetAccessToken();
+                var accessToken = await context.GetAccessToken(resourceId.Value);
                 if (string.IsNullOrEmpty(accessToken))
                 {
                     return;
@@ -675,8 +680,8 @@
                 message.From = context.PerUserInConversationData.Get<ChannelAccount>(ContextConstants.CurrentMessageFromKey);
                 message.To = context.PerUserInConversationData.Get<ChannelAccount>(ContextConstants.CurrentMessageToKey);
 
-                context.Logout();
-                await context.Forward(new AzureAuthDialog(), this.ResumeAfterAuth, message, CancellationToken.None);
+                await context.Logout();
+                await context.Forward(new AzureAuthDialog(resourceId.Value), this.ResumeAfterAuth, message, CancellationToken.None);
                 return;
             }
 
