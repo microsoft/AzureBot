@@ -602,7 +602,7 @@
                 await context.PostAsync($"Shutting down the '{virtualMachineFormState.VirtualMachine}' virtual machine...");
 
                 var selectedVM = virtualMachineFormState.SelectedVM;
-                var accessToken = await context.GetAccessToken();
+                var accessToken = await context.GetAccessToken(resourceId.Value);
                 if (string.IsNullOrEmpty(accessToken))
                 {
                     return;
