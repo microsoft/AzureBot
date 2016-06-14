@@ -35,8 +35,8 @@
         public async Task Help(IDialogContext context, LuisResult result)
         {
             string message = "Hello! You can use the Azure Bot to: \n";
-            message += $"* List and select an Azure subscription (e.g. 'list all subscriptions', 'use the QA subscription')\n";
-            message += $"* List, start, shutdown (power off your VM, still incurring compute charges), and stop (deallocates your VM, no charges) your virtual machines (e.g. 'show me my VMs', 'start vm serverProd01', 'shutdown vm qaEnv01', 'stop the devEnv01 virtual machine')\n";
+            message += $"* List, Switch and Select an Azure subscription\n";
+            message += $"* List, Start, Shutdown (power off your VM, still incurring compute charges), and Stop (deallocates your VM, no charges) your virtual machines\n";
             message += $"* Start a runbook\n";
 
             await context.PostAsync(message);
