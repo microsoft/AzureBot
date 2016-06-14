@@ -53,7 +53,7 @@
                 }))
                .Confirm("Would you like to {Operation} virtual machine '{VirtualMachine}'?", (state) => (Operations)Enum.Parse(typeof(Operations), state.Operation, true) == Operations.Start, null)
                .Confirm("Would you like to {Operation} virtual machine '{VirtualMachine}'? Please note that your VM will still incur compute charges.", (state) => (Operations)Enum.Parse(typeof(Operations), state.Operation, true) == Operations.Shutdown, null)
-               .Confirm("Would you like to {Operation} virtual machine '{VirtualMachine}'? Your VM won't incur charges but the public and internal IP will be deleted.", (state) => (Operations)Enum.Parse(typeof(Operations), state.Operation, true) == Operations.Stop, null)
+               .Confirm("Would you like to {Operation} virtual machine '{VirtualMachine}'? Your VM won't incur charges and all IP addresses will be released.", (state) => (Operations)Enum.Parse(typeof(Operations), state.Operation, true) == Operations.Stop, null)
                .Build();
         }
 
