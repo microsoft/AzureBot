@@ -681,8 +681,6 @@
                 message.To = context.PerUserInConversationData.Get<ChannelAccount>(ContextConstants.CurrentMessageToKey);
 
                 await context.Logout();
-                await context.Forward(new AzureAuthDialog(resourceId.Value), this.ResumeAfterAuth, message, CancellationToken.None);
-                return;
             }
 
             context.Wait(this.MessageReceived);
