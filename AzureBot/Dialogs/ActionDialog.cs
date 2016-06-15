@@ -275,8 +275,8 @@
         {
             var message = await item;
 
-            context.PerUserInConversationData.SetValue(ContextConstants.CurrentMessageFromKey, message.From);
-            context.PerUserInConversationData.SetValue(ContextConstants.CurrentMessageToKey, message.To);
+            context.PerUserInConversationData.SetValue(AzureBot.ContextConstants.CurrentMessageFromKey, message.From);
+            context.PerUserInConversationData.SetValue(AzureBot.ContextConstants.CurrentMessageToKey, message.To);
 
             if (message.Text.ToLowerInvariant().Contains("help"))
             {
