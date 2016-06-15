@@ -95,7 +95,7 @@
 
                         return Task.FromResult(true);
                     }))
-               .Confirm("Would you like to run runbook '{RunbookName}'?")
+               .Confirm("Would you like to run runbook '{RunbookName}' of automation acccount '{AutomationAccountName}'?")
                .Build();
         }
 
