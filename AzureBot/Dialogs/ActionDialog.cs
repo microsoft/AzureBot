@@ -43,8 +43,8 @@
             message += $"* List, Switch and Select an Azure subscription\n";
             message += $"* List, Start, Shutdown (power off your VM, still incurring compute charges), and Stop (deallocates your VM, no charges) your virtual machines\n";
             message += $"* Start a runbook\n";
-            message += $"* Logout to sign out from Azure.\n\n";
-            message += $"To interact with me for the first time, please type **login**.";
+            message += $"* Logout to sign out from Azure\n\n";
+            message += $"Please type **login** to interact with me for the first time.";
             
             await context.PostAsync(message);
 
