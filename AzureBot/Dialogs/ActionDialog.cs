@@ -203,12 +203,27 @@
 
             var availableAutomationAccounts = await new AzureRepository().ListRunbooksAsync(accessToken, subscriptionId);
 
-            var form = new FormDialog<RunbookFormState>(
-                new RunbookFormState(availableAutomationAccounts),
-                EntityForms.BuildRunbookForm,
-                FormOptions.PromptInStart,
-                result.Entities);
-            context.Call(form, this.StartRunbookParametersAsync);
+            if (availableAutomationAccounts.Any())
+            {
+                var formState = new RunbookFormState(availableAutomationAccounts);
+
+                if (availableAutomationAccounts.Count() == 1)
+                {
+                    formState.AutomationAccountName = availableAutomationAccounts.Single().AutomationAccountName;
+                }
+
+                var form = new FormDialog<RunbookFormState>(
+                    formState,
+                    EntityForms.BuildRunbookForm,
+                    FormOptions.PromptInStart,
+                    result.Entities);
+                context.Call(form, this.StartRunbookParametersAsync);
+            }
+            else
+            {
+                await context.PostAsync($"No automations accounts were found in the current subscription.");
+                context.Wait(this.MessageReceived);
+            }
         }
 
         [LuisIntent("StatusJob")]
