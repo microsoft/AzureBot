@@ -43,7 +43,9 @@
             message += $"* List, Switch and Select an Azure subscription\n";
             message += $"* List, Start, Shutdown (power off your VM, still incurring compute charges), and Stop (deallocates your VM, no charges) your virtual machines\n";
             message += $"* Start a runbook\n";
-
+            message += $"* Logout to sign out from Azure\n\n";
+            message += $"Please type **login** to interact with me for the first time.";
+            
             await context.PostAsync(message);
 
             context.Wait(this.MessageReceived);
@@ -285,17 +287,29 @@
                 return;
             }
 
-            if (string.IsNullOrEmpty(await context.GetAccessToken(resourceId.Value)))
+            var accessToken = await context.GetAccessToken(resourceId.Value);
+
+            if (string.IsNullOrEmpty(accessToken))
             {
-                await context.Forward(new AzureAuthDialog(resourceId.Value), this.ResumeAfterAuth, message, CancellationToken.None);
-            }
-            else if (string.IsNullOrEmpty(context.GetSubscriptionId()))
-            {
-                await this.UseSubscriptionAsync(context, new LuisResult());
+                if (message.Text.ToLowerInvariant().Contains("login"))
+                {
+                    await context.Forward(new AzureAuthDialog(resourceId.Value), this.ResumeAfterAuth, message, CancellationToken.None);
+                }
+                else
+                {
+                    await this.Help(context, new LuisResult());
+                }
             }
             else
             {
-                await base.MessageReceived(context, item);
+                if (string.IsNullOrEmpty(context.GetSubscriptionId()))
+                {
+                    await this.UseSubscriptionAsync(context, new LuisResult());
+                }
+                else
+                {
+                    await base.MessageReceived(context, item);
+                }
             }
         }
 
