@@ -42,10 +42,10 @@
             string message = "Hello! You can use the Azure Bot to: \n";
             message += $"* List, Switch and Select an Azure subscription\n";
             message += $"* List, Start, Shutdown (power off your VM, still incurring compute charges), and Stop (deallocates your VM, no charges) your virtual machines\n";
-            message += $"* Start a runbook\n\n";
-            message += $"To start interacting with the bot for the first time, please type **login**. \n\n";
-            message += $"Type **logout** to sign out.";
-
+            message += $"* Start a runbook\n";
+            message += $"* Logout to sign out from Azure.\n\n";
+            message += $"To interact with me for the first time, please type **login**.";
+            
             await context.PostAsync(message);
 
             context.Wait(this.MessageReceived);
