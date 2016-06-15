@@ -42,7 +42,9 @@
             string message = "Hello! You can use the Azure Bot to: \n";
             message += $"* List, Switch and Select an Azure subscription\n";
             message += $"* List, Start, Shutdown (power off your VM, still incurring compute charges), and Stop (deallocates your VM, no charges) your virtual machines\n";
-            message += $"* Start a runbook\n";
+            message += $"* Start a runbook\n\n";
+            message += $"To start interacting with the bot for the first time, please type **login**. \n\n";
+            message += $"Type **logout** to sign out.";
 
             await context.PostAsync(message);
 
@@ -285,17 +287,29 @@
                 return;
             }
 
-            if (string.IsNullOrEmpty(await context.GetAccessToken(resourceId.Value)))
+            var accessToken = await context.GetAccessToken(resourceId.Value);
+
+            if (string.IsNullOrEmpty(accessToken))
             {
-                await context.Forward(new AzureAuthDialog(resourceId.Value), this.ResumeAfterAuth, message, CancellationToken.None);
-            }
-            else if (string.IsNullOrEmpty(context.GetSubscriptionId()))
-            {
-                await this.UseSubscriptionAsync(context, new LuisResult());
+                if (message.Text.ToLowerInvariant().Contains("login"))
+                {
+                    await context.Forward(new AzureAuthDialog(resourceId.Value), this.ResumeAfterAuth, message, CancellationToken.None);
+                }
+                else
+                {
+                    await this.Help(context, new LuisResult());
+                }
             }
             else
             {
-                await base.MessageReceived(context, item);
+                if (string.IsNullOrEmpty(context.GetSubscriptionId()))
+                {
+                    await this.UseSubscriptionAsync(context, new LuisResult());
+                }
+                else
+                {
+                    await base.MessageReceived(context, item);
+                }
             }
         }
 
