@@ -263,6 +263,14 @@
             context.Wait(this.MessageReceived);
         }
 
+        [LuisIntent("Logout")]
+        public async Task Logout(IDialogContext context, LuisResult result)
+        {
+            await context.Logout();
+
+            context.Wait(this.MessageReceived);
+        }
+
         protected override async Task MessageReceived(IDialogContext context, IAwaitable<Message> item)
         {
             var message = await item;
@@ -691,10 +699,6 @@
 
             if (result)
             {
-                var message = context.MakeMessage();
-                message.From = context.PerUserInConversationData.Get<ChannelAccount>(ContextConstants.CurrentMessageFromKey);
-                message.To = context.PerUserInConversationData.Get<ChannelAccount>(ContextConstants.CurrentMessageToKey);
-
                 await context.Logout();
             }
 
