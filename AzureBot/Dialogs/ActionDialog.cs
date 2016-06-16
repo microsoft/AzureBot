@@ -195,6 +195,7 @@
         [LuisIntent("RunRunbook")]
         public async Task StartRunbookAsync(IDialogContext context, LuisResult result)
         {
+            EntityRecommendation runbookEntity;
             var accessToken = await context.GetAccessToken(resourceId.Value);
             if (string.IsNullOrEmpty(accessToken))
             {
@@ -204,6 +205,29 @@
             var subscriptionId = context.GetSubscriptionId();
 
             var availableAutomationAccounts = await new AzureRepository().ListRunbooksAsync(accessToken, subscriptionId);
+
+            // check if the user specified a runbook name in the command
+            if (result.TryFindEntity("Runbook", out runbookEntity))
+            {
+                // obtain the name specified by the user - text in LUIS result is different
+                var runbookName = runbookEntity.GetEntityOriginalText(result.Query);
+
+                // ensure that the runbook exists
+                var selectedAutomationAccounts = availableAutomationAccounts.Where(x => x.Runbooks.Any(r => r.RunbookName.Equals(runbookName, StringComparison.InvariantCultureIgnoreCase)));
+
+                if (selectedAutomationAccounts == null || !selectedAutomationAccounts.Any())
+                {
+                    await context.PostAsync($"The '{runbookName}' runbook was not found in any of your automation accounts.");
+                    context.Wait(this.MessageReceived);
+                    return;
+                }
+
+                runbookEntity.Entity = runbookName;
+                runbookEntity.Type = "RunbookName";
+
+                // todo: handle runbooks with same name in different automation accounts
+                availableAutomationAccounts = selectedAutomationAccounts.ToList();
+            }
 
             if (availableAutomationAccounts.Any())
             {
