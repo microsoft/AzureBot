@@ -223,7 +223,7 @@
             }
             else
             {
-                await context.PostAsync($"No automations accounts were found in the current subscription. Please create an Azure Automation account or switch to a subscription which has an Automation account in it.");
+                await context.PostAsync($"No automations accounts were found in the current subscription. Please create an Azure automation account or switch to a subscription which has an automation account in it.");
                 context.Wait(this.MessageReceived);
             }
         }
