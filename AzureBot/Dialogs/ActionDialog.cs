@@ -461,9 +461,11 @@
 
                 await context.PostAsync($"Created Job '{runbookJob.JobId}' for the '{runbookFormState.RunbookName}' runbook in '{runbookFormState.AutomationAccountName}' automation account. You'll receive a message when it is completed.");
 
-                var notifyStatusList = new List<string> { "Running", "Completed", "Failed" };
+                var notCompletedStatusList = new List<string> { "Stopped", "Suspended", "Failed" };
+                var notifyStatusList = new List<string> { "Running", "Completed" };
+                notifyStatusList.AddRange(notCompletedStatusList);
 
-                // no wait, just fire and forget
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                 CheckLongRunningOperationStatus(
                     context,
                     runbookJob,
@@ -473,11 +475,19 @@
                     {
                         if (!string.Equals(previous?.Status, last?.Status) && notifyStatusList.Contains(last.Status))
                         {
-                            return $"Runbook '{last.RunbookName}' job '{last.JobId}' is currently in '{last.Status}' status.";
+                            if (notCompletedStatusList.Contains(last.Status))
+                            {
+                                return $"The runbook '{last.RunbookName}' (job '{last.JobId}') did not complete with status '{last.Status}'. Please go to the Azure Portal for more detailed information on why.";
+                            }
+                            else
+                            {
+                                return $"Runbook '{last.RunbookName}' job '{last.JobId}' is currently in '{last.Status}' status.";
+                            }
                         }
 
                         return null;
                     });
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             }
             catch (Exception e)
             {
