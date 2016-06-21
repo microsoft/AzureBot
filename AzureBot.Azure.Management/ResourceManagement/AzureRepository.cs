@@ -57,7 +57,8 @@
                         SubscriptionId = subscriptionId,
                         ResourceGroup = resourceGroupName,
                         Name = vm.Name,
-                        PowerState = GetVirtualMachinePowerState(vmStatus?.Code.ToLower() ?? VirtualMachinePowerState.Unknown.ToString())
+                        PowerState = GetVirtualMachinePowerState(vmStatus?.Code.ToLower() ?? VirtualMachinePowerState.Unknown.ToString()),
+                        Size = response.VirtualMachine.HardwareProfile.VirtualMachineSize
                     };
                 });
 
