@@ -340,7 +340,7 @@
         private static async Task CheckLongRunningOperationStatus<T>(
             IDialogContext context,
             RunbookJob runbookJob,
-            string resourceId,
+            string accessToken,
             Func<string, string, string, string, string, bool, Task<T>> getOperationStatusAsync,
             Func<T, bool> completionCondition,
             Func<T, T, string> getOperationStatusMessage,
@@ -349,7 +349,6 @@
             var lastOperationStatus = default(T);
             do
             {
-                var accessToken = await context.GetAccessToken(resourceId).ConfigureAwait(false);
                 var subscriptionId = context.GetSubscriptionId();
 
                 var newOperationStatus = await getOperationStatusAsync(accessToken, subscriptionId, runbookJob.ResourceGroupName, runbookJob.AutomationAccountName, runbookJob.JobId, true).ConfigureAwait(false);
@@ -490,11 +489,18 @@
                 var notifyStatusList = new List<string> { "Running", "Completed" };
                 notifyStatusList.AddRange(notCompletedStatusList);
 
+                accessToken = await context.GetAccessToken(resourceId.Value);
+
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    return;
+                }
+
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                 CheckLongRunningOperationStatus(
                     context,
                     runbookJob,
-                    resourceId.Value,
+                    accessToken,
                     new AzureRepository().GetAutomationJobAsync,
                     rj => rj.EndDateTime.HasValue,
                     (previous, last) =>
