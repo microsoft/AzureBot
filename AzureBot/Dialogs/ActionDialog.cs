@@ -161,7 +161,7 @@
                      string.Empty,
                     (current, next) =>
                     {
-                        return current += $"\n\r• {next.Name} ({next.PowerState})";
+                        return current += $"\n\r• {next}";
                     });
 
                 await context.PostAsync($"Available VMs are:\r\n {virtualMachinesText}");

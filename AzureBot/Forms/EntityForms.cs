@@ -45,7 +45,7 @@
                     foreach (var vm in state.AvailableVMs)
                     {
                         field
-                            .AddDescription(vm.Name, vm.Name)
+                            .AddDescription(vm.Name, vm.ToString())
                             .AddTerms(vm.Name, vm.Name);
                     }
 
