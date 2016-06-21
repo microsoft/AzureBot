@@ -340,6 +340,7 @@
         private static async Task CheckLongRunningOperationStatus<T>(
             IDialogContext context,
             RunbookJob runbookJob,
+            string resourceId,
             Func<string, string, string, string, string, bool, Task<T>> getOperationStatusAsync,
             Func<T, bool> completionCondition,
             Func<T, T, string> getOperationStatusMessage,
@@ -348,7 +349,7 @@
             var lastOperationStatus = default(T);
             do
             {
-                var accessToken = await context.GetAccessToken(resourceId.Value).ConfigureAwait(false);
+                var accessToken = await context.GetAccessToken(resourceId).ConfigureAwait(false);
                 var subscriptionId = context.GetSubscriptionId();
 
                 var newOperationStatus = await getOperationStatusAsync(accessToken, subscriptionId, runbookJob.ResourceGroupName, runbookJob.AutomationAccountName, runbookJob.JobId, true).ConfigureAwait(false);
@@ -493,6 +494,7 @@
                 CheckLongRunningOperationStatus(
                     context,
                     runbookJob,
+                    resourceId.Value,
                     new AzureRepository().GetAutomationJobAsync,
                     rj => rj.EndDateTime.HasValue,
                     (previous, last) =>
