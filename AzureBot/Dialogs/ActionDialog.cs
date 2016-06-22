@@ -212,21 +212,54 @@
                 // obtain the name specified by the user - text in LUIS result is different
                 var runbookName = runbookEntity.GetEntityOriginalText(result.Query);
 
-                // ensure that the runbook exists
-                var selectedAutomationAccounts = availableAutomationAccounts.Where(x => x.Runbooks.Any(r => r.RunbookName.Equals(runbookName, StringComparison.InvariantCultureIgnoreCase)));
+                EntityRecommendation automationAccountEntity;
 
-                if (selectedAutomationAccounts == null || !selectedAutomationAccounts.Any())
+                if (result.TryFindEntity("AutomationAccount", out automationAccountEntity))
                 {
-                    await context.PostAsync($"The '{runbookName}' runbook was not found in any of your automation accounts.");
-                    context.Wait(this.MessageReceived);
-                    return;
+                    // obtain the name specified by the user - text in LUIS result is different
+                    var automationAccountName = automationAccountEntity.GetEntityOriginalText(result.Query);
+
+                    var selectedAutomationAccount = availableAutomationAccounts.SingleOrDefault(x => x.AutomationAccountName.Equals(automationAccountName, StringComparison.InvariantCultureIgnoreCase));
+
+                    if (selectedAutomationAccount == null)
+                    {
+                        await context.PostAsync($"The '{automationAccountName}' automation account was not found in the current subscription");
+                        context.Wait(this.MessageReceived);
+                        return;
+                    }
+
+                    // ensure that the runbook exists in the specified automation account
+                    if (!selectedAutomationAccount.Runbooks.Any(x => x.RunbookName.Equals(runbookName, StringComparison.InvariantCultureIgnoreCase)))
+                    {
+                        await context.PostAsync($"The '{runbookName}' runbook was not found in the '{automationAccountName}' automation account.");
+                        context.Wait(this.MessageReceived);
+                        return;
+                    }
+
+                    runbookEntity.Entity = runbookName;
+                    runbookEntity.Type = "RunbookName";
+
+                    automationAccountEntity.Entity = selectedAutomationAccount.AutomationAccountName;
+                    automationAccountEntity.Type = "AutomationAccountName";
                 }
+                else
+                {
+                    // ensure that the runbook exists in at least one of the automation accounts
+                    var selectedAutomationAccounts = availableAutomationAccounts.Where(x => x.Runbooks.Any(r => r.RunbookName.Equals(runbookName, StringComparison.InvariantCultureIgnoreCase)));
 
-                runbookEntity.Entity = runbookName;
-                runbookEntity.Type = "RunbookName";
+                    if (selectedAutomationAccounts == null || !selectedAutomationAccounts.Any())
+                    {
+                        await context.PostAsync($"The '{runbookName}' runbook was not found in any of your automation accounts.");
+                        context.Wait(this.MessageReceived);
+                        return;
+                    }
 
-                // todo: handle runbooks with same name in different automation accounts
-                availableAutomationAccounts = selectedAutomationAccounts.ToList();
+                    runbookEntity.Entity = runbookName;
+                    runbookEntity.Type = "RunbookName";
+
+                    // todo: handle runbooks with same name in different automation accounts
+                    availableAutomationAccounts = selectedAutomationAccounts.ToList();
+                }
             }
 
             if (availableAutomationAccounts.Any())
