@@ -66,22 +66,37 @@
             }
         }
 
-        public async Task<IEnumerable<AutomationAccount>> ListRunbooksAsync(string accessToken, string subscriptionId)
+        public async Task<IEnumerable<AutomationAccount>> ListAutomationAccountsAsync(string accessToken, string subscriptionId)
         {
             var credentials = new TokenCredentials(subscriptionId, accessToken);
 
             using (var automationClient = new AutomationManagementClient(credentials))
             {
                 var automationAccountsResult = await automationClient.AutomationAccounts.ListAsync(null).ConfigureAwait(false);
+                return automationAccountsResult.AutomationAccounts.Select(account => new AutomationAccount
+                {
+                    SubscriptionId = subscriptionId,
+                    ResourceGroup = GetResourceGroup(account.Id),
+                    AutomationAccountId = account.Id,
+                    AutomationAccountName = account.Name,
+                }).ToList();
+            }
+        }
+
+        public async Task<IEnumerable<AutomationAccount>> ListRunbooksAsync(string accessToken, string subscriptionId)
+        {
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
+
+            using (var automationClient = new AutomationManagementClient(credentials))
+            {
+                var automationAccountsResult = await this.ListAutomationAccountsAsync(accessToken, subscriptionId).ConfigureAwait(false);
                 var automationAccounts = await Task.WhenAll(
-                    automationAccountsResult.AutomationAccounts.Select(
-                        async account => new AutomationAccount
+                    automationAccountsResult.Select(
+                        async account => 
                         {
-                            SubscriptionId = subscriptionId,
-                            ResourceGroup = GetResourceGroup(account.Id),
-                            AutomationAccountId = account.Id,
-                            AutomationAccountName = account.Name,
-                            Runbooks = await this.ListAutomationRunbooks(accessToken, subscriptionId, GetResourceGroup(account.Id), account.Name)
+                            account.Runbooks = await this.ListAutomationRunbooks(accessToken, subscriptionId, account.ResourceGroup, account.AutomationAccountName);
+
+                            return account;
                         }).ToList());
                 return automationAccounts;
             }
@@ -93,16 +108,14 @@
 
             using (var automationClient = new AutomationManagementClient(credentials))
             {
-                var automationAccountsResult = await automationClient.AutomationAccounts.ListAsync(null).ConfigureAwait(false);
+                var automationAccountsResult = await this.ListAutomationAccountsAsync(accessToken, subscriptionId).ConfigureAwait(false);
                 var automationAccounts = await Task.WhenAll(
-                    automationAccountsResult.AutomationAccounts.Select(
-                        async account => new AutomationAccount
+                    automationAccountsResult.Select(
+                        async account =>
                         {
-                            SubscriptionId = subscriptionId,
-                            ResourceGroup = GetResourceGroup(account.Id),
-                            AutomationAccountId = account.Id,
-                            AutomationAccountName = account.Name,
-                            RunbookJobs = await this.ListAutomationJobs(accessToken, subscriptionId, GetResourceGroup(account.Id), account.Name)
+                            account.RunbookJobs = await this.ListAutomationJobs(accessToken, subscriptionId, account.ResourceGroup, account.AutomationAccountName);
+
+                            return account;
                         }).ToList());
                 return automationAccounts;
             }
