@@ -18,5 +18,7 @@
         public DateTimeOffset? StartDateTime { get; set; }
 
         public DateTimeOffset? EndDateTime { get; set; }
+
+        public string FriendlyJobId { get; set; }
     }
 }
