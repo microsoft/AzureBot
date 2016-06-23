@@ -455,6 +455,73 @@
             context.Wait(this.MessageReceived);
         }
 
+        [LuisIntent("ShowRunbookDescription")]
+        public async Task ShowRunbookDescriptionAsync(IDialogContext context, LuisResult result)
+        {
+            EntityRecommendation runbookEntity;
+            var accessToken = await context.GetAccessToken(resourceId.Value);
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return;
+            }
+
+            var subscriptionId = context.GetSubscriptionId();
+
+            var availableAutomationAccounts = await new AzureRepository().ListRunbooksAsync(accessToken, subscriptionId);
+
+            // check if the user specified a runbook name in the command
+            if (result.TryFindEntity("Runbook", out runbookEntity))
+            {
+                // obtain the name specified by the user - text in LUIS result is different
+                var runbookName = runbookEntity.GetEntityOriginalText(result.Query);
+
+                // ensure that the runbook exists in at least one of the automation accounts
+                var selectedAutomationAccounts = availableAutomationAccounts.Where(x => x.Runbooks.Any(r => r.RunbookName.Equals(runbookName, StringComparison.InvariantCultureIgnoreCase)));
+
+                if (selectedAutomationAccounts == null || !selectedAutomationAccounts.Any())
+                {
+                    await context.PostAsync($"The '{runbookName}' runbook was not found in any of your automation accounts.");
+                    context.Wait(this.MessageReceived);
+                    return;
+                }
+
+                if (selectedAutomationAccounts.Count() == 1)
+                {
+                    var automationAccount = selectedAutomationAccounts.Single();
+                    var runbook = automationAccount.Runbooks.Single(r => r.RunbookName.Equals(runbookName, StringComparison.InvariantCultureIgnoreCase));
+                    var description = await new AzureRepository().GetAutomationRunbookDescriptionAsync(accessToken, subscriptionId, automationAccount.ResourceGroup, automationAccount.AutomationAccountName, runbook.RunbookName);
+                    await context.PostAsync($"{description ?? "No description"}");
+                    context.Wait(this.MessageReceived);
+                }
+                else
+                {
+                    var message = $"I found the runbook '{runbookName}' in multiple automation accounts. Showing the description of all of them:";
+
+                    foreach (var automationAccount in selectedAutomationAccounts)
+                    {
+                        message += $"\n\r {automationAccount.AutomationAccountName}";
+                        foreach (var runbook in automationAccount.Runbooks)
+                        {
+                            if (runbook.RunbookName.Equals(runbookName, StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                var description = await new AzureRepository().GetAutomationRunbookDescriptionAsync(accessToken, subscriptionId, automationAccount.ResourceGroup, automationAccount.AutomationAccountName, runbook.RunbookName);
+
+                                message += $"\n\r• {description ?? "No description"}";
+                            }
+                        }
+                    }
+
+                    await context.PostAsync(message);
+                    context.Wait(this.MessageReceived);
+                }
+            }
+            else
+            {
+                await context.PostAsync($"No runbook was specified. Please try again specifying a runbook name.");
+                context.Wait(this.MessageReceived);
+            }
+        }
+
         [LuisIntent("Logout")]
         public async Task Logout(IDialogContext context, LuisResult result)
         {

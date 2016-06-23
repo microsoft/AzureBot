@@ -223,6 +223,23 @@
             }
         }
 
+        public async Task<string> GetAutomationRunbookDescriptionAsync(
+            string accessToken,
+            string subscriptionId,
+            string resourceGroupName,
+            string automationAccountName,
+            string runbookName)
+        {
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
+
+            using (var automationClient = new AutomationManagementClient(credentials))
+            {
+                var automationRunbookResult = await automationClient.Runbooks.GetAsync(resourceGroupName, automationAccountName, runbookName);
+
+                return automationRunbookResult.Runbook.Properties.Description;
+            }
+        }
+
         private static string GetResourceGroup(string id)
         {
             var segments = id.Split('/');
