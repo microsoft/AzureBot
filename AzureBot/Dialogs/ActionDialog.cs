@@ -208,19 +208,39 @@
 
             if (automationAccounts.Any())
             {
-                var runbooksText = automationAccounts.Aggregate(
-                     string.Empty,
-                    (current, next) =>
-                    {
-                        return current += next.Runbooks.Aggregate(
-                            string.Empty,
-                            (currentRunbooks, nextRunbook) => 
-                            {
-                                return currentRunbooks += $"\n\r• {nextRunbook.RunbookName} ({next.AutomationAccountName})";
-                            });
-                    });
+                var automationAccountsWithRunbooks = automationAccounts.Where(x => x.Runbooks.Any());
 
-                await context.PostAsync($"Available runbooks are:\r\n {runbooksText}");
+                if (automationAccountsWithRunbooks.Any())
+                {
+                    var messageText = "Available runbooks are:";
+
+                    var singleAutomationAccount = automationAccountsWithRunbooks.Count() == 1;
+
+                    if (singleAutomationAccount)
+                    {
+                        messageText = $"Listing all runbooks from {automationAccountsWithRunbooks.Single().AutomationAccountName}";
+                    }
+
+                    var runbooksText = automationAccountsWithRunbooks.Aggregate(
+                         string.Empty,
+                        (current, next) =>
+                        {
+                            var innerRunbooksText = next.Runbooks.Aggregate(
+                                string.Empty,
+                                (currentRunbooks, nextRunbook) =>
+                                {
+                                    return currentRunbooks += $"\n\r• {nextRunbook.RunbookName}";
+                                });
+
+                            return current += singleAutomationAccount ? innerRunbooksText : $"\n\r {next.AutomationAccountName}" + innerRunbooksText;
+                        });
+
+                    await context.PostAsync($"{messageText}:\r\n {runbooksText}");
+                }
+                else
+                {
+                    await context.PostAsync($"The automation accounts found in the current subscription doesn't have runbooks.");
+                }
             }
             else
             {
