@@ -394,7 +394,7 @@
                 }
                 else
                 {
-                    var message = $"I found the runbook '{runbookName}' in multiple automation accounts. Showing the description of them:";
+                    var message = $"I found the runbook '{runbookName}' in multiple automation accounts. Showing the description of all of them:";
 
                     foreach (var automationAccount in selectedAutomationAccounts)
                     {
