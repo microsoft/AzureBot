@@ -104,7 +104,21 @@
             return CreateCustomForm<RunbookParameterFormState>()
                 .Field(nameof(RunbookParameterFormState.ParameterName), (state) => false)
                 .Field(new FieldReflector<RunbookParameterFormState>(nameof(RunbookParameterFormState.ParameterValue))
-                .SetPrompt(new PromptAttribute("Please enter the value for parameter: {ParameterName}")))
+                    .SetDefine((state, field) =>
+                    {
+                        if (!state.IsMandatory)
+                        {
+                            field.SetOptional(true);
+
+                            field.SetPrompt(new PromptAttribute($"Please enter the value for optional parameter {state.ParameterName} or type *none* to skip it:"));
+                        }
+                        else
+                        {
+                            field.SetPrompt(new PromptAttribute($"Please enter the value for mandatory parameter {state.ParameterName}:"));
+                        }
+
+                        return Task.FromResult(true);
+                    }))
                 .Build();
         }
 

@@ -483,7 +483,7 @@
             }
 
             var form = new FormDialog<RunbookParameterFormState>(
-                new RunbookParameterFormState { ParameterName = nextRunbookParameter.ParameterName },
+                new RunbookParameterFormState(nextRunbookParameter.IsMandatory) { ParameterName = nextRunbookParameter.ParameterName },
                 EntityForms.BuildRunbookParametersForm,
                 FormOptions.PromptInStart);
 
@@ -534,7 +534,8 @@
                     runbookFormState.SelectedAutomationAccount.ResourceGroup,
                     runbookFormState.SelectedAutomationAccount.AutomationAccountName,
                     runbookFormState.RunbookName,
-                    runbookFormState.RunbookParameters.ToDictionary(param => param.ParameterName, param => param.ParameterValue));
+                    runbookFormState.RunbookParameters.Where(param => !string.IsNullOrWhiteSpace(param.ParameterValue))
+                        .ToDictionary(param => param.ParameterName, param => param.ParameterValue));
 
                 List<RunbookJob> runbookJobList;
                 if (!context.PerUserInConversationData.TryGetValue(AzureBot.ContextConstants.RunbookJobListKey, out runbookJobList))
