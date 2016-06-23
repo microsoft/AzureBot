@@ -42,7 +42,7 @@
             string message = "Hello! You can use the Azure Bot to: \n";
             message += $"* List, Switch and Select an Azure subscription\n";
             message += $"* List, Start, Shutdown (power off your VM, still incurring compute charges), and Stop (deallocates your VM, no charges) your virtual machines\n";
-            message += $"* List your automation accounts\n";
+            message += $"* List your automation accounts and your runbooks\n";
             message += $"* Start a runbook and get the status of the runbook jobs\n";
             message += $"* Logout to sign out from Azure\n\n";
             message += $"Please type **login** to interact with me for the first time.";
@@ -193,6 +193,63 @@
             await this.ProcessVirtualMachineActionAsync(context, result, Operations.Shutdown, this.ShutdownVirtualMachineFormComplete);
         }
 
+        [LuisIntent("ListRunbooks")]
+        public async Task ListRunbooksAsync(IDialogContext context, LuisResult result)
+        {
+            var accessToken = await context.GetAccessToken(resourceId.Value);
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return;
+            }
+
+            var subscriptionId = context.GetSubscriptionId();
+
+            var automationAccounts = await new AzureRepository().ListRunbooksAsync(accessToken, subscriptionId);
+
+            if (automationAccounts.Any())
+            {
+                var automationAccountsWithRunbooks = automationAccounts.Where(x => x.Runbooks.Any());
+
+                if (automationAccountsWithRunbooks.Any())
+                {
+                    var messageText = "Available runbooks are:";
+
+                    var singleAutomationAccount = automationAccountsWithRunbooks.Count() == 1;
+
+                    if (singleAutomationAccount)
+                    {
+                        messageText = $"Listing all runbooks from {automationAccountsWithRunbooks.Single().AutomationAccountName}";
+                    }
+
+                    var runbooksText = automationAccountsWithRunbooks.Aggregate(
+                         string.Empty,
+                        (current, next) =>
+                        {
+                            var innerRunbooksText = next.Runbooks.Aggregate(
+                                string.Empty,
+                                (currentRunbooks, nextRunbook) =>
+                                {
+                                    return currentRunbooks += $"\n\r• {nextRunbook.RunbookName}";
+                                });
+
+                            return current += singleAutomationAccount ? innerRunbooksText : $"\n\r {next.AutomationAccountName}" + innerRunbooksText;
+                        });
+
+                    await context.PostAsync($"{messageText}:\r\n {runbooksText}");
+                }
+                else
+                {
+                    await context.PostAsync($"The automation accounts found in the current subscription doesn't have runbooks.");
+                }
+            }
+            else
+            {
+                await context.PostAsync("No runbooks listed since no automations accounts were found in the current subscription.");
+            }
+
+            context.Wait(this.MessageReceived);
+        }
+
         [LuisIntent("ListAutomationAccounts")]
         public async Task ListAutomationAccountsAsync(IDialogContext context, LuisResult result)
         {
@@ -328,20 +385,20 @@
 
             var subscriptionId = context.GetSubscriptionId();
 
-            List<RunbookJob> runbookJobList;
-            if (context.PerUserInConversationData.TryGetValue(AzureBot.ContextConstants.RunbookJobListKey, out runbookJobList) &&
-                runbookJobList.Any())
+            List<RunbookJob> automationJobs;
+            if (context.PerUserInConversationData.TryGetValue(AzureBot.ContextConstants.RunbookJobListKey, out automationJobs) &&
+                automationJobs.Any())
             {
                 var messageBuilder = new StringBuilder();
-                messageBuilder.AppendLine("|Runbook|Start Time|End Time|Status|");
-                messageBuilder.AppendLine("|---|---|---|---|");
-                foreach (var rj in runbookJobList)
+                messageBuilder.AppendLine("|Id|Runbook|Start Time|End Time|Status|");
+                messageBuilder.AppendLine("|---|---|---|---|---|");
+                foreach (var job in automationJobs)
                 {
-                    var runbookJob = await new AzureRepository().GetAutomationJobAsync(accessToken, subscriptionId, rj.ResourceGroupName, rj.AutomationAccountName, rj.JobId, configureAwait: false);
-                    var startDateTime = runbookJob.StartDateTime?.ToString("g") ?? string.Empty;
-                    var endDateTime = runbookJob.EndDateTime?.ToString("g") ?? string.Empty;
-                    var status = runbookJob.Status ?? string.Empty;
-                    messageBuilder.AppendLine($"|{runbookJob.RunbookName}|{startDateTime}|{endDateTime}|{status}|");
+                    var automationJob = await new AzureRepository().GetAutomationJobAsync(accessToken, subscriptionId, job.ResourceGroupName, job.AutomationAccountName, job.JobId, configureAwait: false);
+                    var startDateTime = automationJob.StartDateTime?.ToString("g") ?? string.Empty;
+                    var endDateTime = automationJob.EndDateTime?.ToString("g") ?? string.Empty;
+                    var status = automationJob.Status ?? string.Empty;
+                    messageBuilder.AppendLine($"|{job.FriendlyJobId}|{automationJob.RunbookName}|{startDateTime}|{endDateTime}|{status}|");
                 }
 
                 await context.PostAsync(messageBuilder.ToString());
@@ -349,6 +406,50 @@
             else
             {
                 await context.PostAsync("No Runbook Jobs were created in the current session. To create a new Runbook Job type: Start Runbook.");
+            }
+
+            context.Wait(this.MessageReceived);
+        }
+
+        [LuisIntent("ShowJobOutput")]
+        public async Task ShowJobOutputAsync(IDialogContext context, LuisResult result)
+        {
+            EntityRecommendation jobEntity;
+
+            var accessToken = await context.GetAccessToken(resourceId.Value);
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return;
+            }
+
+            var subscriptionId = context.GetSubscriptionId();
+
+            if (result.TryFindEntity("Job", out jobEntity))
+            {
+                List<RunbookJob> automationJobs;
+                if (context.PerUserInConversationData.TryGetValue(AzureBot.ContextConstants.RunbookJobListKey, out automationJobs))
+                {
+                    // obtain the name specified by the user -text in LUIS result is different
+                    var friendlyJobId = jobEntity.GetEntityOriginalText(result.Query);
+
+                    var selectedJob = automationJobs.SingleOrDefault(x => !string.IsNullOrWhiteSpace(x.FriendlyJobId) 
+                            && x.FriendlyJobId.Equals(friendlyJobId, StringComparison.InvariantCultureIgnoreCase));
+
+                    if (selectedJob == null)
+                    {
+                        await context.PostAsync($"The job with id '{friendlyJobId}' was not found.");
+                        context.Wait(this.MessageReceived);
+                        return;
+                    }
+
+                    var jobOutput = await new AzureRepository().GetAutomationJobOutputAsync(accessToken, subscriptionId, selectedJob.ResourceGroupName, selectedJob.AutomationAccountName, selectedJob.JobId);
+
+                    await context.PostAsync(jobOutput);
+                }
+            }
+            else
+            {
+                await context.PostAsync("No runbook job id was specified. Try 'show <jobId> output'.");
             }
 
             context.Wait(this.MessageReceived);
@@ -471,11 +572,11 @@
 
         private static async Task CheckLongRunningOperationStatus<T>(
             IDialogContext context,
-            RunbookJob runbookJob,
+            RunbookJob automationJob,
             string accessToken,
             Func<string, string, string, string, string, bool, Task<T>> getOperationStatusAsync,
             Func<T, bool> completionCondition,
-            Func<T, T, string> getOperationStatusMessage,
+            Func<T, T, RunbookJob, string> getOperationStatusMessage,
             int delayBetweenPoolingInSeconds = 2)
         {
             var lastOperationStatus = default(T);
@@ -483,9 +584,9 @@
             {
                 var subscriptionId = context.GetSubscriptionId();
 
-                var newOperationStatus = await getOperationStatusAsync(accessToken, subscriptionId, runbookJob.ResourceGroupName, runbookJob.AutomationAccountName, runbookJob.JobId, true).ConfigureAwait(false);
+                var newOperationStatus = await getOperationStatusAsync(accessToken, subscriptionId, automationJob.ResourceGroupName, automationJob.AutomationAccountName, automationJob.JobId, true).ConfigureAwait(false);
 
-                var message = getOperationStatusMessage(lastOperationStatus, newOperationStatus);
+                var message = getOperationStatusMessage(lastOperationStatus, newOperationStatus, automationJob);
                 await context.NotifyUser(message);
 
                 await Task.Delay(TimeSpan.FromSeconds(delayBetweenPoolingInSeconds)).ConfigureAwait(false);
@@ -550,7 +651,7 @@
             }
 
             var form = new FormDialog<RunbookParameterFormState>(
-                new RunbookParameterFormState { ParameterName = nextRunbookParameter.ParameterName },
+                new RunbookParameterFormState(nextRunbookParameter.IsMandatory) { ParameterName = nextRunbookParameter.ParameterName },
                 EntityForms.BuildRunbookParametersForm,
                 FormOptions.PromptInStart);
 
@@ -601,24 +702,29 @@
                     runbookFormState.SelectedAutomationAccount.ResourceGroup,
                     runbookFormState.SelectedAutomationAccount.AutomationAccountName,
                     runbookFormState.RunbookName,
-                    runbookFormState.RunbookParameters.ToDictionary(param => param.ParameterName, param => param.ParameterValue));
+                    runbookFormState.RunbookParameters.Where(param => !string.IsNullOrWhiteSpace(param.ParameterValue))
+                        .ToDictionary(param => param.ParameterName, param => param.ParameterValue));
 
-                List<RunbookJob> runbookJobList;
-                if (!context.PerUserInConversationData.TryGetValue(AzureBot.ContextConstants.RunbookJobListKey, out runbookJobList))
+                List<RunbookJob> automationJobs;
+                if (!context.PerUserInConversationData.TryGetValue(AzureBot.ContextConstants.RunbookJobListKey, out automationJobs))
                 {
-                    runbookJobList = new List<RunbookJob> { runbookJob };
+                    runbookJob.FriendlyJobId = AutomationJobsHelper.NextFriendlyJobId(automationJobs);
+                    automationJobs = new List<RunbookJob> { runbookJob };
                 }
                 else
                 {
-                    runbookJobList.Add(runbookJob);
+                    runbookJob.FriendlyJobId = AutomationJobsHelper.NextFriendlyJobId(automationJobs);
+                    automationJobs.Add(runbookJob);
                 }
 
-                context.PerUserInConversationData.SetValue(AzureBot.ContextConstants.RunbookJobListKey, runbookJobList);
+                context.PerUserInConversationData.SetValue(AzureBot.ContextConstants.RunbookJobListKey, automationJobs);
 
                 await context.PostAsync($"Created Job '{runbookJob.JobId}' for the '{runbookFormState.RunbookName}' runbook in '{runbookFormState.AutomationAccountName}' automation account. You'll receive a message when it is completed.");
 
                 var notCompletedStatusList = new List<string> { "Stopped", "Suspended", "Failed" };
-                var notifyStatusList = new List<string> { "Running", "Completed" };
+                var completedStatusList = new List<string> { "Completed" };
+                var notifyStatusList = new List<string> { "Running" };
+                notifyStatusList.AddRange(completedStatusList);
                 notifyStatusList.AddRange(notCompletedStatusList);
 
                 accessToken = await context.GetAccessToken(resourceId.Value);
@@ -635,17 +741,21 @@
                     accessToken,
                     new AzureRepository().GetAutomationJobAsync,
                     rj => rj.EndDateTime.HasValue,
-                    (previous, last) =>
+                    (previous, last, job) =>
                     {
                         if (!string.Equals(previous?.Status, last?.Status) && notifyStatusList.Contains(last.Status))
                         {
                             if (notCompletedStatusList.Contains(last.Status))
                             {
-                                return $"The runbook '{last.RunbookName}' (job '{last.JobId}') did not complete with status '{last.Status}'. Please go to the Azure Portal for more detailed information on why.";
+                                return $"The runbook '{job.RunbookName}' (job '{job.JobId}') did not complete with status '{last.Status}'. Please go to the Azure Portal for more detailed information on why.";
+                            }
+                            else if (completedStatusList.Contains(last.Status))
+                            {
+                                return $"Runbook '{job.RunbookName}' is currently in '{last.Status}' status. Type **show {job.FriendlyJobId} output** to see the output.";
                             }
                             else
                             {
-                                return $"Runbook '{last.RunbookName}' job '{last.JobId}' is currently in '{last.Status}' status.";
+                                return $"Runbook '{job.RunbookName}' job '{job.JobId}' is currently in '{last.Status}' status.";
                             }
                         }
 

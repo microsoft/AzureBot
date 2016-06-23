@@ -211,6 +211,18 @@
             }
         }
 
+        public async Task<string> GetAutomationJobOutputAsync(string accessToken, string subscriptionId, string resourceGroupName, string automationAccountName, string jobId)
+        {
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
+
+            using (var automationClient = new AutomationManagementClient(credentials))
+            {
+                var jobOutputResponse = await automationClient.Jobs.GetOutputAsync(resourceGroupName, automationAccountName, new Guid(jobId));
+
+                return jobOutputResponse.Output;
+            }
+        }
+
         public async Task<string> GetAutomationRunbookDescriptionAsync(
             string accessToken,
             string subscriptionId,
