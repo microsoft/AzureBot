@@ -106,15 +106,17 @@
                 .Field(new FieldReflector<RunbookParameterFormState>(nameof(RunbookParameterFormState.ParameterValue))
                     .SetDefine((state, field) =>
                     {
+                        var firstParamMessage = state.IsFirstParameter ? $"\n\r If you're unsure what to input, type **quit** followed by **show runbook {state.RunbookName} description** to get more details." : "";
+
                         if (!state.IsMandatory)
                         {
                             field.SetOptional(true);
 
-                            field.SetPrompt(new PromptAttribute($"Please enter the value for optional parameter {state.ParameterName} or type *none* to skip it:"));
+                            field.SetPrompt(new PromptAttribute($"Please enter the value for optional parameter {state.ParameterName} or type *none* to skip it: {firstParamMessage}"));
                         }
                         else
                         {
-                            field.SetPrompt(new PromptAttribute($"Please enter the value for mandatory parameter {state.ParameterName}:"));
+                            field.SetPrompt(new PromptAttribute($"Please enter the value for mandatory parameter {state.ParameterName}: {firstParamMessage}"));
                         }
 
                         return Task.FromResult(true);

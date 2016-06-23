@@ -235,7 +235,8 @@
                             return current += singleAutomationAccount ? innerRunbooksText : $"\n\r {next.AutomationAccountName}" + innerRunbooksText;
                         });
 
-                    await context.PostAsync($"{messageText}:\r\n {runbooksText}");
+                    var showDescriptionText = "Type **show runbook <name> description** to get details on any runbook.";
+                    await context.PostAsync($"{messageText}:\r\n {runbooksText} \r\n\r\n {showDescriptionText}");
                 }
                 else
                 {
@@ -650,8 +651,13 @@
                 return;
             }
 
+            var formState = new RunbookParameterFormState(nextRunbookParameter.IsMandatory, nextRunbookParameter.Position == 0, runbookFormState.SelectedRunbook.RunbookName)
+            {
+                ParameterName = nextRunbookParameter.ParameterName
+            };
+
             var form = new FormDialog<RunbookParameterFormState>(
-                new RunbookParameterFormState(nextRunbookParameter.IsMandatory) { ParameterName = nextRunbookParameter.ParameterName },
+                formState,
                 EntityForms.BuildRunbookParametersForm,
                 FormOptions.PromptInStart);
 
