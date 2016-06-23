@@ -42,7 +42,7 @@
             string message = "Hello! You can use the Azure Bot to: \n";
             message += $"* List, Switch and Select an Azure subscription\n";
             message += $"* List, Start, Shutdown (power off your VM, still incurring compute charges), and Stop (deallocates your VM, no charges) your virtual machines\n";
-            message += $"* List your automation accounts\n";
+            message += $"* List your automation accounts and your runbooks\n";
             message += $"* Start a runbook and get the status of the runbook jobs\n";
             message += $"* Logout to sign out from Azure\n\n";
             message += $"Please type **login** to interact with me for the first time.";
@@ -191,6 +191,63 @@
         public async Task ShutdownVmAsync(IDialogContext context, LuisResult result)
         {
             await this.ProcessVirtualMachineActionAsync(context, result, Operations.Shutdown, this.ShutdownVirtualMachineFormComplete);
+        }
+
+        [LuisIntent("ListRunbooks")]
+        public async Task ListRunbooksAsync(IDialogContext context, LuisResult result)
+        {
+            var accessToken = await context.GetAccessToken(resourceId.Value);
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return;
+            }
+
+            var subscriptionId = context.GetSubscriptionId();
+
+            var automationAccounts = await new AzureRepository().ListRunbooksAsync(accessToken, subscriptionId);
+
+            if (automationAccounts.Any())
+            {
+                var automationAccountsWithRunbooks = automationAccounts.Where(x => x.Runbooks.Any());
+
+                if (automationAccountsWithRunbooks.Any())
+                {
+                    var messageText = "Available runbooks are:";
+
+                    var singleAutomationAccount = automationAccountsWithRunbooks.Count() == 1;
+
+                    if (singleAutomationAccount)
+                    {
+                        messageText = $"Listing all runbooks from {automationAccountsWithRunbooks.Single().AutomationAccountName}";
+                    }
+
+                    var runbooksText = automationAccountsWithRunbooks.Aggregate(
+                         string.Empty,
+                        (current, next) =>
+                        {
+                            var innerRunbooksText = next.Runbooks.Aggregate(
+                                string.Empty,
+                                (currentRunbooks, nextRunbook) =>
+                                {
+                                    return currentRunbooks += $"\n\r• {nextRunbook.RunbookName}";
+                                });
+
+                            return current += singleAutomationAccount ? innerRunbooksText : $"\n\r {next.AutomationAccountName}" + innerRunbooksText;
+                        });
+
+                    await context.PostAsync($"{messageText}:\r\n {runbooksText}");
+                }
+                else
+                {
+                    await context.PostAsync($"The automation accounts found in the current subscription doesn't have runbooks.");
+                }
+            }
+            else
+            {
+                await context.PostAsync("No runbooks listed since no automations accounts were found in the current subscription.");
+            }
+
+            context.Wait(this.MessageReceived);
         }
 
         [LuisIntent("ListAutomationAccounts")]
