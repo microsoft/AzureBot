@@ -43,7 +43,7 @@
             message += $"* List, Switch and Select an Azure subscription\n";
             message += $"* List, Start, Shutdown (power off your VM, still incurring compute charges), and Stop (deallocates your VM, no charges) your virtual machines\n";
             message += $"* List your automation accounts and your runbooks\n";
-            message += $"* Start a runbook and get the status of the runbook jobs\n";
+            message += $"* Start a runbook, get the description of a runbook, get the status and ouput of automation jobs\n";
             message += $"* Logout to sign out from Azure\n\n";
             message += $"Please type **login** to interact with me for the first time.";
             
