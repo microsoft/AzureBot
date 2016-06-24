@@ -97,7 +97,7 @@
                         }
 
                         foreach (var runbook in state.AvailableAutomationAccounts.Single(
-                            a => a.AutomationAccountName == state.AutomationAccountName).Runbooks)
+                            a => a.AutomationAccountName == state.AutomationAccountName).Runbooks.Where(x => x.RunbookState.Equals("Published", StringComparison.InvariantCultureIgnoreCase)))
                         {
                             field
                                 .AddDescription(runbook.RunbookName, runbook.RunbookName)
