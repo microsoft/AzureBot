@@ -294,7 +294,7 @@
 
             var subscriptionId = context.GetSubscriptionId();
 
-            var availableAutomationAccounts = await new AzureRepository().ListRunbooksAsync(accessToken, subscriptionId);
+            var availableAutomationAccounts = await new AzureRepository().ListRunbooksAsync(accessToken, subscriptionId, "Published");
 
             // check if the user specified a runbook name in the command
             if (result.TryFindEntity("Runbook", out runbookEntity))
