@@ -445,7 +445,9 @@
 
                     var jobOutput = await new AzureRepository().GetAutomationJobOutputAsync(accessToken, subscriptionId, selectedJob.ResourceGroupName, selectedJob.AutomationAccountName, selectedJob.JobId);
 
-                    await context.PostAsync(jobOutput);
+                    var outputMessage = string.IsNullOrWhiteSpace(jobOutput) ? $"No output for job '{friendlyJobId}'" : jobOutput;
+
+                    await context.PostAsync(outputMessage);
                 }
             }
             else
