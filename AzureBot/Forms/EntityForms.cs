@@ -57,6 +57,17 @@
                .Build();
         }
 
+        public static IForm<AllVirtualMachinesFormState> BuildAllVirtualMachinesForm()
+        {
+            return CreateCustomForm<AllVirtualMachinesFormState>()
+                .Field(nameof(AllVirtualMachinesFormState.Operation), (state) => false)
+                .Field(nameof(AllVirtualMachinesFormState.VirtualMachines), (state) => false)
+               .Confirm("You are trying to {Operation} the following virtual machines: {VirtualMachines} Are you sure?", (state) => (Operations)Enum.Parse(typeof(Operations), state.Operation, true) == Operations.Start, null)
+               .Confirm("You are trying to {Operation} the following virtual machines: {VirtualMachines} Are you sure? Please note that your VMs will still incur compute charges.", (state) => (Operations)Enum.Parse(typeof(Operations), state.Operation, true) == Operations.Shutdown, null)
+               .Confirm("You are trying to {Operation} the following virtual machines: {VirtualMachines} Are you sure? Your VMs won't incur charges and all IP addresses will be released.", (state) => (Operations)Enum.Parse(typeof(Operations), state.Operation, true) == Operations.Stop, null)
+               .Build();
+        }
+
         public static IForm<RunbookFormState> BuildRunbookForm()
         {
             return CreateCustomForm<RunbookFormState>()
@@ -106,7 +117,7 @@
                 .Field(new FieldReflector<RunbookParameterFormState>(nameof(RunbookParameterFormState.ParameterValue))
                     .SetDefine((state, field) =>
                     {
-                        var firstParamMessage = state.IsFirstParameter ? $"\n\r If you're unsure what to input, type **quit** followed by **show runbook {state.RunbookName} description** to get more details." : "";
+                        var firstParamMessage = state.IsFirstParameter ? $"\n\r If you're unsure what to input, type **quit** followed by **show runbook {state.RunbookName} description** to get more details." : string.Empty;
 
                         if (!state.IsMandatory)
                         {

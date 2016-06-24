@@ -23,6 +23,17 @@
                 context);
         }
 
+        public static void NotifyLongRunningOperation<T, Y>(this Task<T> operation, IDialogContext context, Func<T, Y, string> handler, Y item)
+        {
+            operation.ContinueWith(
+                async (t, ctx) =>
+                {
+                    var messageText = handler(t.Result, item);
+                    await NotifyUser((IDialogContext)ctx, messageText);
+                },
+                context);
+        }
+
         public static void NotifyLongRunningOperation<T>(this Task<T> operation, IDialogContext context, Func<T, IDialogContext, string> handler)
         {
             operation.ContinueWith(

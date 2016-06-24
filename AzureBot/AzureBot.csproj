@@ -188,6 +188,7 @@
     <Compile Include="Forms\RunbookFormState.cs" />
     <Compile Include="Forms\RunbookParameterFormState.cs" />
     <Compile Include="Forms\SubscriptionFormState.cs" />
+    <Compile Include="Forms\AllVirtualMachinesFormState.cs" />
     <Compile Include="Forms\VirtualMachineFormState.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
     <Compile Include="Global.asax.cs">

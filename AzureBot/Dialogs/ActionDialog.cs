@@ -181,16 +181,34 @@
             await this.ProcessVirtualMachineActionAsync(context, result, Operations.Start, this.StartVirtualMachineFormComplete);
         }
 
+        [LuisIntent("StartAllVms")]
+        public async Task StartAllVmsAsync(IDialogContext context, LuisResult result)
+        {
+            await this.ProcessAllVirtualMachinesActionAsync(context, result, Operations.Start, this.StartAllVirtualMachinesFormComplete);
+        }
+
         [LuisIntent("StopVm")]
         public async Task StopVmAsync(IDialogContext context, LuisResult result)
         {
             await this.ProcessVirtualMachineActionAsync(context, result, Operations.Stop, this.StopVirtualMachineFormComplete);
         }
 
+        [LuisIntent("StopAllVms")]
+        public async Task StopAllVmsAsync(IDialogContext context, LuisResult result)
+        {
+            await this.ProcessAllVirtualMachinesActionAsync(context, result, Operations.Stop, this.StopAllVirtualMachinesFormComplete);
+        }
+
         [LuisIntent("ShutdownVm")]
         public async Task ShutdownVmAsync(IDialogContext context, LuisResult result)
         {
             await this.ProcessVirtualMachineActionAsync(context, result, Operations.Shutdown, this.ShutdownVirtualMachineFormComplete);
+        }
+
+        [LuisIntent("ShutdownAllVms")]
+        public async Task ShutdownAllVmsAsync(IDialogContext context, LuisResult result)
+        {
+            await this.ProcessAllVirtualMachinesActionAsync(context, result, Operations.Shutdown, this.ShutdownAllVirtualMachinesFormComplete);
         }
 
         [LuisIntent("ListRunbooks")]
@@ -849,70 +867,120 @@
             }
         }
 
+        private async Task ProcessAllVirtualMachinesActionAsync(
+           IDialogContext context,
+           LuisResult result,
+           Operations operation,
+           ResumeAfter<AllVirtualMachinesFormState> resume)
+        {
+            var accessToken = await context.GetAccessToken(resourceId.Value);
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return;
+            }
+
+            var subscriptionId = context.GetSubscriptionId();
+            var availableVMs = (await new AzureRepository().ListVirtualMachinesAsync(accessToken, subscriptionId)).ToList();
+
+            // retrieve the list of VMs that are in the correct power state
+            var validPowerStates = VirtualMachineHelper.RetrieveValidPowerStateByOperation(operation);
+
+            var candidateVMs = availableVMs.Where(vm => validPowerStates.Contains(vm.PowerState)).ToList();
+            if (candidateVMs.Any())
+            {
+                // prompt the user to select a VM from the list
+                var form = new FormDialog<AllVirtualMachinesFormState>(
+                    new AllVirtualMachinesFormState(candidateVMs, operation),
+                    EntityForms.BuildAllVirtualMachinesForm,
+                    FormOptions.PromptInStart,
+                    result.Entities);
+
+                context.Call(form, resume);
+            }
+            else
+            {
+                var operationText = VirtualMachineHelper.RetrieveOperationTextByOperation(operation);
+                await context.PostAsync($"No virtual machines that can be {operationText} were found in the current subscription.");
+                context.Wait(this.MessageReceived);
+            }
+        }
+
         private async Task StartVirtualMachineFormComplete(IDialogContext context, IAwaitable<VirtualMachineFormState> result)
         {
-            try
+            Func<string, string> preMessageHandler = vm => $"Starting the '{vm}' virtual machine...";
+
+            Func<bool, string, string> notifyLongRunningOperationHandler = (operationStatus, vmName) =>
             {
-                var virtualMachineFormState = await result;
+                var statusMessage = operationStatus ? "was started successfully" : "failed to start";
+                return $"The '{vmName}' virtual machine {statusMessage}.";
+            };
 
-                await context.PostAsync($"Starting the '{virtualMachineFormState.VirtualMachine}' virtual machine...");
-
-                var accessToken = await context.GetAccessToken(resourceId.Value);
-                if (string.IsNullOrEmpty(accessToken))
-                {
-                    return;
-                }
-
-                new AzureRepository()
-                    .StartVirtualMachineAsync(
-                        accessToken,
-                        virtualMachineFormState.SelectedVM.SubscriptionId,
-                        virtualMachineFormState.SelectedVM.ResourceGroup,
-                        virtualMachineFormState.SelectedVM.Name)
-                    .NotifyLongRunningOperation(
-                        context,
-                        (operationStatus) =>
-                        {
-                            var statusMessage = operationStatus ? "was started successfully" : "failed to start";
-                            return $"The '{virtualMachineFormState.VirtualMachine}' virtual machine {statusMessage}.";
-                        });
-            }
-            catch (FormCanceledException<VirtualMachineFormState>)
-            {
-                await context.PostAsync("You have canceled the operation. What would you like to do next?");
-            }
-
-            context.Wait(this.MessageReceived);
+            await this.ProcessVirtualMachineFormComplete(
+                context,
+                result,
+                new AzureRepository().StartVirtualMachineAsync,
+                preMessageHandler,
+                notifyLongRunningOperationHandler);
         }
 
         private async Task StopVirtualMachineFormComplete(IDialogContext context, IAwaitable<VirtualMachineFormState> result)
         {
+            Func<string, string> preMessageHandler = vm => $"Stopping the '{vm}' virtual machine...";
+
+            Func<bool, string, string> notifyLongRunningOperationHandler = (operationStatus, vmName) =>
+            {
+                var statusMessage = operationStatus ? "was stopped successfully" : "failed to stop";
+                return $"The '{vmName}' virtual machine {statusMessage}.";
+            };
+
+            await this.ProcessVirtualMachineFormComplete(
+                context,
+                result,
+                new AzureRepository().DeallocateVirtualMachineAsync,
+                preMessageHandler,
+                notifyLongRunningOperationHandler);
+        }
+
+        private async Task ShutdownVirtualMachineFormComplete(IDialogContext context, IAwaitable<VirtualMachineFormState> result)
+        {
+            Func<string, string> preMessageHandler = vm => $"Shutting down the '{vm}' virtual machine...";
+
+            Func<bool, string, string> notifyLongRunningOperationHandler = (operationStatus, vmName) =>
+            {
+                var statusMessage = operationStatus ? "was shut down successfully" : "failed to shutdown";
+                return $"The '{vmName}' virtual machine {statusMessage}.";
+            };
+
+            await this.ProcessVirtualMachineFormComplete(
+                context,
+                result,
+                new AzureRepository().PowerOffVirtualMachineAsync,
+                preMessageHandler,
+                notifyLongRunningOperationHandler);
+        }
+
+        private async Task ProcessVirtualMachineFormComplete(
+            IDialogContext context, 
+            IAwaitable<VirtualMachineFormState> result, 
+            Func<string, string, string, string, Task<bool>> operationHandler, 
+            Func<string, string> preMessageHandler, 
+            Func<bool, string, string> notifyLongRunningOperationHandler)
+        {
             try
             {
                 var virtualMachineFormState = await result;
+                var vm = virtualMachineFormState.SelectedVM;
 
-                await context.PostAsync($"Stopping the '{virtualMachineFormState.VirtualMachine}' virtual machine...");
+                await context.PostAsync(preMessageHandler(vm.Name));
 
-                var selectedVM = virtualMachineFormState.SelectedVM;
                 var accessToken = await context.GetAccessToken(resourceId.Value);
                 if (string.IsNullOrEmpty(accessToken))
                 {
                     return;
                 }
 
-                new AzureRepository()
-                    .DeallocateVirtualMachineAsync(
-                        accessToken,
-                        virtualMachineFormState.SelectedVM.SubscriptionId,
-                        virtualMachineFormState.SelectedVM.ResourceGroup,
-                        virtualMachineFormState.SelectedVM.Name)
-                    .NotifyLongRunningOperation(
-                        context,
-                        (operationStatus) =>
-                        {
-                            var statusMessage = operationStatus ? "was stopped successfully" : "failed to stop";
-                            return $"The '{virtualMachineFormState.VirtualMachine}' virtual machine {statusMessage}.";
-                        });
+                operationHandler(accessToken, vm.SubscriptionId, vm.ResourceGroup, vm.Name)
+                    .NotifyLongRunningOperation(context, notifyLongRunningOperationHandler, vm.Name);
             }
             catch (FormCanceledException<VirtualMachineFormState>)
             {
@@ -922,36 +990,86 @@
             context.Wait(this.MessageReceived);
         }
 
-        private async Task ShutdownVirtualMachineFormComplete(IDialogContext context, IAwaitable<VirtualMachineFormState> result)
+        private async Task StartAllVirtualMachinesFormComplete(IDialogContext context, IAwaitable<AllVirtualMachinesFormState> result)
+        {
+            Func<string, string> preMessageHandler = vms => $"Starting the following virtual machines: {vms}";
+
+            Func<bool, string, string> notifyLongRunningOperationHandler = (operationStatus, vmName) =>
+                    {
+                        var statusMessage = operationStatus ? "was started successfully" : "failed to start";
+                        return $"The '{vmName}' virtual machine {statusMessage}.";
+                    };
+
+            await this.ProcessAllVirtualMachinesFormComplete(
+                context,
+                result, 
+                new AzureRepository().StartVirtualMachineAsync,
+                preMessageHandler, 
+                notifyLongRunningOperationHandler);
+        }
+
+        private async Task StopAllVirtualMachinesFormComplete(IDialogContext context, IAwaitable<AllVirtualMachinesFormState> result)
+        {
+            Func<string, string> preMessageHandler = vms => $"Stopping the following virtual machines: {vms}";
+
+            Func<bool, string, string> notifyLongRunningOperationHandler = (operationStatus, vmName) =>
+            {
+                var statusMessage = operationStatus ? "was stopped successfully" : "failed to stop";
+                return $"The '{vmName}' virtual machine {statusMessage}.";
+            };
+
+            await this.ProcessAllVirtualMachinesFormComplete(
+                context,
+                result, 
+                new AzureRepository().DeallocateVirtualMachineAsync,
+                preMessageHandler, 
+                notifyLongRunningOperationHandler);
+        }
+
+        private async Task ShutdownAllVirtualMachinesFormComplete(IDialogContext context, IAwaitable<AllVirtualMachinesFormState> result)
+        {
+            Func<string, string> preMessageHandler = vms => $"Shutting down the following virtual machines: {vms}";
+
+            Func<bool, string, string> notifyLongRunningOperationHandler = (operationStatus, vmName) =>
+            {
+                var statusMessage = operationStatus ? "was shut down successfully" : "failed to shutdown";
+                return $"The '{vmName}' virtual machine {statusMessage}.";
+            };
+
+            await this.ProcessAllVirtualMachinesFormComplete(
+                context,
+                result,
+                new AzureRepository().PowerOffVirtualMachineAsync,
+                preMessageHandler,
+                notifyLongRunningOperationHandler);
+        }
+
+        private async Task ProcessAllVirtualMachinesFormComplete(
+            IDialogContext context, 
+            IAwaitable<AllVirtualMachinesFormState> result, 
+            Func<string, string, string, string, Task<bool>> operationHandler, 
+            Func<string, string> preMessageHandler, 
+            Func<bool, string, string> notifyLongRunningOperationHandler)
         {
             try
             {
-                var virtualMachineFormState = await result;
+                var allVirtualMachineFormState = await result;
 
-                await context.PostAsync($"Shutting down the '{virtualMachineFormState.VirtualMachine}' virtual machine...");
+                await context.PostAsync(preMessageHandler(allVirtualMachineFormState.VirtualMachines));
 
-                var selectedVM = virtualMachineFormState.SelectedVM;
                 var accessToken = await context.GetAccessToken(resourceId.Value);
                 if (string.IsNullOrEmpty(accessToken))
                 {
                     return;
                 }
 
-                new AzureRepository()
-                    .PowerOffVirtualMachineAsync(
-                        accessToken,
-                        virtualMachineFormState.SelectedVM.SubscriptionId,
-                        virtualMachineFormState.SelectedVM.ResourceGroup,
-                        virtualMachineFormState.SelectedVM.Name)
-                    .NotifyLongRunningOperation(
-                        context,
-                        (operationStatus) =>
-                        {
-                            var statusMessage = operationStatus ? "was shut down successfully" : "failed to shutdown";
-                            return $"The '{virtualMachineFormState.VirtualMachine}' virtual machine {statusMessage}.";
-                        });
+                Parallel.ForEach(allVirtualMachineFormState.AvailableVMs, vm =>
+                {
+                    operationHandler(accessToken, vm.SubscriptionId, vm.ResourceGroup, vm.Name)
+                        .NotifyLongRunningOperation(context, notifyLongRunningOperationHandler, vm.Name);
+                });
             }
-            catch (FormCanceledException<VirtualMachineFormState>)
+            catch (FormCanceledException<AllVirtualMachinesFormState>)
             {
                 await context.PostAsync("You have canceled the operation. What would you like to do next?");
             }
