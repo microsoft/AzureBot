@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <TestRunParameters>
+    <Parameter name="AppId" value="AppId" />
+    <Parameter name="DirectLineToken" value="DirectLineToken" />
+    <Parameter name="ConversationId" value="ConversationId" />
+    <Parameter name="FromUser" value="FromUser" />
+  </TestRunParameters>
+</RunSettings>
