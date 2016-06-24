@@ -83,7 +83,7 @@
             }
         }
 
-        public async Task<IEnumerable<AutomationAccount>> ListRunbooksAsync(string accessToken, string subscriptionId)
+        public async Task<IEnumerable<AutomationAccount>> ListRunbooksAsync(string accessToken, string subscriptionId, params string[] runbooksStateFilter)
         {
             var credentials = new TokenCredentials(subscriptionId, accessToken);
 
@@ -94,7 +94,7 @@
                     automationAccountsResult.Select(
                         async account => 
                         {
-                            account.Runbooks = await this.ListAutomationRunbooks(accessToken, subscriptionId, account.ResourceGroup, account.AutomationAccountName);
+                            account.Runbooks = await this.ListAutomationRunbooks(accessToken, subscriptionId, account.ResourceGroup, account.AutomationAccountName, runbooksStateFilter);
 
                             return account;
                         }).ToList());
@@ -247,7 +247,7 @@
             return resourceGroupName;
         }
 
-        private async Task<IEnumerable<Runbook>> ListAutomationRunbooks(string accessToken, string subscriptionId, string resourceGroupName, string automationAccountName)
+        private async Task<IEnumerable<Runbook>> ListAutomationRunbooks(string accessToken, string subscriptionId, string resourceGroupName, string automationAccountName, params string[] runbooksStateFilter)
         {
             var credentials = new TokenCredentials(subscriptionId, accessToken);
 
@@ -255,8 +255,8 @@
             {
                 var automationRunbooksResult = await automationClient.Runbooks.ListAsync(resourceGroupName, automationAccountName);
 
-                var automationRunbooks = await Task.WhenAll(automationRunbooksResult.Runbooks.Select(
-                    async runbook => new Runbook
+                var automationRunbooks = await Task.WhenAll(automationRunbooksResult.Runbooks.Where(x => (runbooksStateFilter == null || !runbooksStateFilter.Any()) || runbooksStateFilter.Contains(x.Properties.State, StringComparer.InvariantCultureIgnoreCase))
+                    .Select(async runbook => new Runbook
                     {
                         RunbookId = runbook.Id,
                         RunbookName = runbook.Name,
