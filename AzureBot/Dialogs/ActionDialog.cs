@@ -195,6 +195,7 @@
         [LuisIntent("RunRunbook")]
         public async Task StartRunbookAsync(IDialogContext context, LuisResult result)
         {
+            EntityRecommendation runbookEntity;
             var accessToken = await context.GetAccessToken(resourceId.Value);
             if (string.IsNullOrEmpty(accessToken))
             {
@@ -204,6 +205,29 @@
             var subscriptionId = context.GetSubscriptionId();
 
             var availableAutomationAccounts = await new AzureRepository().ListRunbooksAsync(accessToken, subscriptionId);
+
+            // check if the user specified a runbook name in the command
+            if (result.TryFindEntity("Runbook", out runbookEntity))
+            {
+                // obtain the name specified by the user - text in LUIS result is different
+                var runbookName = runbookEntity.GetEntityOriginalText(result.Query);
+
+                // ensure that the runbook exists
+                var selectedAutomationAccounts = availableAutomationAccounts.Where(x => x.Runbooks.Any(r => r.RunbookName.Equals(runbookName, StringComparison.InvariantCultureIgnoreCase)));
+
+                if (selectedAutomationAccounts == null || !selectedAutomationAccounts.Any())
+                {
+                    await context.PostAsync($"The '{runbookName}' runbook was not found in any of your automation accounts.");
+                    context.Wait(this.MessageReceived);
+                    return;
+                }
+
+                runbookEntity.Entity = runbookName;
+                runbookEntity.Type = "RunbookName";
+
+                // todo: handle runbooks with same name in different automation accounts
+                availableAutomationAccounts = selectedAutomationAccounts.ToList();
+            }
 
             if (availableAutomationAccounts.Any())
             {
@@ -223,7 +247,7 @@
             }
             else
             {
-                await context.PostAsync($"No automations accounts were found in the current subscription.");
+                await context.PostAsync($"No automations accounts were found in the current subscription. Please create an Azure automation account or switch to a subscription which has an automation account in it.");
                 context.Wait(this.MessageReceived);
             }
         }
@@ -461,9 +485,11 @@
 
                 await context.PostAsync($"Created Job '{runbookJob.JobId}' for the '{runbookFormState.RunbookName}' runbook in '{runbookFormState.AutomationAccountName}' automation account. You'll receive a message when it is completed.");
 
-                var notifyStatusList = new List<string> { "Running", "Completed", "Failed" };
+                var notCompletedStatusList = new List<string> { "Stopped", "Suspended", "Failed" };
+                var notifyStatusList = new List<string> { "Running", "Completed" };
+                notifyStatusList.AddRange(notCompletedStatusList);
 
-                // no wait, just fire and forget
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                 CheckLongRunningOperationStatus(
                     context,
                     runbookJob,
@@ -473,11 +499,19 @@
                     {
                         if (!string.Equals(previous?.Status, last?.Status) && notifyStatusList.Contains(last.Status))
                         {
-                            return $"Runbook '{last.RunbookName}' job '{last.JobId}' is currently in '{last.Status}' status.";
+                            if (notCompletedStatusList.Contains(last.Status))
+                            {
+                                return $"The runbook '{last.RunbookName}' (job '{last.JobId}') did not complete with status '{last.Status}'. Please go to the Azure Portal for more detailed information on why.";
+                            }
+                            else
+                            {
+                                return $"Runbook '{last.RunbookName}' job '{last.JobId}' is currently in '{last.Status}' status.";
+                            }
                         }
 
                         return null;
                     });
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             }
             catch (Exception e)
             {
