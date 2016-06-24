@@ -247,7 +247,7 @@
                                 string.Empty,
                                 (currentRunbooks, nextRunbook) =>
                                 {
-                                    return currentRunbooks += $"\n\r• {nextRunbook.RunbookName}";
+                                    return currentRunbooks += $"\n\r• {nextRunbook}";
                                 });
 
                             return current += singleAutomationAccount ? innerRunbooksText : $"\n\r {next.AutomationAccountName}" + innerRunbooksText;
@@ -312,7 +312,7 @@
 
             var subscriptionId = context.GetSubscriptionId();
 
-            var availableAutomationAccounts = await new AzureRepository().ListRunbooksAsync(accessToken, subscriptionId, "Published");
+            var availableAutomationAccounts = await new AzureRepository().ListRunbooksAsync(accessToken, subscriptionId);
 
             // check if the user specified a runbook name in the command
             if (result.TryFindEntity("Runbook", out runbookEntity))
@@ -336,10 +336,19 @@
                         return;
                     }
 
+                    var runbook = selectedAutomationAccount.Runbooks.SingleOrDefault(x => x.RunbookName.Equals(runbookName, StringComparison.InvariantCultureIgnoreCase));
+                    
                     // ensure that the runbook exists in the specified automation account
-                    if (!selectedAutomationAccount.Runbooks.Any(x => x.RunbookName.Equals(runbookName, StringComparison.InvariantCultureIgnoreCase)))
+                    if (runbook == null)
                     {
                         await context.PostAsync($"The '{runbookName}' runbook was not found in the '{automationAccountName}' automation account.");
+                        context.Wait(this.MessageReceived);
+                        return;
+                    }
+
+                    if (!runbook.RunbookState.Equals("Published", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        await context.PostAsync($"The '{runbookName}' runbook that you are trying to run is not published (State: {runbook.RunbookState}). Please go the Azure Portal and publish the runbook.");
                         context.Wait(this.MessageReceived);
                         return;
                     }
@@ -358,6 +367,16 @@
                     if (selectedAutomationAccounts == null || !selectedAutomationAccounts.Any())
                     {
                         await context.PostAsync($"The '{runbookName}' runbook was not found in any of your automation accounts.");
+                        context.Wait(this.MessageReceived);
+                        return;
+                    }
+
+                    var runbooks = selectedAutomationAccounts.SelectMany(x => x.Runbooks.Where(r => r.RunbookName.Equals(runbookName, StringComparison.InvariantCultureIgnoreCase) 
+                                                                            && r.RunbookState.Equals("Published", StringComparison.InvariantCultureIgnoreCase)));
+
+                    if (runbooks == null || !runbooks.Any())
+                    {
+                        await context.PostAsync($"The '{runbookName}' runbook that you are trying to run is not Published. Please go the Azure Portal and publish the runbook.");
                         context.Wait(this.MessageReceived);
                         return;
                     }

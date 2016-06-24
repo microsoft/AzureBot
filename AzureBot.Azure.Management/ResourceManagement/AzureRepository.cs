@@ -83,7 +83,7 @@
             }
         }
 
-        public async Task<IEnumerable<AutomationAccount>> ListRunbooksAsync(string accessToken, string subscriptionId, params string[] runbooksStateFilter)
+        public async Task<IEnumerable<AutomationAccount>> ListRunbooksAsync(string accessToken, string subscriptionId)
         {
             var credentials = new TokenCredentials(subscriptionId, accessToken);
 
@@ -94,7 +94,7 @@
                     automationAccountsResult.Select(
                         async account => 
                         {
-                            account.Runbooks = await this.ListAutomationRunbooks(accessToken, subscriptionId, account.ResourceGroup, account.AutomationAccountName, runbooksStateFilter);
+                            account.Runbooks = await this.ListAutomationRunbooks(accessToken, subscriptionId, account.ResourceGroup, account.AutomationAccountName);
 
                             return account;
                         }).ToList());
@@ -260,6 +260,7 @@
                     {
                         RunbookId = runbook.Id,
                         RunbookName = runbook.Name,
+                        RunbookState = runbook.Properties.State,
                         RunbookParameters = await this.ListAutomationRunbookParameters(accessToken, subscriptionId, resourceGroupName, automationAccountName, runbook.Name)
                     }).ToList());
 
