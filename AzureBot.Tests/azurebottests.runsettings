@@ -3,7 +3,6 @@
   <TestRunParameters>
     <Parameter name="AppId" value="AppId" />
     <Parameter name="DirectLineToken" value="DirectLineToken" />
-    <Parameter name="ConversationId" value="ConversationId" />
     <Parameter name="FromUser" value="FromUser" />
   </TestRunParameters>
 </RunSettings>

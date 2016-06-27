@@ -1,11 +1,7 @@
-﻿using System;
-using System.Text;
-using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Threading.Tasks;
-
-namespace AzureBot.Tests
+﻿namespace AzureBot.Tests
 {
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+
     /// <summary>
     /// Tests all VM commands
     /// </summary>
@@ -16,8 +12,8 @@ namespace AzureBot.Tests
         public void CanListVMs()
         {
             string expected = "Available VMs are";
-            General.botHelper.SendMessage("list vms");
-            string lastMessage = General.botHelper.LastMessageFromBot().Result;
+            General.BotHelper.SendMessage("list vms");
+            string lastMessage = General.BotHelper.LastMessageFromBot().Result;
             Assert.IsTrue(lastMessage.StartsWith(expected));
         }
     }
