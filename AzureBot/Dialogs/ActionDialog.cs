@@ -892,6 +892,8 @@
            Operations operation,
            ResumeAfter<AllVirtualMachinesFormState> resume)
         {
+            EntityRecommendation resourceGroupEntity;
+
             var accessToken = await context.GetAccessToken(resourceId.Value);
             if (string.IsNullOrEmpty(accessToken))
             {
@@ -903,25 +905,54 @@
 
             // retrieve the list of VMs that are in the correct power state
             var validPowerStates = VirtualMachineHelper.RetrieveValidPowerStateByOperation(operation);
+            IEnumerable<VirtualMachine> candidateVMs = null;
 
-            var candidateVMs = availableVMs.Where(vm => validPowerStates.Contains(vm.PowerState)).ToList();
-            if (candidateVMs.Any())
+            if (result.TryFindEntity("ResourceGroup", out resourceGroupEntity))
             {
-                // prompt the user to select a VM from the list
-                var form = new FormDialog<AllVirtualMachinesFormState>(
-                    new AllVirtualMachinesFormState(candidateVMs, operation),
-                    EntityForms.BuildAllVirtualMachinesForm,
-                    FormOptions.PromptInStart,
-                    result.Entities);
+                // obtain the name specified by the user - text in LUIS result is different
+                var resourceGroup = resourceGroupEntity.GetEntityOriginalText(result.Query);
 
-                context.Call(form, resume);
+                candidateVMs = availableVMs.Where(vm => vm.ResourceGroup.Equals(resourceGroup, StringComparison.InvariantCultureIgnoreCase)).ToList();
+
+                if (candidateVMs == null || !candidateVMs.Any())
+                {
+                    var operationText = VirtualMachineHelper.RetrieveOperationTextByOperation(operation);
+                    await context.PostAsync($"The {resourceGroup} resource group doesn't contain VMs or doesn't exist in the current subscription.");
+                    context.Wait(this.MessageReceived);
+                    return;
+                }
+
+                candidateVMs = candidateVMs.Where(vm => validPowerStates.Contains(vm.PowerState)).ToList();
+
+                if (candidateVMs == null || !candidateVMs.Any())
+                {
+                    var operationText = VirtualMachineHelper.RetrieveOperationTextByOperation(operation);
+                    await context.PostAsync($"No virtual machines that can be {operationText} were found in the {resourceGroup} resource group of the current subscription.");
+                    context.Wait(this.MessageReceived);
+                    return;
+                }
             }
             else
             {
-                var operationText = VirtualMachineHelper.RetrieveOperationTextByOperation(operation);
-                await context.PostAsync($"No virtual machines that can be {operationText} were found in the current subscription.");
-                context.Wait(this.MessageReceived);
+                candidateVMs = availableVMs.Where(vm => validPowerStates.Contains(vm.PowerState)).ToList();
+
+                if (!candidateVMs.Any())
+                {
+                    var operationText = VirtualMachineHelper.RetrieveOperationTextByOperation(operation);
+                    await context.PostAsync($"No virtual machines that can be {operationText} were found in the current subscription.");
+                    context.Wait(this.MessageReceived);
+                    return;
+                }
             }
+
+            // prompt the user to select a VM from the list
+            var form = new FormDialog<AllVirtualMachinesFormState>(
+                new AllVirtualMachinesFormState(candidateVMs, operation),
+                EntityForms.BuildAllVirtualMachinesForm,
+                FormOptions.PromptInStart,
+                null);
+
+            context.Call(form, resume);
         }
 
         private async Task StartVirtualMachineFormComplete(IDialogContext context, IAwaitable<VirtualMachineFormState> result)
