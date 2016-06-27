@@ -1,63 +1,67 @@
-﻿using Microsoft.Bot.Connector.DirectLine;
-using Microsoft.Bot.Connector.DirectLine.Models;
-using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AzureBot.ConsoleConversation
+﻿namespace AzureBot.ConsoleConversation
 {
-    class Program
+    using System;
+    using System.Configuration;
+    using System.Diagnostics;
+    using System.Threading.Tasks;
+    using Microsoft.Bot.Connector.DirectLine;
+    using Microsoft.Bot.Connector.DirectLine.Models;
+
+    internal class Program
     {
-        public static string ConversationId = ConfigurationManager.AppSettings["ConversationId"];
-        public static string DirectLineToken = ConfigurationManager.AppSettings["DirectLineToken"];
-        public static string AppId = ConfigurationManager.AppSettings["AppId"];
-        public static string FromUser = ConfigurationManager.AppSettings["FromUser"];
-        static void Main(string[] args)
+        private static string directLineToken = ConfigurationManager.AppSettings["DirectLineToken"];
+        private static string appId = ConfigurationManager.AppSettings["AppId"];
+        private static string fromUser = ConfigurationManager.AppSettings["FromUser"];
+
+        internal static void Main(string[] args)
         {
             StartBotConversation().Wait();
         }
 
-        static async Task StartBotConversation()
+        internal static async Task StartBotConversation()
         {
-            DirectLineClient client = new DirectLineClient(DirectLineToken);
-            string strWatermark = null;
-            MessageSet msgs = await client.Conversations.GetMessagesAsync(ConversationId, strWatermark);
-            strWatermark = msgs?.Watermark;
+            DirectLineClient client = new DirectLineClient(directLineToken);
+
+            string watermark = null;
+
+            var conversation = await client.Conversations.NewConversationAsync();
+
             while (true)
             {
-                Console.Write("Command>");
-                string strInput = Console.ReadLine().Trim();
+                Console.Write("Command > ");
+                string input = Console.ReadLine().Trim();
 
-                if (strInput.ToLower() == "exit")
+                if (input.ToLower() == "exit")
+                {
                     break;
+                }
                 else
                 {
-
-                    if (strInput.Length > 0)
+                    if (input.Length > 0)
                     {
-                        Message aMsg = new Message
+                        Message userMessage = new Message
                         {
-                            FromProperty = FromUser,
-                            Text = strInput
+                            FromProperty = fromUser,
+                            Text = input
                         };
 
-                        Debug.WriteLine($"Sending Message: {strInput}");
-                        await client.Conversations.PostMessageAsync(ConversationId, aMsg);
-                        msgs = await client.Conversations.GetMessagesAsync(ConversationId, strWatermark);
-                        strWatermark = msgs?.Watermark;
+                        Debug.WriteLine($"Sending Message: {input}");
 
-                        Debug.WriteLine($"Received {msgs.Messages.Count}");
-                        foreach (Message m in msgs.Messages)
+                        await client.Conversations.PostMessageAsync(conversation.ConversationId, userMessage);
+                        var messages = await client.Conversations.GetMessagesAsync(conversation.ConversationId, watermark);
+                        watermark = messages?.Watermark;
+
+                        Debug.WriteLine($"Received {messages.Messages.Count}");
+
+                        foreach (Message message in messages.Messages)
                         {
-                            Debug.WriteLine(m.FromProperty);
-                            Debug.WriteLine(m.Text);
+                            Debug.WriteLine(message.FromProperty);
+                            Debug.WriteLine(message.Text);
                             Debug.WriteLine("------------------------------");
-                            if ("azurebot" == m.FromProperty)
-                                Console.WriteLine(m.Text);
+                            if ("azurebot" == message.FromProperty)
+                            {
+                                Console.WriteLine(message.Text);
+                            }
                         }
                     }
                 }

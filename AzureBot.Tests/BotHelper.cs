@@ -1,105 +1,79 @@
-﻿using Microsoft.Bot.Connector.DirectLine;
-using Microsoft.Bot.Connector.DirectLine.Models;
-using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace AzureBot.Tests
+﻿namespace AzureBot.Tests
 {
-    public class BotHelper :IDisposable 
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Microsoft.Bot.Connector.DirectLine;
+    using Microsoft.Bot.Connector.DirectLine.Models;
+
+    public class BotHelper : IDisposable 
     {
-        private static string _watermark;
-        private static string _directLineToken;
-        private static string _appId;
-        private static string _fromUser;
-        private static DirectLineClient botClient;
-        private static Conversation conv;
+        private string watermark;
+        private string appId;
+        private string fromUser;
+        private DirectLineClient directLineClient;
+        private Conversation conversation;
 
-        public BotHelper(string DirectLineToken, string AppId, string FromUser)
-        {
-            _directLineToken = DirectLineToken;
-            _appId = AppId;
-            _fromUser = FromUser;
-            botClient = new DirectLineClient(DirectLineToken);
-            conv = botClient.Conversations.NewConversation();
-        }
+        private bool disposed = false;
 
-        public async Task<string> SendNewMessageAndGetBotReply(string msg)
+        public BotHelper(string directLineToken, string appId, string fromUser)
         {
-            Message botMsg = new Message { Text = msg };
-            Conversation newconv = await botClient.Conversations.NewConversationAsync();
-            //Making sure the message is sent to the bot before continuing
-            await botClient.Conversations.PostMessageAsync(newconv.ConversationId, botMsg);
-            MessageSet msgs = await botClient.Conversations.GetMessagesAsync(newconv.ConversationId, null);
-            return msgs.Messages.Last().Text;
+            this.appId = appId;
+            this.fromUser = fromUser;
+            this.directLineClient = new DirectLineClient(directLineToken);
+            this.conversation = this.directLineClient.Conversations.NewConversation();
         }
 
         public void SendMessage(string msg)
         {
-            //Passing in a value in FromProperty makes the bot 'remember' that it's the same user
-            //and loads the user context that will have been set up previously outside the tests
-            Message botMsg = new Message { FromProperty=_fromUser, Text = msg };
-            botClient.Conversations.PostMessage(conv.ConversationId, botMsg);
+            // Passing in a value in FromProperty makes the bot 'remember' that it's the same user
+            // and loads the user context that will have been set up previously outside the tests
+            Message message = new Message { FromProperty = this.fromUser, Text = msg };
+            this.directLineClient.Conversations.PostMessage(this.conversation.ConversationId, message);
         }
 
         public async Task<string> LastMessageFromBot()
         {
-            var botMessages = await AllBotMessagesSinceWatermark();
+            var botMessages = await this.AllBotMessagesSinceWatermark();
             return botMessages.Last();
-        }
-
-        private async Task<IList<Message>> _allMessagesInConversation()
-        {
-            MessageSet msgs = await botClient.Conversations.GetMessagesAsync(conv.ConversationId, null);
-            _watermark = msgs?.Watermark;   
-            return msgs.Messages;
-        }
-
-        public async Task<IList<string>> AllMessagesInConversation()
-        {
-            var messages = await _allMessagesInConversation();
-            var q = from x in messages select x.Text;
-            return q.ToList();
-        }
-
-        public async Task<IList<string>> AllBotMessagesInConversation()
-        {
-            var messages = await _allMessagesInConversation();
-            var q = from x in messages
-                    where x.FromProperty == _appId
-                    select x.Text;
-            return q.ToList();
-        }
-
-        private async Task<IList<Message>> _allMessagesSinceWatermark()
-        {
-            MessageSet msgs = await botClient.Conversations.GetMessagesAsync(conv.ConversationId, _watermark);
-            _watermark = msgs?.Watermark;
-            return msgs.Messages;
-        }
-
-        public async Task<IList<string>> AllMessagesSinceWatermark()
-        {
-            var messages = await _allMessagesSinceWatermark();
-            var q = from x in messages select x.Text;
-            return q.ToList();
-        }
-
-        public async Task<IList<string>> AllBotMessagesSinceWatermark()
-        {
-            var messages = await _allMessagesSinceWatermark();
-            var q = from x in messages
-                    where x.FromProperty == _appId
-                    select x.Text;
-            return q.ToList();
         }
 
         public void Dispose()
         {
-            if (botClient != null)
-                botClient.Dispose();
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (this.disposed)
+            {
+                return;
+            }
+
+            if (disposing)
+            {
+                this.directLineClient.Dispose();
+            }
+
+            this.disposed = true;
+        }
+
+        private async Task<IList<string>> AllBotMessagesSinceWatermark()
+        {
+            var messages = await this.AllMessagesSinceWatermark();
+            var messagesText = from x in messages
+                               where x.FromProperty == this.appId
+                               select x.Text;
+            return messagesText.ToList();
+        }
+
+        private async Task<IList<Message>> AllMessagesSinceWatermark()
+        {
+            MessageSet messageSet = await this.directLineClient.Conversations.GetMessagesAsync(this.conversation.ConversationId, this.watermark);
+            this.watermark = messageSet?.Watermark;
+            return messageSet.Messages;
         }
     }
 }
