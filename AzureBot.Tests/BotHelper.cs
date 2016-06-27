@@ -25,18 +25,37 @@
             this.conversation = this.directLineClient.Conversations.NewConversation();
         }
 
-        public void SendMessage(string msg)
+        public async Task<string> SendMessage(string msg)
+        {
+            await this.SendMessageNoReply(msg);
+            return await this.LastMessageFromBot();
+        }
+
+        public async Task SendMessageNoReply(string msg)
         {
             // Passing in a value in FromProperty makes the bot 'remember' that it's the same user
             // and loads the user context that will have been set up previously outside the tests
             Message message = new Message { FromProperty = this.fromUser, Text = msg };
-            this.directLineClient.Conversations.PostMessage(this.conversation.ConversationId, message);
+            await this.directLineClient.Conversations.PostMessageAsync(this.conversation.ConversationId, message);
         }
 
         public async Task<string> LastMessageFromBot()
         {
             var botMessages = await this.AllBotMessagesSinceWatermark();
             return botMessages.Last();
+        }
+
+        public async Task WaitForLongRunningOperation(Action<string> resultHandler, int delayBetweenPoolingInSeconds = 5)
+        {
+            var messages = await this.AllBotMessagesSinceWatermark().ConfigureAwait(false);
+
+            while (!messages.Any())
+            {
+                await Task.Delay(TimeSpan.FromSeconds(delayBetweenPoolingInSeconds)).ConfigureAwait(false);
+                messages = await this.AllBotMessagesSinceWatermark();
+            }
+
+            resultHandler(messages.Last());
         }
 
         public void Dispose()

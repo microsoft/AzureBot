@@ -70,9 +70,13 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="RunbookTests.cs" />
+    <Compile Include="TestRunner.cs" />
     <Compile Include="BotHelper.cs" />
     <Compile Include="General.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="BotTestCase.cs" />
+    <Compile Include="SubscriptionTests.cs" />
     <Compile Include="VMTests.cs" />
   </ItemGroup>
   <ItemGroup>

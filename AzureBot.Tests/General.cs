@@ -20,23 +20,30 @@
             string directLineToken = context.Properties["DirectLineToken"].ToString();
             string appId = context.Properties["AppId"].ToString();
             string fromUser = context.Properties["FromUser"].ToString();
+
             botHelper = new BotHelper(directLineToken, appId, fromUser);
 
-            botHelper.SendMessage("select subscription");
-            string lastMessage = botHelper.LastMessageFromBot().Result;
+            var reply = botHelper.SendMessage("select subscription").Result;
             string expected = "Please select the subscription";
-            Assert.IsTrue(lastMessage.StartsWith(expected));
+            Assert.IsTrue(reply.StartsWith(expected));
 
-            botHelper.SendMessage("DevOps02-Internal");
-            lastMessage = botHelper.LastMessageFromBot().Result;
+            reply = botHelper.SendMessage("DevOps02-Internal").Result;
             expected = "Setting DevOps02-Internal";
-            Assert.IsTrue(lastMessage.StartsWith(expected));
+            Assert.IsTrue(reply.StartsWith(expected));
         }
 
         // Will run after all the tests have finished
         [AssemblyCleanup]
         public static void CleanUp()
         {
+            var expected = "You are trying to stop the following virtual machines";
+
+            var reply = botHelper.SendMessage("stop all vms").Result;
+
+            Assert.IsTrue(reply.StartsWith(expected));
+
+            reply = botHelper.SendMessage("Yes").Result;
+
             if (botHelper != null)
             {
                 botHelper.Dispose();
