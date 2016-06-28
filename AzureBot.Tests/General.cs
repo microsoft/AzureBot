@@ -25,14 +25,27 @@
 
             botHelper = new BotHelper(directLineToken, appId, fromUser);
 
-            var reply = botHelper.SendMessage("select subscription").Result;
-            string expected = "Please select the subscription";
-            Assert.IsTrue(reply.StartsWith(expected));
+            Func<string, string, string> errorMessageHandler = (message, expected) => $"Setup failed with message: '{message}'. The expected message is '{expected}'.";
 
             var subscription = context.GetSubscription();
-            reply = botHelper.SendMessage(subscription).Result;
-            expected = $"Setting {subscription}";
-            Assert.IsTrue(reply.StartsWith(expected));
+
+            var step1 = new BotTestCase()
+            {
+                Action = "select subscription",
+                ExpectedReply = "Please select the subscription",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            var step2 = new BotTestCase()
+            {
+                Action = subscription,
+                ExpectedReply = $"Setting {subscription}",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            var steps = new List<BotTestCase> { step1, step2 };
+
+            TestRunner.RunTestCases(steps).Wait();
         }
 
         // Will run after all the tests have finished
