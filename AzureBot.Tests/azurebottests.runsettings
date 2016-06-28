@@ -4,5 +4,8 @@
     <Parameter name="AppId" value="AppId" />
     <Parameter name="DirectLineToken" value="DirectLineToken" />
     <Parameter name="FromUser" value="FromUser" />
+    <Parameter name="Subscription" value="Subscription"/>
+    <Parameter name="VirtualMachine" value="VirtualMachine"/>
+    <Parameter name="ResourceGroup" value="ResourceGroup"/>
   </TestRunParameters>
 </RunSettings>
