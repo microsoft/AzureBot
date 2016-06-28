@@ -1,5 +1,7 @@
 ﻿namespace AzureBot.Tests
 {
+    using System;
+    using System.Collections.Generic;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
@@ -27,8 +29,9 @@
             string expected = "Please select the subscription";
             Assert.IsTrue(reply.StartsWith(expected));
 
-            reply = botHelper.SendMessage("DevOps02-Internal").Result;
-            expected = "Setting DevOps02-Internal";
+            var subscription = context.GetSubscription();
+            reply = botHelper.SendMessage(subscription).Result;
+            expected = $"Setting {subscription}";
             Assert.IsTrue(reply.StartsWith(expected));
         }
 
@@ -36,13 +39,31 @@
         [AssemblyCleanup]
         public static void CleanUp()
         {
-            var expected = "You are trying to stop the following virtual machines";
+            Func<string, string, string> errorMessageHandler = (message, expected) => $"Stop all vms failed with message: '{message}'. The expected message is '{expected}'.";
 
-            var reply = botHelper.SendMessage("stop all vms").Result;
+            var step1 = new BotTestCase()
+            {
+                Action = "stop all vms",
+                ExpectedReply = "You are trying to stop the following virtual machines",
+                ErrorMessageHandler = errorMessageHandler
+            };
 
-            Assert.IsTrue(reply.StartsWith(expected));
+            var step2 = new BotTestCase()
+            {
+                Action = "Yes",
+                ExpectedReply = "Stopping the following virtual machines",
+                ErrorMessageHandler = errorMessageHandler
+            };
 
-            reply = botHelper.SendMessage("Yes").Result;
+            var completionTestCase = new BotTestCase()
+            {
+                ExpectedReply = $"virtual machine was stopped successfully.",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            var steps = new List<BotTestCase> { step1, step2 };
+
+            TestRunner.RunTestCases(steps, completionTestCase, 2).Wait();
 
             if (botHelper != null)
             {

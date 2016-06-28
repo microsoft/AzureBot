@@ -45,17 +45,21 @@
             return botMessages.Last();
         }
 
-        public async Task WaitForLongRunningOperation(Action<string> resultHandler, int delayBetweenPoolingInSeconds = 5)
+        public async Task WaitForLongRunningOperations(Action<IList<string>> resultHandler, int operationsToWait, int delayBetweenPoolingInSeconds = 4)
         {
-            var messages = await this.AllBotMessagesSinceWatermark().ConfigureAwait(false);
+            var currentWatermark = this.watermark;
+            var messages = await this.AllBotMessagesSinceWatermark(currentWatermark).ConfigureAwait(false);
+            var iterations = 0;
+            var maxIterations = (5 * 60) / delayBetweenPoolingInSeconds;
 
-            while (!messages.Any())
+            while (iterations < maxIterations && messages.Count < operationsToWait)
             {
                 await Task.Delay(TimeSpan.FromSeconds(delayBetweenPoolingInSeconds)).ConfigureAwait(false);
-                messages = await this.AllBotMessagesSinceWatermark();
+                messages = await this.AllBotMessagesSinceWatermark(currentWatermark);
+                iterations++;
             }
 
-            resultHandler(messages.Last());
+            resultHandler(messages);
         }
 
         public void Dispose()
@@ -79,18 +83,19 @@
             this.disposed = true;
         }
 
-        private async Task<IList<string>> AllBotMessagesSinceWatermark()
+        private async Task<IList<string>> AllBotMessagesSinceWatermark(string specificWatermark = null)
         {
-            var messages = await this.AllMessagesSinceWatermark();
+            var messages = await this.AllMessagesSinceWatermark(specificWatermark);
             var messagesText = from x in messages
                                where x.FromProperty == this.appId
                                select x.Text;
             return messagesText.ToList();
         }
 
-        private async Task<IList<Message>> AllMessagesSinceWatermark()
+        private async Task<IList<Message>> AllMessagesSinceWatermark(string specificWatermark = null)
         {
-            MessageSet messageSet = await this.directLineClient.Conversations.GetMessagesAsync(this.conversation.ConversationId, this.watermark);
+            specificWatermark = string.IsNullOrEmpty(specificWatermark) ? this.watermark : specificWatermark;
+            MessageSet messageSet = await this.directLineClient.Conversations.GetMessagesAsync(this.conversation.ConversationId, specificWatermark);
             this.watermark = messageSet?.Watermark;
             return messageSet.Messages;
         }

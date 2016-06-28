@@ -12,22 +12,27 @@
             await RunTestCases(new List<BotTestCase> { testCase });
         }
 
-        internal static async Task RunTestCases(IList<BotTestCase> testCases, BotTestCase completionTestCase = null)
+        internal static async Task RunTestCases(IList<BotTestCase> steps, BotTestCase completionTestCase = null, int completionChecks = 1)
         {
-            foreach (var testCase in testCases)
+            foreach (var step in steps)
             {
-                var reply = await General.BotHelper.SendMessage(testCase.Action);
-                Assert.IsTrue(reply.Contains(testCase.ExpectedReply), testCase.ErrorMessageHandler(reply, testCase.ExpectedReply));
+                var reply = await General.BotHelper.SendMessage(step.Action);
+                Assert.IsTrue(reply.Contains(step.ExpectedReply), step.ErrorMessageHandler(reply, step.ExpectedReply));
             }
 
             if (completionTestCase != null)
             {
-                Action<string> action = (reply) =>
+                Action<IList<string>> action = (replies) =>
                 {
-                    Assert.IsTrue(reply.Contains(completionTestCase.ExpectedReply), completionTestCase.ErrorMessageHandler(reply, completionTestCase.ExpectedReply));
+                    for (int i = 0; i < completionChecks; i++)
+                    {
+                        Assert.IsTrue(
+                            replies[0].Contains(completionTestCase.ExpectedReply), 
+                            completionTestCase.ErrorMessageHandler(replies[0], completionTestCase.ExpectedReply));
+                    }
                 };
 
-                await General.BotHelper.WaitForLongRunningOperation(action);
+                await General.BotHelper.WaitForLongRunningOperations(action, completionChecks);
             }
         }
     }
