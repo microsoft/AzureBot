@@ -464,12 +464,12 @@
 
             if (result.TryFindEntity("Job", out jobEntity))
             {
+                // obtain the name specified by the user -text in LUIS result is different
+                var friendlyJobId = jobEntity.GetEntityOriginalText(result.Query);
+
                 List<RunbookJob> automationJobs;
                 if (context.PerUserInConversationData.TryGetValue(AzureBot.ContextConstants.RunbookJobListKey, out automationJobs))
                 {
-                    // obtain the name specified by the user -text in LUIS result is different
-                    var friendlyJobId = jobEntity.GetEntityOriginalText(result.Query);
-
                     var selectedJob = automationJobs.SingleOrDefault(x => !string.IsNullOrWhiteSpace(x.FriendlyJobId) 
                             && x.FriendlyJobId.Equals(friendlyJobId, StringComparison.InvariantCultureIgnoreCase));
 
@@ -485,6 +485,10 @@
                     var outputMessage = string.IsNullOrWhiteSpace(jobOutput) ? $"No output for job '{friendlyJobId}'" : jobOutput;
 
                     await context.PostAsync(outputMessage);
+                }
+                else
+                {
+                    await context.PostAsync($"The job with id '{friendlyJobId}' was not found.");
                 }
             }
             else
