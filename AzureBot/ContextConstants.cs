@@ -10,6 +10,6 @@
 
         public const string CurrentMessageToKey = "messageTo";
 
-        public const string RunbookJobListKey = "runbookJobList";
+        public const string AutomationJobsKey = "automationJobs";
     }
 }
