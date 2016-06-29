@@ -7,7 +7,7 @@
 
     internal class AutomationJobsHelper
     {
-        internal static string NextFriendlyJobId(List<RunbookJob> automationJobs)
+        internal static string NextFriendlyJobId(IList<RunbookJob> automationJobs)
         {
             const string FirstFriendlyJobId = "job1";
 

@@ -423,9 +423,8 @@
 
             var subscriptionId = context.GetSubscriptionId();
 
-            List<RunbookJob> automationJobs;
-            if (context.PerUserInConversationData.TryGetValue(AzureBot.ContextConstants.RunbookJobListKey, out automationJobs) &&
-                automationJobs.Any())
+            IList<RunbookJob> automationJobs = context.GetAutomationJobs();
+            if (automationJobs != null && automationJobs.Any())
             {
                 var messageBuilder = new StringBuilder();
                 messageBuilder.AppendLine("|Id|Runbook|Start Time|End Time|Status|");
@@ -467,8 +466,8 @@
                 // obtain the name specified by the user -text in LUIS result is different
                 var friendlyJobId = jobEntity.GetEntityOriginalText(result.Query);
 
-                List<RunbookJob> automationJobs;
-                if (context.PerUserInConversationData.TryGetValue(AzureBot.ContextConstants.RunbookJobListKey, out automationJobs))
+                IList<RunbookJob> automationJobs = context.GetAutomationJobs();
+                if (automationJobs != null)
                 {
                     var selectedJob = automationJobs.SingleOrDefault(x => !string.IsNullOrWhiteSpace(x.FriendlyJobId) 
                             && x.FriendlyJobId.Equals(friendlyJobId, StringComparison.InvariantCultureIgnoreCase));
@@ -533,8 +532,8 @@
                 {
                     var automationAccount = selectedAutomationAccounts.Single();
                     var runbook = automationAccount.Runbooks.Single(r => r.RunbookName.Equals(runbookName, StringComparison.InvariantCultureIgnoreCase));
-                    var description = await new AzureRepository().GetAutomationRunbookDescriptionAsync(accessToken, subscriptionId, automationAccount.ResourceGroup, automationAccount.AutomationAccountName, runbook.RunbookName);
-                    await context.PostAsync($"{description ?? "No description"}");
+                    var description = await new AzureRepository().GetAutomationRunbookDescriptionAsync(accessToken, subscriptionId, automationAccount.ResourceGroup, automationAccount.AutomationAccountName, runbook.RunbookName) ?? "No description";
+                    await context.PostAsync(description);
                     context.Wait(this.MessageReceived);
                 }
                 else
@@ -548,9 +547,9 @@
                         {
                             if (runbook.RunbookName.Equals(runbookName, StringComparison.InvariantCultureIgnoreCase))
                             {
-                                var description = await new AzureRepository().GetAutomationRunbookDescriptionAsync(accessToken, subscriptionId, automationAccount.ResourceGroup, automationAccount.AutomationAccountName, runbook.RunbookName);
+                                var description = await new AzureRepository().GetAutomationRunbookDescriptionAsync(accessToken, subscriptionId, automationAccount.ResourceGroup, automationAccount.AutomationAccountName, runbook.RunbookName) ?? "No description";
 
-                                message += $"\n\r• {description ?? "No description"}";
+                                message += $"\n\r• {description}";
                             }
                         }
                     }
@@ -569,6 +568,7 @@
         [LuisIntent("Logout")]
         public async Task Logout(IDialogContext context, LuisResult result)
         {
+            context.Cleanup();
             await context.Logout();
 
             context.Wait(this.MessageReceived);
@@ -653,7 +653,7 @@
             try
             {
                 var runbookFormState = await result;
-                context.PerUserInConversationData.SetValue(AzureBot.ContextConstants.RunbookFormStateKey, runbookFormState);
+                context.StoreRunbookFormState(runbookFormState);
 
                 await this.RunbookParametersFormComplete(context, null);
             }
@@ -678,11 +678,11 @@
 
         private async Task RunbookParametersFormComplete(IDialogContext context, RunbookParameterFormState runbookParameterFormState)
         {
-            var runbookFormState = context.PerUserInConversationData.Get<RunbookFormState>(AzureBot.ContextConstants.RunbookFormStateKey);
+            var runbookFormState = context.GetRunbookFormState();
             if (runbookParameterFormState != null)
             {
                 runbookFormState.RunbookParameters.Add(runbookParameterFormState);
-                context.PerUserInConversationData.SetValue(AzureBot.ContextConstants.RunbookFormStateKey, runbookFormState);
+                context.StoreRunbookFormState(runbookFormState);
             }
 
             var nextRunbookParameter = runbookFormState.SelectedRunbook.RunbookParameters.OrderBy(param => param.Position).FirstOrDefault(
@@ -690,6 +690,7 @@
 
             if (nextRunbookParameter == null)
             {
+                context.CleanupRunbookFormState();
                 await this.RunbookFormComplete(context, runbookFormState);
                 return;
             }
@@ -717,6 +718,8 @@
             }
             catch (FormCanceledException<RunbookParameterFormState> e)
             {
+                context.CleanupRunbookFormState();
+
                 string reply;
 
                 if (e.InnerException == null)
@@ -754,8 +757,8 @@
                     runbookFormState.RunbookParameters.Where(param => !string.IsNullOrWhiteSpace(param.ParameterValue))
                         .ToDictionary(param => param.ParameterName, param => param.ParameterValue));
 
-                List<RunbookJob> automationJobs;
-                if (!context.PerUserInConversationData.TryGetValue(AzureBot.ContextConstants.RunbookJobListKey, out automationJobs))
+                IList<RunbookJob> automationJobs = context.GetAutomationJobs();
+                if (automationJobs == null)
                 {
                     runbookJob.FriendlyJobId = AutomationJobsHelper.NextFriendlyJobId(automationJobs);
                     automationJobs = new List<RunbookJob> { runbookJob };
@@ -766,7 +769,7 @@
                     automationJobs.Add(runbookJob);
                 }
 
-                context.PerUserInConversationData.SetValue(AzureBot.ContextConstants.RunbookJobListKey, automationJobs);
+                context.StoreAutomationJobs(automationJobs);
 
                 await context.PostAsync($"Created Job '{runbookJob.JobId}' for the '{runbookFormState.RunbookName}' runbook in '{runbookFormState.AutomationAccountName}' automation account. You'll receive a message when it is completed.");
 
@@ -1117,11 +1120,13 @@
                     return;
                 }
 
-                Parallel.ForEach(allVirtualMachineFormState.AvailableVMs, vm =>
-                {
-                    operationHandler(accessToken, vm.SubscriptionId, vm.ResourceGroup, vm.Name)
-                        .NotifyLongRunningOperation(context, notifyLongRunningOperationHandler, vm.Name);
-                });
+                Parallel.ForEach(
+                    allVirtualMachineFormState.AvailableVMs, 
+                    vm =>
+                    {
+                        operationHandler(accessToken, vm.SubscriptionId, vm.ResourceGroup, vm.Name)
+                            .NotifyLongRunningOperation(context, notifyLongRunningOperationHandler, vm.Name);
+                    });
             }
             catch (FormCanceledException<AllVirtualMachinesFormState>)
             {
@@ -1177,6 +1182,7 @@
 
             if (result)
             {
+                context.Cleanup();
                 await context.Logout();
             }
 
