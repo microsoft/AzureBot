@@ -6,7 +6,7 @@
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     /// <summary>
-    /// Tests all VM commands
+    /// Tests all Runbook commands
     /// </summary>
     [TestClass]
     public class RunbookTests
