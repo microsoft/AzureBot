@@ -45,7 +45,7 @@
 
             var steps = new List<BotTestCase> { step1, step2 };
 
-            TestRunner.RunTestCases(steps).Wait();
+            TestRunner.RunTestCases(steps, new List<BotTestCase>()).Wait();
         }
 
         // Will run after all the tests have finished
