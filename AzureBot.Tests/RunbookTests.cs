@@ -10,6 +10,8 @@
     [TestClass]
     public class RunbookTests
     {
+        public TestContext TestContext { get; set; }
+
         [TestMethod]
         [TestCategory("Parallel")]
         public async Task ShoudListRunbooks()
@@ -40,7 +42,7 @@
 
         [TestMethod]
         [TestCategory("Parallel")]
-        public async Task RunRunbookShouldNotifyWhenTheSpecifiedRunbookDoesNotExists()
+        public async Task RunRunbookShouldNotifyWhenTheSpecifiedRunbookDoesNotExist()
         {
             var runbook = "notfoundRunbook";
 
@@ -56,7 +58,7 @@
 
         [TestMethod]
         [TestCategory("Parallel")]
-        public async Task ShowJobOutputShouldNotifyWhenTheSpecifiedJobDoesNotExists()
+        public async Task ShowJobOutputShouldNotifyWhenTheSpecifiedJobDoesNotExist()
         {
             var jobId = "job5";
 
@@ -72,13 +74,91 @@
 
         [TestMethod]
         [TestCategory("Parallel")]
-        public async Task ShowJobOutputShouldNotifyWhenAJobIsNotSpecified()
+        public async Task ShowJobOutputShouldNotifyWhenJobIsNotSpecified()
         {
             var testCase = new BotTestCase()
             {
                 Action = $"show output",
                 ExpectedReply = "No runbook job id was specified. Try 'show <jobId> output'.",
                 ErrorMessageHandler = (message, expected) => $"Show job output failed with message: '{message}'. The expected message is '{expected}'."
+            };
+
+            await TestRunner.RunTestCase(testCase);
+        }
+
+        [TestMethod]
+        [TestCategory("Parallel")]
+        public async Task ShowRunbookDescriptionShouldNotifyWhenTheSpecifiedRunbookDoesNotExist()
+        {
+            var runbook = "notfound";
+
+            var testCase = new BotTestCase()
+            {
+                Action = $"show runbook {runbook} description",
+                ExpectedReply = $"The '{runbook}' runbook was not found in any of your automation accounts.",
+                ErrorMessageHandler = (message, expected) => $"Show runbook description failed with message: '{message}'. The expected message is '{expected}'."
+            };
+
+            await TestRunner.RunTestCase(testCase);
+        }
+
+        [TestMethod]
+        [TestCategory("Parallel")]
+        public async Task ShowRunbookDescriptionShouldNotifyWhenRunbookIsNotSpecified()
+        {
+            var testCase = new BotTestCase()
+            {
+                Action = $"show runbook description",
+                ExpectedReply = "No runbook was specified. Please try again specifying a runbook name.",
+                ErrorMessageHandler = (message, expected) => $"Show runbook description failed with message: '{message}'. The expected message is '{expected}'."
+            };
+
+            await TestRunner.RunTestCase(testCase);
+        }
+
+        [TestMethod]
+        [TestCategory("Parallel")]
+        public async Task ShouldShowRunbookDescription()
+        {
+            var runbook = this.TestContext.GetRunbookWithDescription();
+
+            var testCase = new BotTestCase()
+            {
+                Action = $"show runbook {runbook} description",
+                ExpectedReply = this.TestContext.GetRunbookDescription(),
+                ErrorMessageHandler = (message, expected) => $"Show runbook description failed with message: '{message}'. The expected message is '{expected}'."
+            };
+
+            await TestRunner.RunTestCase(testCase);
+        }
+
+        [TestMethod]
+        [TestCategory("Parallel")]
+        public async Task ShowRunbookDescriptionShouldNotifyWhenTheSpecifiedRunbookDoesntHaveDescription()
+        {
+            var runbook = this.TestContext.GetRunbookWithoutDescription();
+
+            var testCase = new BotTestCase()
+            {
+                Action = $"show runbook {runbook} description",
+                ExpectedReply = "No description",
+                ErrorMessageHandler = (message, expected) => $"Show runbook description failed with message: '{message}'. The expected message is '{expected}'."
+            };
+
+            await TestRunner.RunTestCase(testCase);
+        }
+
+        [TestMethod]
+        [TestCategory("Parallel")]
+        public async Task ShouldShowRunbookDescriptionsWhenSpecifiedRunbookExistsInMultipleAutomationAccounts()
+        {
+            var runbook = this.TestContext.GetRunbookInMultipleAutomationAccounts();
+
+            var testCase = new BotTestCase()
+            {
+                Action = $"show runbook {runbook} description",
+                ExpectedReply = $"I found the runbook '{runbook}' in multiple automation accounts. Showing the description of all of them:",
+                ErrorMessageHandler = (message, expected) => $"Show runbook description failed with message: '{message}'. The expected message is '{expected}'."
             };
 
             await TestRunner.RunTestCase(testCase);

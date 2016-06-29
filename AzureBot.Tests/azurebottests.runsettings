@@ -7,5 +7,9 @@
     <Parameter name="Subscription" value="Subscription"/>
     <Parameter name="VirtualMachine" value="VirtualMachine"/>
     <Parameter name="ResourceGroup" value="ResourceGroup"/>
+    <Parameter name="RunbookWithDescription" value="Runbook"/>
+    <Parameter name="RunbookDescription" value="Runbook Description"/>
+    <Parameter name="RunbookWithoutDescription" value="Runbook"/>
+    <Parameter name="RunbookInMultipleAutomationAccounts" value="Runbook"/>
   </TestRunParameters>
 </RunSettings>
