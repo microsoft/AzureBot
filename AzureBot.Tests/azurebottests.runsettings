@@ -11,5 +11,7 @@
     <Parameter name="RunbookDescription" value="Runbook Description"/>
     <Parameter name="RunbookWithoutDescription" value="Runbook"/>
     <Parameter name="RunbookInMultipleAutomationAccounts" value="Runbook"/>
+    <Parameter name="RunbookNotPublished" value="Runbook"/>
+    <Parameter name="AutomationAccount" value="AutomationAccount"/>
   </TestRunParameters>
 </RunSettings>

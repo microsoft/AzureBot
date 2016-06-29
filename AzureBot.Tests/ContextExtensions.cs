@@ -38,5 +38,15 @@
         {
             return context.Properties["RunbookInMultipleAutomationAccounts"].ToString();
         }
+
+        public static string GetRunbookNotPublished(this TestContext context)
+        {
+            return context.Properties["RunbookNotPublished"].ToString();
+        }
+
+        public static string GetAutomationAcccount(this TestContext context)
+        {
+            return context.Properties["AutomationAccount"].ToString();
+        }
     }
 }

@@ -42,22 +42,6 @@
 
         [TestMethod]
         [TestCategory("Parallel")]
-        public async Task RunRunbookShouldNotifyWhenTheSpecifiedRunbookDoesNotExist()
-        {
-            var runbook = "notfoundRunbook";
-
-            var testCase = new BotTestCase()
-            {
-                Action = $"run runbook {runbook}",
-                ExpectedReply = $"The '{runbook}' runbook was not found in any of your automation accounts.",
-                ErrorMessageHandler = (message, expected) => $"Run runbook failed with message: '{message}'. The expected message is '{expected}'."
-            };
-
-            await TestRunner.RunTestCase(testCase);
-        }
-
-        [TestMethod]
-        [TestCategory("Parallel")]
         public async Task ShowJobOutputShouldNotifyWhenTheSpecifiedJobDoesNotExist()
         {
             var jobId = "job5";
@@ -159,6 +143,102 @@
                 Action = $"show runbook {runbook} description",
                 ExpectedReply = $"I found the runbook '{runbook}' in multiple automation accounts. Showing the description of all of them:",
                 ErrorMessageHandler = (message, expected) => $"Show runbook description failed with message: '{message}'. The expected message is '{expected}'."
+            };
+
+            await TestRunner.RunTestCase(testCase);
+        }
+
+        [TestMethod]
+        [TestCategory("Parallel")]
+        public async Task RunRunbookShouldNotifyWhenTheSpecifiedRunbookDoesNotExist()
+        {
+            var runbook = "notfoundRunbook";
+
+            var testCase = new BotTestCase()
+            {
+                Action = $"run runbook {runbook}",
+                ExpectedReply = $"The '{runbook}' runbook was not found in any of your automation accounts.",
+                ErrorMessageHandler = (message, expected) => $"Run runbook failed with message: '{message}'. The expected message is '{expected}'."
+            };
+
+            await TestRunner.RunTestCase(testCase);
+        }
+
+        [TestMethod]
+        [TestCategory("Parallel")]
+        public async Task RunRunbookShouldNotifyWhenTheSpecifiedRunbookIsNotPublished()
+        {
+            var runbook = this.TestContext.GetRunbookNotPublished();
+
+            var testCase = new BotTestCase()
+            {
+                Action = $"run runbook {runbook}",
+                ExpectedReply = $"The '{runbook}' runbook that you are trying to run is not Published. Please go the Azure Portal and publish the runbook.",
+                ErrorMessageHandler = (message, expected) => $"run runbook failed with message: '{message}'. The expected message is '{expected}'."
+            };
+
+            await TestRunner.RunTestCase(testCase);
+        }
+
+        [TestMethod]
+        [TestCategory("Parallel")]
+        public async Task RunRunbookShouldNotifyWhenTheSpecifiedAutomationAccountDoesNotExist()
+        {
+            var runbook = "test";
+            var automationAccount = "notfound";
+
+            var testCase = new BotTestCase()
+            {
+                Action = $"run runbook {runbook} from {automationAccount} automation account",
+                ExpectedReply = $"The '{automationAccount}' automation account was not found in the current subscription",
+                ErrorMessageHandler = (message, expected) => $"run runbook failed with message: '{message}'. The expected message is '{expected}'."
+            };
+
+            await TestRunner.RunTestCase(testCase);
+        }
+
+        [TestMethod]
+        [TestCategory("Parallel")]
+        public async Task RunRunbookShouldNotifyWhenTheSpecifiedRunbookDoesNotExistInTheSpecifiedAutomationAccount()
+        {
+            var runbook = "notfound";
+            var automationAccount = this.TestContext.GetAutomationAcccount();
+
+            var testCase = new BotTestCase()
+            {
+                Action = $"run runbook {runbook} from {automationAccount} automation account",
+                ExpectedReply = $"The '{runbook}' runbook was not found in the '{automationAccount}' automation account.",
+                ErrorMessageHandler = (message, expected) => $"run runbook failed with message: '{message}'. The expected message is '{expected}'."
+            };
+
+            await TestRunner.RunTestCase(testCase);
+        }
+
+        [TestMethod]
+        [TestCategory("Parallel")]
+        public async Task RunRunbookShouldNotifyWhenTheSpecifiedRunbookInTheSpecifiedAutomationAccountIsNotPublished()
+        {
+            var runbook = this.TestContext.GetRunbookNotPublished();
+            var automationAccount = this.TestContext.GetAutomationAcccount();
+
+            var testCase = new BotTestCase()
+            {
+                Action = $"run runbook {runbook} from {automationAccount} automation account",
+                ExpectedReply = $"The '{runbook}' runbook that you are trying to run is not published (State:",
+            ErrorMessageHandler = (message, expected) => $"run runbook failed with message: '{message}'. The expected message is '{expected}'."
+            };
+
+            await TestRunner.RunTestCase(testCase);
+        }
+
+        [TestMethod]
+        public async Task ShowStatusOfJobsShouldNotifyIfNoJobsWereCreated()
+        {
+            var testCase = new BotTestCase()
+            {
+                Action = $"show status of my jobs",
+                ExpectedReply = $"No Runbook Jobs were created in the current session. To create a new Runbook Job type: Start Runbook.",
+                ErrorMessageHandler = (message, expected) => $"Show status of my jobs failed with message: '{message}'. The expected message is '{expected}'."
             };
 
             await TestRunner.RunTestCase(testCase);
