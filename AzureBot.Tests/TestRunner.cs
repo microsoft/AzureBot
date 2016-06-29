@@ -29,6 +29,11 @@
             {
                 var reply = await General.BotHelper.SendMessage(step.Action);
                 Assert.IsTrue(reply.Contains(step.ExpectedReply), step.ErrorMessageHandler(reply, step.ExpectedReply));
+                
+                if (step.Verified != null)
+                {
+                    step.Verified(reply);
+                }
             }
 
             if (completionTestCases != null && completionTestCases.Any())
@@ -44,6 +49,11 @@
                         Assert.IsTrue(
                             replies[i].Contains(completionTestCases[completionIndex].ExpectedReply),
                             completionTestCases[completionIndex].ErrorMessageHandler(replies[i], completionTestCases[completionIndex].ExpectedReply));
+
+                        if (completionTestCases[completionIndex].Verified != null)
+                        {
+                            completionTestCases[completionIndex].Verified(replies[i]);
+                        }
                     }
                 };
 

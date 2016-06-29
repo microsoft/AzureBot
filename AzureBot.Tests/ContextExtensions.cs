@@ -44,9 +44,24 @@
             return context.Properties["RunbookNotPublished"].ToString();
         }
 
+        public static string GetRunbookThatFails(this TestContext context)
+        {
+            return context.Properties["RunbookThatFails"].ToString();
+        }
+
+        public static string GetRunbookWithParameters(this TestContext context)
+        {
+            return context.Properties["RunbookWithParameters"].ToString();
+        }
+
+        public static string GetJobOutput(this TestContext context)
+        {
+            return context.Properties["RunbookOutput"].ToString();
+        }
+
         public static string GetAutomationAcccount(this TestContext context)
         {
             return context.Properties["AutomationAccount"].ToString();
-        }
+        }        
     }
 }
