@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -468,7 +469,7 @@
         [TestMethod]
         public async Task ShouldShowJobOutput()
         {
-            Func<string, string, string> errorMessageHandler = (message, expected) => $"Run runbook failed with message: '{message}'. The expected message is '{expected}'.";
+            Func<string, string, string> errorMessageHandler = (message, expected) => $"Show job output failed with message: '{message}'. The expected message is '{expected}'.";
 
             var runbook = this.TestContext.GetRunbookWithDescription();
 
@@ -502,7 +503,8 @@
                 ErrorMessageHandler = errorMessageHandler,
                 Verified = (reply) =>
                 {
-                    jobId = reply.Substring(reply.LastIndexOf("job"), reply.Substring(reply.LastIndexOf("job")).IndexOf(" "));
+                    var jobIndex = reply.LastIndexOf("job");
+                    jobId = reply.Substring(jobIndex, reply.Substring(jobIndex).IndexOf(" "));
                 }
             };
 
@@ -516,7 +518,65 @@
             {
                 Action = $"show {jobId} output",
                 ExpectedReply = jobOutput,
-                ErrorMessageHandler = (message, expected) => $"Run runbook failed with message: '{message}'. The expected message is '{expected}'.",
+                ErrorMessageHandler = (message, expected) => $"Show job output failed with message: '{message}'. The expected message is '{expected}'.",
+            };
+
+            await TestRunner.RunTestCase(showOutputTestCase);
+        }
+
+        [TestMethod]
+        public async Task ShowJobOutputShouldWhenSpecifiedJobDoesntHaveOutput()
+        {
+            Func<string, string, string> errorMessageHandler = (message, expected) => $"Show job output failed with message: '{message}'. The expected message is '{expected}'.";
+
+            var runbook = this.TestContext.GetRunbookThatFails();
+
+            var step1 = new BotTestCase()
+            {
+                Action = $"run runbook {runbook}",
+                ExpectedReply = $"Would you like to run runbook '{runbook}' of automation acccount",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            var step2 = new BotTestCase()
+            {
+                Action = $"Yes",
+                ExpectedReply = $"Created Job",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            var steps = new List<BotTestCase>() { step1, step2 };
+
+            var completionTestCase = new BotTestCase()
+            {
+                ExpectedReply = $"did not complete with status 'Failed'. Please go to the Azure Portal for more detailed information on why.",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            await TestRunner.RunTestCases(steps, completionTestCase);
+
+            string lastJobId = null;
+
+            var statusOfJobsTestCase = new BotTestCase()
+            {
+                Action = $"show status of jobs",
+                ExpectedReply = "|Id|Runbook|Start Time|End Time|Status|",
+                ErrorMessageHandler = (message, expected) => $"Show status of my jobs failed with message: '{message}'. The expected message is '{expected}'.",
+                Verified = (reply) =>
+                {
+                    var lastJob = reply.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries).Last();
+
+                    lastJobId = lastJob.Substring(1, lastJob.Substring(1).IndexOf("|"));
+                }
+            };
+
+            await TestRunner.RunTestCase(statusOfJobsTestCase);
+
+            var showOutputTestCase = new BotTestCase()
+            {
+                Action = $"show {lastJobId} output",
+                ExpectedReply = $"No output for job '{lastJobId}'",
+                ErrorMessageHandler = (message, expected) => $"Show job output failed with message: '{message}'. The expected message is '{expected}'.",
             };
 
             await TestRunner.RunTestCase(showOutputTestCase);
