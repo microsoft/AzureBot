@@ -4,7 +4,7 @@
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     /// <summary>
-    /// Tests all VM commands
+    /// Tests all Subscription commands
     /// </summary>
     [TestClass]
     public class SubscriptionTests

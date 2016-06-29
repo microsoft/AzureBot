@@ -2,11 +2,12 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     /// <summary>
-    /// Tests all VM commands
+    /// Tests all Runbook commands
     /// </summary>
     [TestClass]
     public class RunbookTests
@@ -328,13 +329,257 @@
 
             var completionStep2 = new BotTestCase()
             {
-                ExpectedReply = $"is currently in 'Completed' status. Type **show job",
+                ExpectedReply = $"Runbook '{runbook}' is currently in 'Completed' status. Type **show job",
                 ErrorMessageHandler = errorMessageHandler
             };
 
             var completionSteps = new List<BotTestCase>() { completionStep1, completionStep2 };
 
             await TestRunner.RunTestCases(steps, completionSteps, completionSteps.Count);
+        }
+
+        [TestMethod]
+        public async Task ShouldRunSpecifiedRunbookFromSpecifiedAutomationAccount()
+        {
+            Func<string, string, string> errorMessageHandler = (message, expected) => $"Run runbook failed with message: '{message}'. The expected message is '{expected}'.";
+
+            var runbook = this.TestContext.GetRunbookWithDescription();
+            var automationAccount = this.TestContext.GetAutomationAcccount();
+
+            var step1 = new BotTestCase()
+            {
+                Action = $"run runbook {runbook} from {automationAccount} automation account",
+                ExpectedReply = $"Would you like to run runbook '{runbook}' of automation acccount '{automationAccount}'?",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            var step2 = new BotTestCase()
+            {
+                Action = $"Yes",
+                ExpectedReply = $"Created Job",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            var steps = new List<BotTestCase>() { step1, step2 };
+
+            var completionStep1 = new BotTestCase()
+            {
+                ExpectedReply = $"is currently in 'Running' status",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            var completionStep2 = new BotTestCase()
+            {
+                ExpectedReply = $"Runbook '{runbook}' is currently in 'Completed' status. Type **show job",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            var completionSteps = new List<BotTestCase>() { completionStep1, completionStep2 };
+
+            await TestRunner.RunTestCases(steps, completionSteps, completionSteps.Count);
+        }
+
+        [TestMethod]
+        public async Task RunRunbookShouldNotifyWhenSpecifiedRunbookFailsToComplete()
+        {
+            Func<string, string, string> errorMessageHandler = (message, expected) => $"Run runbook failed with message: '{message}'. The expected message is '{expected}'.";
+
+            var runbook = this.TestContext.GetRunbookThatFails();
+
+            var step1 = new BotTestCase()
+            {
+                Action = $"run runbook {runbook}",
+                ExpectedReply = $"Would you like to run runbook '{runbook}' of automation acccount",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            var step2 = new BotTestCase()
+            {
+                Action = $"Yes",
+                ExpectedReply = $"Created Job",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            var steps = new List<BotTestCase>() { step1, step2 };
+
+            var completionTestCase = new BotTestCase()
+            {
+                ExpectedReply = $"did not complete with status 'Failed'. Please go to the Azure Portal for more detailed information on why.",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            await TestRunner.RunTestCases(steps, completionTestCase);
+        }
+
+        [TestMethod]
+        public async Task ShouldRunRunbookThatNeedsParameter()
+        {
+            Func<string, string, string> errorMessageHandler = (message, expected) => $"Run runbook failed with message: '{message}'. The expected message is '{expected}'.";
+
+            var runbook = this.TestContext.GetRunbookWithParameters();
+            var automationAccount = this.TestContext.GetAutomationAcccount();
+
+            var step1 = new BotTestCase()
+            {
+                Action = $"run runbook {runbook} from {automationAccount} automation account",
+                ExpectedReply = $"Would you like to run runbook '{runbook}' of automation acccount '{automationAccount}",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            var step2 = new BotTestCase()
+            {
+                Action = $"Yes",
+                ExpectedReply = $"If you're unsure what to input, type **quit** followed by **show runbook {runbook} description** to get more details.",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            var step3 = new BotTestCase()
+            {
+                Action = $"UnitTests",
+                ExpectedReply = $"Please enter the value for",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            var step4 = new BotTestCase()
+            {
+                Action = $"none",
+                ExpectedReply = $"Created Job",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            var steps = new List<BotTestCase>() { step1, step2, step3, step4 };
+
+            var completionStep1 = new BotTestCase()
+            {
+                ExpectedReply = $"is currently in 'Running' status",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            var completionStep2 = new BotTestCase()
+            {
+                ExpectedReply = $"Runbook '{runbook}' is currently in 'Completed' status. Type **show job",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            var completionSteps = new List<BotTestCase>() { completionStep1, completionStep2 };
+
+            await TestRunner.RunTestCases(steps, completionSteps, completionSteps.Count);
+        }
+
+        [TestMethod]
+        public async Task ShouldShowJobOutput()
+        {
+            Func<string, string, string> errorMessageHandler = (message, expected) => $"Show job output failed with message: '{message}'. The expected message is '{expected}'.";
+
+            var runbook = this.TestContext.GetRunbookWithDescription();
+
+            var step1 = new BotTestCase()
+            {
+                Action = $"run runbook {runbook}",
+                ExpectedReply = $"Would you like to run runbook '{runbook}' of automation acccount",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            var step2 = new BotTestCase()
+            {
+                Action = $"Yes",
+                ExpectedReply = $"Created Job",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            var steps = new List<BotTestCase>() { step1, step2 };
+
+            var completionStep1 = new BotTestCase()
+            {
+                ExpectedReply = $"is currently in 'Running' status",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            string jobId = null;
+
+            var completionStep2 = new BotTestCase()
+            {
+                ExpectedReply = $"Runbook '{runbook}' is currently in 'Completed' status. Type **show job",
+                ErrorMessageHandler = errorMessageHandler,
+                Verified = (reply) =>
+                {
+                    var jobIndex = reply.LastIndexOf("job");
+                    jobId = reply.Substring(jobIndex, reply.Substring(jobIndex).IndexOf(" "));
+                }
+            };
+
+            var completionSteps = new List<BotTestCase>() { completionStep1, completionStep2 };
+
+            await TestRunner.RunTestCases(steps, completionSteps, completionSteps.Count);
+
+            var jobOutput = this.TestContext.GetJobOutput();
+
+            var showOutputTestCase = new BotTestCase()
+            {
+                Action = $"show {jobId} output",
+                ExpectedReply = jobOutput,
+                ErrorMessageHandler = (message, expected) => $"Show job output failed with message: '{message}'. The expected message is '{expected}'.",
+            };
+
+            await TestRunner.RunTestCase(showOutputTestCase);
+        }
+
+        [TestMethod]
+        public async Task ShowJobOutputShouldWhenSpecifiedJobDoesntHaveOutput()
+        {
+            Func<string, string, string> errorMessageHandler = (message, expected) => $"Show job output failed with message: '{message}'. The expected message is '{expected}'.";
+
+            var runbook = this.TestContext.GetRunbookThatFails();
+
+            var step1 = new BotTestCase()
+            {
+                Action = $"run runbook {runbook}",
+                ExpectedReply = $"Would you like to run runbook '{runbook}' of automation acccount",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            var step2 = new BotTestCase()
+            {
+                Action = $"Yes",
+                ExpectedReply = $"Created Job",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            var steps = new List<BotTestCase>() { step1, step2 };
+
+            var completionTestCase = new BotTestCase()
+            {
+                ExpectedReply = $"did not complete with status 'Failed'. Please go to the Azure Portal for more detailed information on why.",
+                ErrorMessageHandler = errorMessageHandler
+            };
+
+            await TestRunner.RunTestCases(steps, completionTestCase);
+
+            string lastJobId = null;
+
+            var statusOfJobsTestCase = new BotTestCase()
+            {
+                Action = $"show status of jobs",
+                ExpectedReply = "|Id|Runbook|Start Time|End Time|Status|",
+                ErrorMessageHandler = (message, expected) => $"Show status of my jobs failed with message: '{message}'. The expected message is '{expected}'.",
+                Verified = (reply) =>
+                {
+                    var lastJob = reply.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries).Last();
+
+                    lastJobId = lastJob.Substring(1, lastJob.Substring(1).IndexOf("|"));
+                }
+            };
+
+            await TestRunner.RunTestCase(statusOfJobsTestCase);
+
+            var showOutputTestCase = new BotTestCase()
+            {
+                Action = $"show {lastJobId} output",
+                ExpectedReply = $"No output for job '{lastJobId}'",
+                ErrorMessageHandler = (message, expected) => $"Show job output failed with message: '{message}'. The expected message is '{expected}'.",
+            };
+
+            await TestRunner.RunTestCase(showOutputTestCase);
         }
     }
 }
