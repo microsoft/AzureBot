@@ -27,6 +27,25 @@
         }
 
         [TestMethod]
+        [TestCategory("Parallel")]
+        public async Task ListVmsShouldNotifyWhenNoVmsAreAvailable()
+        {
+            var step1 = GetStepToSwitchSubscription(this.TestContext.GetAlternativeSubscription());
+
+            var step2 = new BotTestCase()
+            {
+                Action = "list vms",
+                ExpectedReply = "No virtual machines were found in the current subscription.",
+            };
+
+            var step3 = GetStepToSwitchSubscription(this.TestContext.GetSubscription());
+
+            var steps = new List<BotTestCase>() { step1, step2, step3 };
+
+            await TestRunner.RunTestCases(steps, new List<BotTestCase>());
+        }
+
+        [TestMethod]
         public async Task StopVmShouldNotifyWhenNoVmsAreAvailableToStop()
         {
             var testCase = new BotTestCase()
@@ -600,6 +619,15 @@
             };
 
             await TestRunner.RunTestCase(testCase);
+        }
+
+        private static BotTestCase GetStepToSwitchSubscription(string subscription)
+        {
+            return new BotTestCase()
+            {
+                Action = $"switch subscription {subscription}",
+                ExpectedReply = $"Setting {subscription} as the current subscription. What would you like to do next?",
+            };
         }
     }
 }
