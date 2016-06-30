@@ -62,6 +62,11 @@
         public static string GetAutomationAcccount(this TestContext context)
         {
             return context.Properties["AutomationAccount"].ToString();
-        }        
+        }
+
+        public static string GetAlternativeSubscription(this TestContext context)
+        {
+            return context.Properties["AlternativeSubscription"].ToString();
+        }
     }
 }

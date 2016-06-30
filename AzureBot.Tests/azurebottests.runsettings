@@ -16,5 +16,6 @@
     <Parameter name="RunbookWithParameters" value="Runbook"/>
     <Parameter name="RunbookOutput" value="Output"/>
     <Parameter name="AutomationAccount" value="AutomationAccount"/>
+    <Parameter name="AlternativeSubscription" value="Subscription"/>
   </TestRunParameters>
 </RunSettings>

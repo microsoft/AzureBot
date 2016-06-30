@@ -30,6 +30,26 @@
 
         [TestMethod]
         [TestCategory("Parallel")]
+        public async Task ListRunbooksShouldNotifyWhenNoAutomationAccountsAreAvailable()
+        {
+            var step1 = GetStepToSwitchSubscription(this.TestContext.GetAlternativeSubscription());
+
+            var step2 = new BotTestCase()
+            {
+                Action = "list my runbooks",
+                ExpectedReply = "No runbooks listed since no automations accounts were found in the current subscription.",
+                ErrorMessageHandler = (message, expected) => $"List runbooks failed with message: '{message}'. The expected message is '{expected}'."
+            };
+
+            var step3 = GetStepToSwitchSubscription(this.TestContext.GetSubscription());
+
+            var steps = new List<BotTestCase>() { step1, step2, step3 };
+
+            await TestRunner.RunTestCases(steps, new List<BotTestCase>());
+        }
+
+        [TestMethod]
+        [TestCategory("Parallel")]
         public async Task ShoudListAutomationAccounts()
         {
             var testCase = new BotTestCase()
@@ -40,6 +60,26 @@
             };
 
             await TestRunner.RunTestCase(testCase);
+        }
+
+        [TestMethod]
+        [TestCategory("Parallel")]
+        public async Task ListAutomationAccountsShouldNotifyWhenNoAutomationAccountsAreAvailable()
+        {
+            var step1 = GetStepToSwitchSubscription(this.TestContext.GetAlternativeSubscription());
+
+            var step2 = new BotTestCase()
+            {
+                Action = "list automation accounts",
+                ExpectedReply = "No automations accounts were found in the current subscription.",
+                ErrorMessageHandler = (message, expected) => $"List automation accounts failed with message: '{message}'. The expected message is '{expected}'."
+            };
+
+            var step3 = GetStepToSwitchSubscription(this.TestContext.GetSubscription());
+
+            var steps = new List<BotTestCase>() { step1, step2, step3 };
+
+            await TestRunner.RunTestCases(steps, new List<BotTestCase>());
         }
 
         [TestMethod]
@@ -152,6 +192,26 @@
 
         [TestMethod]
         [TestCategory("Parallel")]
+        public async Task RunRunbooksShouldNotifyWhenNoAutomationAccountsAreAvailable()
+        {
+            var step1 = GetStepToSwitchSubscription(this.TestContext.GetAlternativeSubscription());
+
+            var step2 = new BotTestCase()
+            {
+                Action = "run runbook",
+                ExpectedReply = "No automations accounts were found in the current subscription. Please create an Azure automation account or switch to a subscription which has an automation account in it.",
+                ErrorMessageHandler = (message, expected) => $"Run runbook failed with message: '{message}'. The expected message is '{expected}'."
+            };
+
+            var step3 = GetStepToSwitchSubscription(this.TestContext.GetSubscription());
+
+            var steps = new List<BotTestCase>() { step1, step2, step3 };
+
+            await TestRunner.RunTestCases(steps, new List<BotTestCase>());
+        }
+
+        [TestMethod]
+        [TestCategory("Parallel")]
         public async Task RunRunbookShouldNotifyWhenTheSpecifiedRunbookDoesNotExist()
         {
             var runbook = "notfoundRunbook";
@@ -231,6 +291,26 @@
             };
 
             await TestRunner.RunTestCase(testCase);
+        }
+
+        [TestMethod]
+        [TestCategory("Parallel")]
+        public async Task ShowStatusOfJobsShouldNotifyIfNoJobsWereCreated()
+        {
+            var step1 = GetStepToSwitchSubscription(this.TestContext.GetAlternativeSubscription());
+
+            var step2 = new BotTestCase()
+            {
+                Action = $"show status of my jobs",
+                ExpectedReply = $"No Runbook Jobs were created in the current session. To create a new Runbook Job type: Start Runbook.",
+                ErrorMessageHandler = (message, expected) => $"Show status of my jobs failed with message: '{message}'. The expected message is '{expected}'."
+            };
+
+            var step3 = GetStepToSwitchSubscription(this.TestContext.GetSubscription());
+
+            var steps = new List<BotTestCase>() { step1, step2, step3 };
+
+            await TestRunner.RunTestCases(steps, new List<BotTestCase>());
         }
 
         [TestMethod]
@@ -580,6 +660,16 @@
             };
 
             await TestRunner.RunTestCase(showOutputTestCase);
+        }
+
+        private static BotTestCase GetStepToSwitchSubscription(string subscription)
+        {
+            return new BotTestCase()
+            {
+                Action = $"switch subscription {subscription}",
+                ExpectedReply = $"Setting {subscription} as the current subscription. What would you like to do next?",
+                ErrorMessageHandler = (message, expected) => $"Switch subscription failed with message: '{message}'. The expected message is '{expected}'."
+            };
         }
     }
 }
