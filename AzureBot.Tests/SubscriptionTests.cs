@@ -20,7 +20,6 @@
             {
                 Action = "list subscriptions",
                 ExpectedReply = "Your subscriptions are",
-                ErrorMessageHandler = (message, expected) => $"List subscriptions failed with message: '{message}'. The expected message is '{expected}'."
             };
 
             await TestRunner.RunTestCase(testCase);
@@ -34,7 +33,6 @@
             {
                 Action = "What's my current subscription?",
                 ExpectedReply = "Your current subscription is",
-                ErrorMessageHandler = (message, expected) => $"Current subscription failed with message: '{message}'. The expected message is '{expected}'."
             };
 
             await TestRunner.RunTestCase(testCase);
@@ -50,7 +48,6 @@
             {
                 Action = $"switch subscription {subscription}",
                 ExpectedReply = $"The '{subscription}' subscription was not found.",
-                ErrorMessageHandler = (message, expected) => $"Switch subscription failed with message: '{message}'. The expected message is '{expected}'."
             };
 
             await TestRunner.RunTestCase(testCase);
@@ -66,14 +63,12 @@
             {
                 Action = "switch subscription",
                 ExpectedReply = $"Please select the subscription you want to work with: ",
-                ErrorMessageHandler = (message, expected) => $"Switch subscription failed with message: '{message}'. The expected message is '{expected}'."
             };
 
             var step2 = new BotTestCase()
             {
                 Action = subscription,
                 ExpectedReply = $"Setting {subscription} as the current subscription. What would you like to do next?",
-                ErrorMessageHandler = (message, expected) => $"Switch subscription failed with message: '{message}'. The expected message is '{expected}'."
             };
 
             var steps = new List<BotTestCase> { step1, step2 };
@@ -91,7 +86,6 @@
             {
                 Action = $"switch subscription {subscription}",
                 ExpectedReply = $"Setting {subscription} as the current subscription. What would you like to do next?",
-                ErrorMessageHandler = (message, expected) => $"Switch subscription failed with message: '{message}'. The expected message is '{expected}'."
             };
 
             await TestRunner.RunTestCase(testCase);

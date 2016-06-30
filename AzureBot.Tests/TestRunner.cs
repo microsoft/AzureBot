@@ -28,7 +28,7 @@
             foreach (var step in steps)
             {
                 var reply = await General.BotHelper.SendMessage(step.Action);
-                Assert.IsTrue(reply.Contains(step.ExpectedReply), step.ErrorMessageHandler(reply, step.ExpectedReply));
+                Assert.IsTrue(reply.Contains(step.ExpectedReply), step.ErrorMessageHandler(step.Action, step.ExpectedReply, reply));
                 
                 if (step.Verified != null)
                 {
@@ -45,14 +45,15 @@
                     for (int i = 0; i < completionChecks; i++)
                     {
                         var completionIndex = singleCompletionTestCase ? 0 : i;
+                        var completionTestCase = completionTestCases[completionIndex];
 
                         Assert.IsTrue(
-                            replies[i].Contains(completionTestCases[completionIndex].ExpectedReply),
-                            completionTestCases[completionIndex].ErrorMessageHandler(replies[i], completionTestCases[completionIndex].ExpectedReply));
+                            replies[i].Contains(completionTestCase.ExpectedReply),
+                            completionTestCase.ErrorMessageHandler(completionTestCase.Action, completionTestCase.ExpectedReply, replies[i]));
 
-                        if (completionTestCases[completionIndex].Verified != null)
+                        if (completionTestCase.Verified != null)
                         {
-                            completionTestCases[completionIndex].Verified(replies[i]);
+                            completionTestCase.Verified(replies[i]);
                         }
                     }
                 };
