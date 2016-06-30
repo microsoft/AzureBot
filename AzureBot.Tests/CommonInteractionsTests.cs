@@ -17,7 +17,6 @@
             {
                 Action = "help",
                 ExpectedReply = "Hello! You can use the Azure Bot to",
-                ErrorMessageHandler = (message, expected) => $"Help failed with message: '{message}'. The expected message is '{expected}'."
             };
 
             await TestRunner.RunTestCase(testCase);
@@ -32,7 +31,6 @@
             {
                 Action = message,
                 ExpectedReply = $"Sorry, I did not understand '{message}'. Type 'help' if you need assistance.",
-                ErrorMessageHandler = (reply, expected) => $"Failed with message: '{reply}'. The expected message is '{expected}'."
             };
 
             await TestRunner.RunTestCase(testCase);

@@ -25,53 +25,36 @@
 
             botHelper = new BotHelper(directLineToken, appId, fromUser);
 
-            Func<string, string, string> errorMessageHandler = (message, expected) => $"Setup failed with message: '{message}'. The expected message is '{expected}'.";
-
             var subscription = context.GetSubscription();
 
-            var step1 = new BotTestCase()
+            var testCase = new BotTestCase()
             {
-                Action = "select subscription",
-                ExpectedReply = "Please select the subscription",
-                ErrorMessageHandler = errorMessageHandler
+                Action = $"select subscription {subscription}",
+                ExpectedReply = $"Setting {subscription} as the current subscription. What would you like to do next?",
             };
 
-            var step2 = new BotTestCase()
-            {
-                Action = subscription,
-                ExpectedReply = $"Setting {subscription}",
-                ErrorMessageHandler = errorMessageHandler
-            };
-
-            var steps = new List<BotTestCase> { step1, step2 };
-
-            TestRunner.RunTestCases(steps, new List<BotTestCase>()).Wait();
+            TestRunner.RunTestCase(testCase).Wait();
         }
 
         // Will run after all the tests have finished
         [AssemblyCleanup]
         public static void CleanUp()
         {
-            Func<string, string, string> errorMessageHandler = (message, expected) => $"Stop all vms failed with message: '{message}'. The expected message is '{expected}'.";
-
             var step1 = new BotTestCase()
             {
                 Action = "stop all vms",
                 ExpectedReply = "You are trying to stop the following virtual machines",
-                ErrorMessageHandler = errorMessageHandler
             };
 
             var step2 = new BotTestCase()
             {
                 Action = "Yes",
                 ExpectedReply = "Stopping the following virtual machines",
-                ErrorMessageHandler = errorMessageHandler
             };
 
             var completionTestCase = new BotTestCase()
             {
                 ExpectedReply = $"virtual machine was stopped successfully.",
-                ErrorMessageHandler = errorMessageHandler
             };
 
             var steps = new List<BotTestCase> { step1, step2 };
