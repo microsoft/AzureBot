@@ -423,7 +423,7 @@
 
             var subscriptionId = context.GetSubscriptionId();
 
-            IList<RunbookJob> automationJobs = context.GetAutomationJobs();
+            IList<RunbookJob> automationJobs = context.GetAutomationJobs(subscriptionId);
             if (automationJobs != null && automationJobs.Any())
             {
                 var messageBuilder = new StringBuilder();
@@ -466,7 +466,7 @@
                 // obtain the name specified by the user -text in LUIS result is different
                 var friendlyJobId = jobEntity.GetEntityOriginalText(result.Query);
 
-                IList<RunbookJob> automationJobs = context.GetAutomationJobs();
+                IList<RunbookJob> automationJobs = context.GetAutomationJobs(subscriptionId);
                 if (automationJobs != null)
                 {
                     var selectedJob = automationJobs.SingleOrDefault(x => !string.IsNullOrWhiteSpace(x.FriendlyJobId) 
@@ -757,7 +757,7 @@
                     runbookFormState.RunbookParameters.Where(param => !string.IsNullOrWhiteSpace(param.ParameterValue))
                         .ToDictionary(param => param.ParameterName, param => param.ParameterValue));
 
-                IList<RunbookJob> automationJobs = context.GetAutomationJobs();
+                IList<RunbookJob> automationJobs = context.GetAutomationJobs(runbookFormState.SelectedAutomationAccount.SubscriptionId);
                 if (automationJobs == null)
                 {
                     runbookJob.FriendlyJobId = AutomationJobsHelper.NextFriendlyJobId(automationJobs);
@@ -769,7 +769,7 @@
                     automationJobs.Add(runbookJob);
                 }
 
-                context.StoreAutomationJobs(automationJobs);
+                context.StoreAutomationJobs(runbookFormState.SelectedAutomationAccount.SubscriptionId, automationJobs);
 
                 await context.PostAsync($"Created Job '{runbookJob.JobId}' for the '{runbookFormState.RunbookName}' runbook in '{runbookFormState.AutomationAccountName}' automation account. You'll receive a message when it is completed.");
 
