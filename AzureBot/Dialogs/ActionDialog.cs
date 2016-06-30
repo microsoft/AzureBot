@@ -103,6 +103,7 @@
             var accessToken = await context.GetAccessToken(resourceId.Value);
             if (string.IsNullOrEmpty(accessToken))
             {
+                context.Wait(this.MessageReceived);
                 return;
             }
 
