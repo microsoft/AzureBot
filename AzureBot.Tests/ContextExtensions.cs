@@ -68,5 +68,14 @@
         {
             return context.Properties["AlternativeSubscription"].ToString();
         }
+
+        public static bool DeallocateResourcesOnCleanup(this TestContext context)
+        {
+            bool deallocate = true;
+
+            bool.TryParse(context.Properties["DeallocateResourcesOnCleanup"].ToString(), out deallocate);
+
+            return deallocate;
+        }
     }
 }

@@ -8,6 +8,7 @@
     public class General
     {
         private static BotHelper botHelper;
+        private static TestContext testContext;
 
         internal static BotHelper BotHelper
         {
@@ -19,6 +20,7 @@
         [AssemblyInitialize]
         public static void SetUp(TestContext context)
         {
+            testContext = context;
             string directLineToken = context.Properties["DirectLineToken"].ToString();
             string appId = context.Properties["AppId"].ToString();
             string fromUser = context.Properties["FromUser"].ToString();
@@ -40,26 +42,30 @@
         [AssemblyCleanup]
         public static void CleanUp()
         {
-            var step1 = new BotTestCase()
+            if (testContext.DeallocateResourcesOnCleanup())
             {
-                Action = "stop all vms",
-                ExpectedReply = "You are trying to stop the following virtual machines",
-            };
+                var step1 = new BotTestCase()
+                {
+                    Action = "stop all vms",
+                    ExpectedReply = "You are trying to stop the following virtual machines",
+                };
 
-            var step2 = new BotTestCase()
-            {
-                Action = "Yes",
-                ExpectedReply = "Stopping the following virtual machines",
-            };
+                var step2 = new BotTestCase()
+                {
+                    Action = "Yes",
+                    ExpectedReply = "Stopping the following virtual machines",
+                };
 
-            var completionTestCase = new BotTestCase()
-            {
-                ExpectedReply = $"virtual machine was stopped successfully.",
-            };
+                var completionTestCase = new BotTestCase()
+                {
+                    ExpectedReply = $"virtual machine was stopped successfully.",
+                };
 
-            var steps = new List<BotTestCase> { step1, step2 };
+                var steps = new List<BotTestCase> { step1, step2 };
 
-            TestRunner.RunTestCases(steps, completionTestCase, 2).Wait();
+                TestRunner.RunTestCases(steps, completionTestCase, 2).Wait();
+
+            }
 
             if (botHelper != null)
             {

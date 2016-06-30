@@ -17,5 +17,6 @@
     <Parameter name="RunbookOutput" value="Output"/>
     <Parameter name="AutomationAccount" value="AutomationAccount"/>
     <Parameter name="AlternativeSubscription" value="Subscription"/>
+    <Parameter name="DeallocateResourcesOnCleanup" value="true"/>
   </TestRunParameters>
 </RunSettings>
