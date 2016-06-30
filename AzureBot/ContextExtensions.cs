@@ -27,18 +27,34 @@
             context.UserData.RemoveValue(ContextConstants.AutomationJobsKey);
         }
 
-        public static IList<RunbookJob> GetAutomationJobs(this IBotContext context)
+        public static IList<RunbookJob> GetAutomationJobs(this IBotContext context, string subscriptionId)
         {
-            List<RunbookJob> automationJobs;
+            IDictionary<string, IList<RunbookJob>> automationJobsBySubscription;
+            IList<RunbookJob> automationJobs;
 
-            context.UserData.TryGetValue(ContextConstants.AutomationJobsKey, out automationJobs);
+            if (context.UserData.TryGetValue(ContextConstants.AutomationJobsKey, out automationJobsBySubscription))
+            {
+                if (automationJobsBySubscription.TryGetValue(subscriptionId, out automationJobs))
+                {
+                    return automationJobs;
+                }
+            }
 
-            return automationJobs;
+            return null;
         }
 
-        public static void StoreAutomationJobs(this IBotContext context, IList<RunbookJob> automationJobs)
+        public static void StoreAutomationJobs(this IBotContext context, string subscriptionId, IList<RunbookJob> automationJobs)
         {
-            context.UserData.SetValue(ContextConstants.AutomationJobsKey, automationJobs);
+            IDictionary<string, IList<RunbookJob>> automationJobsBySubscription;
+
+            if (!context.UserData.TryGetValue(ContextConstants.AutomationJobsKey, out automationJobsBySubscription))
+            {
+                automationJobsBySubscription = new Dictionary<string, IList<RunbookJob>>();
+            }
+
+            automationJobsBySubscription[subscriptionId] = automationJobs;
+
+            context.UserData.SetValue(ContextConstants.AutomationJobsKey, automationJobsBySubscription);
         }
 
         public static RunbookFormState GetRunbookFormState(this IBotContext context)
