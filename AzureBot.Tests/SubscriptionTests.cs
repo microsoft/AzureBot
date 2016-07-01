@@ -74,6 +74,8 @@
             var steps = new List<BotTestCase> { step1, step2 };
 
             await TestRunner.RunTestCases(steps, new List<BotTestCase>());
+
+            await this.ShouldSwitchToSpecifiedSubscription();
         }
 
         [TestMethod]

@@ -46,6 +46,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task StopVmShouldNotifyWhenNoVmsAreAvailableToStop()
         {
             var testCase = new BotTestCase()
@@ -58,6 +59,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task StopAllVmsShouldNotifyWhenNoVmsAreAvailableToStop()
         {
             var testCase = new BotTestCase()
@@ -70,6 +72,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task ShouldStartAllVms()
         {
             var step1 = new BotTestCase()
@@ -95,6 +98,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task StartVmShouldNotifyWhenNoVmsAreAvailableToStart()
         {
             var testCase = new BotTestCase()
@@ -107,6 +111,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task StartAllVmsShouldNotifyWhenNoVmsAreAvailableToStart()
         {
             var testCase = new BotTestCase()
@@ -119,6 +124,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task StartVmShouldNotifyWhenTheSpecifiedVmIsAlreadyStarted()
         {
             var virtualMachine = this.TestContext.GetVirtualMachine();
@@ -148,6 +154,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task ShouldShutdownVm()
         {
             var step1 = new BotTestCase()
@@ -179,6 +186,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task ShouldShutdownSpecifiedVm()
         {
             var virtualMachine = this.TestContext.GetVirtualMachine();
@@ -206,6 +214,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task ShutdownVmShouldNotifyWhenTheSpecifiedVmIsAlreadyShutdown()
         {
             var virtualMachine = this.TestContext.GetVirtualMachine();
@@ -235,6 +244,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task ShouldStopVm()
         {
             var step1 = new BotTestCase()
@@ -266,6 +276,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task ShouldStopSpecifiedVm()
         {
             var virtualMachine = this.TestContext.GetVirtualMachine();
@@ -293,6 +304,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task StopVmShouldNotifyWhenTheSpecifiedVmIsAlreadyDeallocated()
         {
             var virtualMachine = this.TestContext.GetVirtualMachine();
@@ -322,6 +334,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task ShouldStartVm()
         {
             var step1 = new BotTestCase()
@@ -353,6 +366,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task ShouldStartSpecifiedVm()
         {
             var virtualMachine = this.TestContext.GetVirtualMachine();
@@ -380,6 +394,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task ShouldShutdownAllVmsFromSpecifiedResourceGroup()
         {
             var resourceGroup = this.TestContext.GetResourceGroup();
@@ -407,6 +422,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task ShutdownAllVmsFromSpecifiedResourceGroupShouldNotifyWhenNoVmsInTheResourceGroupAreAvailableToShutdown()
         {
             var resourceGroup = this.TestContext.GetResourceGroup();
@@ -436,6 +452,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task ShouldShutdownAllVms()
         {
             var step1 = new BotTestCase()
@@ -461,6 +478,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task ShutdownVmShouldNotifyWhenNoVmsAreAvailableToStart()
         {
             var testCase = new BotTestCase()
@@ -473,6 +491,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task ShutdownAllVmsShouldNotifyWhenNoVmsAreAvailableToStart()
         {
             var testCase = new BotTestCase()
@@ -485,6 +504,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task ShouldStopAllVmsFromSpecifiedResourceGroup()
         {
             var resourceGroup = this.TestContext.GetResourceGroup();
@@ -512,6 +532,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task StopAllVmsFromSpecifiedResourceGroupShouldNotifyWhenNoVmsInTheResourceGroupAreAvailableToStop()
         {
             var resourceGroup = this.TestContext.GetResourceGroup();
@@ -541,6 +562,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task ShouldStopAllVms()
         {
             var step1 = new BotTestCase()
@@ -566,6 +588,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task ShouldStartAllVmsFromSpecifiedResourceGroup()
         {
             var resourceGroup = this.TestContext.GetResourceGroup();
@@ -593,6 +616,7 @@
         }
 
         [TestMethod]
+        [TestCategory("VMs")]
         public async Task StartAllVmsFromSpecifiedResourceGroupShouldNotifyWhenNoVmsInTheResourceGroupAreAvailableToStart()
         {
             var resourceGroup = this.TestContext.GetResourceGroup();

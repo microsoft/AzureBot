@@ -64,7 +64,6 @@
                 var steps = new List<BotTestCase> { step1, step2 };
 
                 TestRunner.RunTestCases(steps, completionTestCase, 2).Wait();
-
             }
 
             if (botHelper != null)

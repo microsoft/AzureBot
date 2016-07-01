@@ -296,6 +296,7 @@
         }
 
         [TestMethod]
+        [TestCategory("Runbooks")]
         public async Task ShouldRunRunbook()
         {
             var step1 = new BotTestCase()
@@ -340,6 +341,7 @@
         }
 
         [TestMethod]
+        [TestCategory("Runbooks")]
         public async Task ShouldShowStatusOfJobs()
         {
             var testCase = new BotTestCase()
@@ -352,6 +354,7 @@
         }
 
         [TestMethod]
+        [TestCategory("Runbooks")]
         public async Task ShouldRunSpecifiedRunbook()
         {
             var runbook = this.TestContext.GetRunbookWithDescription();
@@ -386,6 +389,7 @@
         }
 
         [TestMethod]
+        [TestCategory("Runbooks")]
         public async Task ShouldRunSpecifiedRunbookFromSpecifiedAutomationAccount()
         {
             var runbook = this.TestContext.GetRunbookWithDescription();
@@ -421,6 +425,7 @@
         }
 
         [TestMethod]
+        [TestCategory("Runbooks")]
         public async Task RunRunbookShouldNotifyWhenSpecifiedRunbookFailsToComplete()
         {
             var runbook = this.TestContext.GetRunbookThatFails();
@@ -439,15 +444,23 @@
 
             var steps = new List<BotTestCase>() { step1, step2 };
 
-            var completionTestCase = new BotTestCase()
+            var completionStep1 = new BotTestCase()
+            {
+                ExpectedReply = $"is currently in 'Running' status",
+            };
+
+            var completionStep2 = new BotTestCase()
             {
                 ExpectedReply = $"did not complete with status 'Failed'. Please go to the Azure Portal for more detailed information on why.",
             };
 
-            await TestRunner.RunTestCases(steps, completionTestCase);
+            var completionSteps = new List<BotTestCase>() { completionStep1, completionStep2 };
+
+            await TestRunner.RunTestCases(steps, completionSteps, completionSteps.Count);
         }
 
         [TestMethod]
+        [TestCategory("Runbooks")]
         public async Task ShouldRunRunbookThatNeedsParameter()
         {
             var runbook = this.TestContext.GetRunbookWithParameters();
@@ -495,6 +508,7 @@
         }
 
         [TestMethod]
+        [TestCategory("Runbooks")]
         public async Task ShouldShowJobOutput()
         {
             var runbook = this.TestContext.GetRunbookWithDescription();
@@ -546,7 +560,8 @@
         }
 
         [TestMethod]
-        public async Task ShowJobOutputShouldWhenSpecifiedJobDoesntHaveOutput()
+        [TestCategory("Runbooks")]
+        public async Task ShowJobOutputShouldNotifyWhenSpecifiedJobDoesntHaveOutput()
         {
             var runbook = this.TestContext.GetRunbookThatFails();
 
@@ -564,12 +579,19 @@
 
             var steps = new List<BotTestCase>() { step1, step2 };
 
-            var completionTestCase = new BotTestCase()
+            var completionStep1 = new BotTestCase()
+            {
+                ExpectedReply = $"is currently in 'Running' status",
+            };
+
+            var completionStep2 = new BotTestCase()
             {
                 ExpectedReply = $"did not complete with status 'Failed'. Please go to the Azure Portal for more detailed information on why.",
             };
 
-            await TestRunner.RunTestCases(steps, completionTestCase);
+            var completionSteps = new List<BotTestCase>() { completionStep1, completionStep2 };
+
+            await TestRunner.RunTestCases(steps, completionSteps, completionSteps.Count);
 
             string lastJobId = null;
 
