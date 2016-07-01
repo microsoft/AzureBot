@@ -18,7 +18,7 @@
             await RunTestCases(steps, new List<BotTestCase> { completionTestCase }, completionChecks);
         }
 
-        internal static async Task RunTestCases(IList<BotTestCase> steps, IList<BotTestCase> completionTestCases = null, int completionChecks = 1)
+        internal static async Task RunTestCases(IList<BotTestCase> steps, IList<BotTestCase> completionTestCases = null, int completionChecks = 1, bool strictCheck = true)
         {
             if (completionTestCases != null && completionTestCases.Count > 1 && completionTestCases.Count < completionChecks)
             {
@@ -42,8 +42,15 @@
                 {
                    var singleCompletionTestCase = completionTestCases.Count == 1;
 
-                    for (int i = 0; i < completionChecks; i++)
+                    for (int i = 0; i < replies.Count(); i++)
                     {
+                        if (!strictCheck && completionChecks > replies.Count())
+                        {
+                            var skip = completionChecks - replies.Count();
+
+                            completionTestCases = completionTestCases.Skip(skip).ToList();
+                        }
+
                         var completionIndex = singleCompletionTestCase ? 0 : i;
                         var completionTestCase = completionTestCases[completionIndex];
 
