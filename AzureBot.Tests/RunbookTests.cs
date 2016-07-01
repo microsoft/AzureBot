@@ -296,6 +296,7 @@
         }
 
         [TestMethod]
+        [TestCategory("Runbooks")]
         public async Task ShouldRunRunbook()
         {
             var step1 = new BotTestCase()
@@ -340,6 +341,7 @@
         }
 
         [TestMethod]
+        [TestCategory("Runbooks")]
         public async Task ShouldShowStatusOfJobs()
         {
             var testCase = new BotTestCase()
@@ -352,6 +354,7 @@
         }
 
         [TestMethod]
+        [TestCategory("Runbooks")]
         public async Task ShouldRunSpecifiedRunbook()
         {
             var runbook = this.TestContext.GetRunbookWithDescription();
@@ -386,6 +389,7 @@
         }
 
         [TestMethod]
+        [TestCategory("Runbooks")]
         public async Task ShouldRunSpecifiedRunbookFromSpecifiedAutomationAccount()
         {
             var runbook = this.TestContext.GetRunbookWithDescription();
@@ -421,6 +425,7 @@
         }
 
         [TestMethod]
+        [TestCategory("Runbooks")]
         public async Task RunRunbookShouldNotifyWhenSpecifiedRunbookFailsToComplete()
         {
             var runbook = this.TestContext.GetRunbookThatFails();
@@ -455,6 +460,7 @@
         }
 
         [TestMethod]
+        [TestCategory("Runbooks")]
         public async Task ShouldRunRunbookThatNeedsParameter()
         {
             var runbook = this.TestContext.GetRunbookWithParameters();
@@ -502,6 +508,7 @@
         }
 
         [TestMethod]
+        [TestCategory("Runbooks")]
         public async Task ShouldShowJobOutput()
         {
             var runbook = this.TestContext.GetRunbookWithDescription();
@@ -553,6 +560,7 @@
         }
 
         [TestMethod]
+        [TestCategory("Runbooks")]
         public async Task ShowJobOutputShouldNotifyWhenSpecifiedJobDoesntHaveOutput()
         {
             var runbook = this.TestContext.GetRunbookThatFails();
