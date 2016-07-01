@@ -439,12 +439,19 @@
 
             var steps = new List<BotTestCase>() { step1, step2 };
 
-            var completionTestCase = new BotTestCase()
+            var completionStep1 = new BotTestCase()
+            {
+                ExpectedReply = $"is currently in 'Running' status",
+            };
+
+            var completionStep2 = new BotTestCase()
             {
                 ExpectedReply = $"did not complete with status 'Failed'. Please go to the Azure Portal for more detailed information on why.",
             };
 
-            await TestRunner.RunTestCases(steps, completionTestCase);
+            var completionSteps = new List<BotTestCase>() { completionStep1, completionStep2 };
+
+            await TestRunner.RunTestCases(steps, completionSteps, completionSteps.Count);
         }
 
         [TestMethod]
@@ -546,7 +553,7 @@
         }
 
         [TestMethod]
-        public async Task ShowJobOutputShouldWhenSpecifiedJobDoesntHaveOutput()
+        public async Task ShowJobOutputShouldNotifyWhenSpecifiedJobDoesntHaveOutput()
         {
             var runbook = this.TestContext.GetRunbookThatFails();
 
@@ -564,12 +571,19 @@
 
             var steps = new List<BotTestCase>() { step1, step2 };
 
-            var completionTestCase = new BotTestCase()
+            var completionStep1 = new BotTestCase()
+            {
+                ExpectedReply = $"is currently in 'Running' status",
+            };
+
+            var completionStep2 = new BotTestCase()
             {
                 ExpectedReply = $"did not complete with status 'Failed'. Please go to the Azure Portal for more detailed information on why.",
             };
 
-            await TestRunner.RunTestCases(steps, completionTestCase);
+            var completionSteps = new List<BotTestCase>() { completionStep1, completionStep2 };
+
+            await TestRunner.RunTestCases(steps, completionSteps, completionSteps.Count);
 
             string lastJobId = null;
 
