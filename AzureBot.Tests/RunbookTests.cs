@@ -456,7 +456,7 @@
 
             var completionSteps = new List<BotTestCase>() { completionStep1, completionStep2 };
 
-            await TestRunner.RunTestCases(steps, completionSteps, completionSteps.Count);
+            await TestRunner.RunTestCases(steps, completionSteps, completionSteps.Count, false);
         }
 
         [TestMethod]
@@ -591,7 +591,7 @@
 
             var completionSteps = new List<BotTestCase>() { completionStep1, completionStep2 };
 
-            await TestRunner.RunTestCases(steps, completionSteps, completionSteps.Count);
+            await TestRunner.RunTestCases(steps, completionSteps, completionSteps.Count, false);
 
             string lastJobId = null;
 
