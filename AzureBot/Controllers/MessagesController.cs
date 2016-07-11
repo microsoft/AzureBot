@@ -1,65 +1,42 @@
 ﻿namespace AzureBot
 {
-    using System.Linq;
-    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using System.Web.Http;
-    using Azure.Management.ResourceManagement;
     using Dialogs;
-    using Forms;
     using Microsoft.Bot.Builder.Dialogs;
-    using Microsoft.Bot.Builder.FormFlow;
     using Microsoft.Bot.Connector;
-
+    using System.Net.Http;
+    using System.Web.Http.Description;
+    using System.Diagnostics;
     [BotAuthentication]
     public class MessagesController : ApiController
     {
+        internal static IDialog<ActionDialog> MakeRoot()
+        {
+            return Chain.From(() => new ActionDialog(BuildForm));
+        }
+
         /// <summary>
         /// POST: api/Messages
         /// Receive a message from a user and reply to it
         /// </summary>
-        public async Task<Message> Post([FromBody]Message message)
+        [ResponseType(typeof(void))]
+        public virtual async Task<HttpResponseMessage> Post([FromBody]Activity activity)
         {
-            if (message.Type == "Message")
+            if (activity != null)
             {
-                return await Conversation.SendAsync(message, () => new ActionDialog());
+                switch (activity.GetActivityType())
+                { 
+                case ActivityTypes.Message:
+                    await Conversation.SendAsync(activity, () => new ActionDialog());
+                    break;
+                default:
+                    Trace.TraceError($"Azure Bot ignored an activity. Activity type received: {activity.GetActivityType()}");
+                    break;
+                }
             }
-            else
-            {
-                return this.HandleSystemMessage(message);
-            }
+            return new HttpResponseMessage(System.Net.HttpStatusCode.Accepted);
         }
 
-        private Message HandleSystemMessage(Message message)
-        {
-            if (message.Type == "Ping")
-            {
-                Message reply = message.CreateReplyMessage();
-                reply.Type = "Ping";
-                return reply;
-            }
-            else if (message.Type == "DeleteUserData")
-            {
-                // Implement user deletion here
-                // If we handle user deletion, return a real message
-            }
-            else if (message.Type == "BotAddedToConversation")
-            {
-            }
-            else if (message.Type == "BotRemovedFromConversation")
-            {
-            }
-            else if (message.Type == "UserAddedToConversation")
-            {
-            }
-            else if (message.Type == "UserRemovedFromConversation")
-            {
-            }
-            else if (message.Type == "EndOfConversation")
-            {
-            }
-
-            return null;
-        }
     }
 }
