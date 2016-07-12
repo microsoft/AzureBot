@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <RunSettings>
   <TestRunParameters>
-    <Parameter name="AppId" value="AppId" />
+    <Parameter name="MicrosoftAppId" value="MicrosoftAppId" />
     <Parameter name="DirectLineToken" value="DirectLineToken" />
     <Parameter name="FromUser" value="FromUser" />
     <Parameter name="Subscription" value="Subscription"/>

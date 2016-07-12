@@ -10,7 +10,7 @@
     internal class Program
     {
         private static string directLineToken = ConfigurationManager.AppSettings["DirectLineToken"];
-        private static string appId = ConfigurationManager.AppSettings["AppId"];
+        private static string microsoftAppId = ConfigurationManager.AppSettings["MicrosoftAppId"];
         private static string fromUser = ConfigurationManager.AppSettings["FromUser"];
 
         internal static void Main(string[] args)
