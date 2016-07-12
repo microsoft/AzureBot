@@ -33,7 +33,7 @@
 
             await context.PostAsync(message);
 
-            context.Wait(this.MessageReceived);
+            context.Wait(MessageReceived);
         }
 
         [LuisIntent("Help")]
