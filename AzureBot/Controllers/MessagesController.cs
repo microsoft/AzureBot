@@ -11,11 +11,6 @@
     [BotAuthentication]
     public class MessagesController : ApiController
     {
-        internal static IDialog<ActionDialog> MakeRoot()
-        {
-            return Chain.From(() => new ActionDialog(BuildForm));
-        }
-
         /// <summary>
         /// POST: api/Messages
         /// Receive a message from a user and reply to it
@@ -26,13 +21,13 @@
             if (activity != null)
             {
                 switch (activity.GetActivityType())
-                { 
-                case ActivityTypes.Message:
-                    await Conversation.SendAsync(activity, () => new ActionDialog());
-                    break;
-                default:
-                    Trace.TraceError($"Azure Bot ignored an activity. Activity type received: {activity.GetActivityType()}");
-                    break;
+                {
+                    case ActivityTypes.Message:
+                        await Conversation.SendAsync(activity, () => new ActionDialog());
+                        break;
+                    default:
+                        Trace.TraceError($"Azure Bot ignored an activity. Activity type received: {activity.GetActivityType()}");
+                        break;
                 }
             }
             return new HttpResponseMessage(System.Net.HttpStatusCode.Accepted);

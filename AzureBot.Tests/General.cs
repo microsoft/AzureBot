@@ -22,10 +22,10 @@
         {
             testContext = context;
             string directLineToken = context.Properties["DirectLineToken"].ToString();
-            string appId = context.Properties["AppId"].ToString();
+            string microsoftAppId = context.Properties["MicrosoftAppId"].ToString();
             string fromUser = context.Properties["FromUser"].ToString();
 
-            botHelper = new BotHelper(directLineToken, appId, fromUser);
+            botHelper = new BotHelper(directLineToken, microsoftAppId, fromUser);
 
             var subscription = context.GetSubscription();
 

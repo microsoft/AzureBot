@@ -10,16 +10,16 @@
     public class BotHelper : IDisposable 
     {
         private string watermark;
-        private string appId;
+        private string microsoftAppId;
         private string fromUser;
         private DirectLineClient directLineClient;
         private Conversation conversation;
 
         private bool disposed = false;
 
-        public BotHelper(string directLineToken, string appId, string fromUser)
+        public BotHelper(string directLineToken, string microsoftAppId, string fromUser)
         {
-            this.appId = appId;
+            this.microsoftAppId = microsoftAppId;
             this.fromUser = fromUser;
             this.directLineClient = new DirectLineClient(directLineToken);
             this.conversation = this.directLineClient.Conversations.NewConversation();
@@ -87,7 +87,7 @@
         {
             var messages = await this.AllMessagesSinceWatermark(specificWatermark);
             var messagesText = from x in messages
-                               where x.FromProperty == this.appId
+                               where x.FromProperty == this.microsoftAppId
                                select x.Text;
             return messagesText.ToList();
         }

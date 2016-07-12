@@ -65,7 +65,7 @@
                 using (var scope = DialogModule.BeginLifetimeScope(Conversation.Container, reply))
                 {
                     var client = scope.Resolve<IConnectorClient>();
-                    await client.Messages.SendMessageAsync(reply);
+                    await client.Conversations.ReplyToActivityAsync((Activity)reply);
                 }
             }
         }
