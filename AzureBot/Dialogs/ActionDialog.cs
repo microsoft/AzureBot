@@ -52,6 +52,70 @@
             context.Wait(this.MessageReceived);
         }
 
+
+        protected override async Task MessageReceived(IDialogContext context, IAwaitable<IMessageActivity> item)
+        {
+            var message = await item;
+
+            if (message.Text.ToLowerInvariant().Contains("help"))
+            {
+                await base.MessageReceived(context, item);
+
+                return;
+            }
+
+            //var accessToken = await context.GetAccessToken(resourceId.Value);
+
+            //if (string.IsNullOrEmpty(accessToken))
+            //{
+            if (message.Text.ToLowerInvariant().Contains("login"))
+            {
+                //await context.Forward(new AzureAuthDialog(resourceId.Value), this.ResumeAfterAuth, message, CancellationToken.None);
+            }
+            else
+            {
+                await this.Help(context, new LuisResult());
+            }
+            //}
+            //else
+            //{
+            //    if (string.IsNullOrEmpty(context.GetSubscriptionId()))
+            //    {
+            //        await this.UseSubscriptionAsync(context, new LuisResult());
+            //    }
+            //    else
+            //    {
+            //        await base.MessageReceived(context, item);
+            //    }
+            //}
+        }
+
+        private static async Task CheckLongRunningOperationStatus<T>(
+            IDialogContext context,
+            RunbookJob automationJob,
+            string accessToken,
+            Func<string, string, string, string, string, bool, Task<T>> getOperationStatusAsync,
+            Func<T, bool> completionCondition,
+            Func<T, T, RunbookJob, string> getOperationStatusMessage,
+            int delayBetweenPoolingInSeconds = 2)
+        {
+            var lastOperationStatus = default(T);
+            do
+            {
+                var subscriptionId = context.GetSubscriptionId();
+
+                var newOperationStatus = await getOperationStatusAsync(accessToken, subscriptionId, automationJob.ResourceGroupName, automationJob.AutomationAccountName, automationJob.JobId, true).ConfigureAwait(false);
+
+                var message = getOperationStatusMessage(lastOperationStatus, newOperationStatus, automationJob);
+                await context.NotifyUser(message);
+
+                await Task.Delay(TimeSpan.FromSeconds(delayBetweenPoolingInSeconds)).ConfigureAwait(false);
+                lastOperationStatus = newOperationStatus;
+            }
+            while (!completionCondition(lastOperationStatus));
+        }
+
+
         //[LuisIntent("ListSubscriptions")]
         //public async Task ListSubscriptionsAsync(IDialogContext context, LuisResult result)
         //{
@@ -338,7 +402,7 @@
         //            }
 
         //            var runbook = selectedAutomationAccount.Runbooks.SingleOrDefault(x => x.RunbookName.Equals(runbookName, StringComparison.InvariantCultureIgnoreCase));
-                    
+
         //            // ensure that the runbook exists in the specified automation account
         //            if (runbook == null)
         //            {
@@ -575,68 +639,6 @@
         //    context.Wait(this.MessageReceived);
         //}
 
-        protected override async Task MessageReceived(IDialogContext context, IAwaitable<IMessageActivity> item)
-        {
-            var message = await item;
-
-            if (message.Text.ToLowerInvariant().Contains("help"))
-            {
-                await base.MessageReceived(context, item);
-
-                return;
-            }
-
-            //var accessToken = await context.GetAccessToken(resourceId.Value);
-
-            //if (string.IsNullOrEmpty(accessToken))
-            //{
-                if (message.Text.ToLowerInvariant().Contains("login"))
-                {
-                    //await context.Forward(new AzureAuthDialog(resourceId.Value), this.ResumeAfterAuth, message, CancellationToken.None);
-                }
-                else
-                {
-                    await this.Help(context, new LuisResult());
-                }
-            //}
-            //else
-            //{
-            //    if (string.IsNullOrEmpty(context.GetSubscriptionId()))
-            //    {
-            //        await this.UseSubscriptionAsync(context, new LuisResult());
-            //    }
-            //    else
-            //    {
-            //        await base.MessageReceived(context, item);
-            //    }
-            //}
-        }
-
-        private static async Task CheckLongRunningOperationStatus<T>(
-            IDialogContext context,
-            RunbookJob automationJob,
-            string accessToken,
-            Func<string, string, string, string, string, bool, Task<T>> getOperationStatusAsync,
-            Func<T, bool> completionCondition,
-            Func<T, T, RunbookJob, string> getOperationStatusMessage,
-            int delayBetweenPoolingInSeconds = 2)
-        {
-            var lastOperationStatus = default(T);
-            do
-            {
-                var subscriptionId = context.GetSubscriptionId();
-
-                var newOperationStatus = await getOperationStatusAsync(accessToken, subscriptionId, automationJob.ResourceGroupName, automationJob.AutomationAccountName, automationJob.JobId, true).ConfigureAwait(false);
-
-                var message = getOperationStatusMessage(lastOperationStatus, newOperationStatus, automationJob);
-                await context.NotifyUser(message);
-
-                await Task.Delay(TimeSpan.FromSeconds(delayBetweenPoolingInSeconds)).ConfigureAwait(false);
-                lastOperationStatus = newOperationStatus;
-            }
-            while (!completionCondition(lastOperationStatus));
-        }
-
         //private async Task ResumeAfterAuth(IDialogContext context, IAwaitable<string> result)
         //{
         //    var message = await result;
@@ -735,91 +737,91 @@
         //    }
         //}
 
-//        private async Task RunbookFormComplete(IDialogContext context, RunbookFormState runbookFormState)
-//        {
-//            try
-//            {
-//                var accessToken = await context.GetAccessToken(resourceId.Value);
+        //        private async Task RunbookFormComplete(IDialogContext context, RunbookFormState runbookFormState)
+        //        {
+        //            try
+        //            {
+        //                var accessToken = await context.GetAccessToken(resourceId.Value);
 
-//                if (string.IsNullOrEmpty(accessToken))
-//                {
-//                    return;
-//                }
+        //                if (string.IsNullOrEmpty(accessToken))
+        //                {
+        //                    return;
+        //                }
 
-//                var runbookJob = await new AzureRepository().StartRunbookAsync(
-//                    accessToken,
-//                    runbookFormState.SelectedAutomationAccount.SubscriptionId,
-//                    runbookFormState.SelectedAutomationAccount.ResourceGroup,
-//                    runbookFormState.SelectedAutomationAccount.AutomationAccountName,
-//                    runbookFormState.RunbookName,
-//                    runbookFormState.RunbookParameters.Where(param => !string.IsNullOrWhiteSpace(param.ParameterValue))
-//                        .ToDictionary(param => param.ParameterName, param => param.ParameterValue));
+        //                var runbookJob = await new AzureRepository().StartRunbookAsync(
+        //                    accessToken,
+        //                    runbookFormState.SelectedAutomationAccount.SubscriptionId,
+        //                    runbookFormState.SelectedAutomationAccount.ResourceGroup,
+        //                    runbookFormState.SelectedAutomationAccount.AutomationAccountName,
+        //                    runbookFormState.RunbookName,
+        //                    runbookFormState.RunbookParameters.Where(param => !string.IsNullOrWhiteSpace(param.ParameterValue))
+        //                        .ToDictionary(param => param.ParameterName, param => param.ParameterValue));
 
-//                IList<RunbookJob> automationJobs = context.GetAutomationJobs(runbookFormState.SelectedAutomationAccount.SubscriptionId);
-//                if (automationJobs == null)
-//                {
-//                    runbookJob.FriendlyJobId = AutomationJobsHelper.NextFriendlyJobId(automationJobs);
-//                    automationJobs = new List<RunbookJob> { runbookJob };
-//                }
-//                else
-//                {
-//                    runbookJob.FriendlyJobId = AutomationJobsHelper.NextFriendlyJobId(automationJobs);
-//                    automationJobs.Add(runbookJob);
-//                }
+        //                IList<RunbookJob> automationJobs = context.GetAutomationJobs(runbookFormState.SelectedAutomationAccount.SubscriptionId);
+        //                if (automationJobs == null)
+        //                {
+        //                    runbookJob.FriendlyJobId = AutomationJobsHelper.NextFriendlyJobId(automationJobs);
+        //                    automationJobs = new List<RunbookJob> { runbookJob };
+        //                }
+        //                else
+        //                {
+        //                    runbookJob.FriendlyJobId = AutomationJobsHelper.NextFriendlyJobId(automationJobs);
+        //                    automationJobs.Add(runbookJob);
+        //                }
 
-//                context.StoreAutomationJobs(runbookFormState.SelectedAutomationAccount.SubscriptionId, automationJobs);
+        //                context.StoreAutomationJobs(runbookFormState.SelectedAutomationAccount.SubscriptionId, automationJobs);
 
-//                await context.PostAsync($"Created Job '{runbookJob.JobId}' for the '{runbookFormState.RunbookName}' runbook in '{runbookFormState.AutomationAccountName}' automation account. You'll receive a message when it is completed.");
+        //                await context.PostAsync($"Created Job '{runbookJob.JobId}' for the '{runbookFormState.RunbookName}' runbook in '{runbookFormState.AutomationAccountName}' automation account. You'll receive a message when it is completed.");
 
-//                var notCompletedStatusList = new List<string> { "Stopped", "Suspended", "Failed" };
-//                var completedStatusList = new List<string> { "Completed" };
-//                var notifyStatusList = new List<string> { "Running" };
-//                notifyStatusList.AddRange(completedStatusList);
-//                notifyStatusList.AddRange(notCompletedStatusList);
+        //                var notCompletedStatusList = new List<string> { "Stopped", "Suspended", "Failed" };
+        //                var completedStatusList = new List<string> { "Completed" };
+        //                var notifyStatusList = new List<string> { "Running" };
+        //                notifyStatusList.AddRange(completedStatusList);
+        //                notifyStatusList.AddRange(notCompletedStatusList);
 
-//                accessToken = await context.GetAccessToken(resourceId.Value);
+        //                accessToken = await context.GetAccessToken(resourceId.Value);
 
-//                if (string.IsNullOrEmpty(accessToken))
-//                {
-//                    return;
-//                }
+        //                if (string.IsNullOrEmpty(accessToken))
+        //                {
+        //                    return;
+        //                }
 
-//#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-//                CheckLongRunningOperationStatus(
-//                    context,
-//                    runbookJob,
-//                    accessToken,
-//                    new AzureRepository().GetAutomationJobAsync,
-//                    rj => rj.EndDateTime.HasValue,
-//                    (previous, last, job) =>
-//                    {
-//                        if (!string.Equals(previous?.Status, last?.Status) && notifyStatusList.Contains(last.Status))
-//                        {
-//                            if (notCompletedStatusList.Contains(last.Status))
-//                            {
-//                                return $"The runbook '{job.RunbookName}' (job '{job.JobId}') did not complete with status '{last.Status}'. Please go to the Azure Portal for more detailed information on why.";
-//                            }
-//                            else if (completedStatusList.Contains(last.Status))
-//                            {
-//                                return $"Runbook '{job.RunbookName}' is currently in '{last.Status}' status. Type **show {job.FriendlyJobId} output** to see the output.";
-//                            }
-//                            else
-//                            {
-//                                return $"Runbook '{job.RunbookName}' job '{job.JobId}' is currently in '{last.Status}' status.";
-//                            }
-//                        }
+        //#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+        //                CheckLongRunningOperationStatus(
+        //                    context,
+        //                    runbookJob,
+        //                    accessToken,
+        //                    new AzureRepository().GetAutomationJobAsync,
+        //                    rj => rj.EndDateTime.HasValue,
+        //                    (previous, last, job) =>
+        //                    {
+        //                        if (!string.Equals(previous?.Status, last?.Status) && notifyStatusList.Contains(last.Status))
+        //                        {
+        //                            if (notCompletedStatusList.Contains(last.Status))
+        //                            {
+        //                                return $"The runbook '{job.RunbookName}' (job '{job.JobId}') did not complete with status '{last.Status}'. Please go to the Azure Portal for more detailed information on why.";
+        //                            }
+        //                            else if (completedStatusList.Contains(last.Status))
+        //                            {
+        //                                return $"Runbook '{job.RunbookName}' is currently in '{last.Status}' status. Type **show {job.FriendlyJobId} output** to see the output.";
+        //                            }
+        //                            else
+        //                            {
+        //                                return $"Runbook '{job.RunbookName}' job '{job.JobId}' is currently in '{last.Status}' status.";
+        //                            }
+        //                        }
 
-//                        return null;
-//                    });
-//#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-//            }
-//            catch (Exception e)
-//            {
-//                await context.PostAsync($"Oops! Something went wrong :(. Technical Details: {e.InnerException.Message}");
-//            }
+        //                        return null;
+        //                    });
+        //#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+        //            }
+        //            catch (Exception e)
+        //            {
+        //                await context.PostAsync($"Oops! Something went wrong :(. Technical Details: {e.InnerException.Message}");
+        //            }
 
-//            context.Wait(this.MessageReceived);
-//        }
+        //            context.Wait(this.MessageReceived);
+        //        }
 
         //private async Task ProcessVirtualMachineActionAsync(
         //    IDialogContext context,
@@ -828,7 +830,7 @@
         //    ResumeAfter<VirtualMachineFormState> resume)
         //{
         //    EntityRecommendation virtualMachineEntity;
-            
+
         //    // retrieve the list virtual machines from the subscription
         //    var accessToken = await context.GetAccessToken(resourceId.Value);
         //    if (string.IsNullOrEmpty(accessToken))
