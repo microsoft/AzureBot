@@ -5,13 +5,13 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Rest;
     using Microsoft.Azure.Management.Automation;
     using Microsoft.Azure.Management.Compute;
-    using Microsoft.Azure.Management.ResourceManager;
+    using Microsoft.Azure.Subscriptions;
     using Models;
     using AzureModels = Microsoft.Azure.Management.Automation.Models;
-    using Microsoft.Azure;
+    using TokenCredentials = Microsoft.Azure.TokenCloudCredentials;
+
     public class AzureRepository
     {
         public async Task<IEnumerable<Subscription>> ListSubscriptionsAsync(string accessToken)
@@ -21,7 +21,7 @@
             using (SubscriptionClient client = new SubscriptionClient(credentials))
             {
                 var subscriptionsResult = await client.Subscriptions.ListAsync().ConfigureAwait(false);
-                var subscriptions = subscriptionsResult.OrderBy(x => x.DisplayName).Select(sub => new Subscription { SubscriptionId = sub.SubscriptionId, DisplayName = sub.DisplayName }).ToList();
+                var subscriptions = subscriptionsResult.Subscriptions.OrderBy(x => x.DisplayName).Select(sub => new Subscription { SubscriptionId = sub.SubscriptionId, DisplayName = sub.DisplayName }).ToList();
                 return subscriptions;
             }
         }
@@ -35,8 +35,8 @@
                 var subscriptionsResult = await client.Subscriptions.GetAsync(subscriptionId, CancellationToken.None);
                 return new Subscription
                 {
-                    SubscriptionId = subscriptionsResult.SubscriptionId,
-                    DisplayName = subscriptionsResult.DisplayName
+                    SubscriptionId = subscriptionsResult.Subscription.SubscriptionId,
+                    DisplayName = subscriptionsResult.Subscription.DisplayName
                 };
             }
         }
@@ -46,19 +46,19 @@
             var credentials = new TokenCredentials(subscriptionId, accessToken);
             using (var client = new ComputeManagementClient(credentials))
             {
-                var virtualMachinesResult = await client.VirtualMachines.ListAllAsync().ConfigureAwait(false);
-                var all = virtualMachinesResult.Select(async (vm) =>
+                var virtualMachinesResult = await client.VirtualMachines.ListAllAsync(null).ConfigureAwait(false);
+                var all = virtualMachinesResult.VirtualMachines.Select(async (vm) =>
                 {
                     var resourceGroupName = GetResourceGroup(vm.Id);
-                    var response = await client.VirtualMachines.GetAsync(resourceGroupName, vm.Name);
-                    var vmStatus = response.InstanceView.Statuses.Where(p => p.Code.ToLower().StartsWith("powerstate/")).FirstOrDefault();
+                    var response = await client.VirtualMachines.GetWithInstanceViewAsync(resourceGroupName, vm.Name);
+                    var vmStatus = response.VirtualMachine.InstanceView.Statuses.Where(p => p.Code.ToLower().StartsWith("powerstate/")).FirstOrDefault();
                     return new VirtualMachine
                     {
                         SubscriptionId = subscriptionId,
                         ResourceGroup = resourceGroupName,
                         Name = vm.Name,
                         PowerState = GetVirtualMachinePowerState(vmStatus?.Code.ToLower() ?? VirtualMachinePowerState.Unknown.ToString()),
-                        Size = response.HardwareProfile.VmSize
+                        Size = response.VirtualMachine.HardwareProfile.VirtualMachineSize
                     };
                 });
 
@@ -68,7 +68,7 @@
 
         public async Task<IEnumerable<AutomationAccount>> ListAutomationAccountsAsync(string accessToken, string subscriptionId)
         {
-            var credentials = new TokenCloudCredentials(subscriptionId, accessToken);
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
 
             using (var automationClient = new AutomationManagementClient(credentials))
             {
@@ -85,14 +85,14 @@
 
         public async Task<IEnumerable<AutomationAccount>> ListRunbooksAsync(string accessToken, string subscriptionId)
         {
-            var credentials = new TokenCloudCredentials(subscriptionId, accessToken);
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
 
             using (var automationClient = new AutomationManagementClient(credentials))
             {
                 var automationAccountsResult = await this.ListAutomationAccountsAsync(accessToken, subscriptionId).ConfigureAwait(false);
                 var automationAccounts = await Task.WhenAll(
                     automationAccountsResult.Select(
-                        async account => 
+                        async account =>
                         {
                             account.Runbooks = await this.ListAutomationRunbooks(accessToken, subscriptionId, account.ResourceGroup, account.AutomationAccountName);
 
@@ -104,7 +104,7 @@
 
         public async Task<IEnumerable<AutomationAccount>> ListRunbookJobsAsync(string accessToken, string subscriptionId)
         {
-            var credentials = new TokenCloudCredentials(subscriptionId, accessToken);
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
 
             using (var automationClient = new AutomationManagementClient(credentials))
             {
@@ -126,9 +126,9 @@
             var credentials = new TokenCredentials(subscriptionId, accessToken);
             using (var client = new ComputeManagementClient(credentials))
             {
-                await client.VirtualMachines.StartAsync(resourceGroupName, virtualMachineName).ConfigureAwait(false);
+                var status = await client.VirtualMachines.StartAsync(resourceGroupName, virtualMachineName).ConfigureAwait(false);
+                return status.Status != Microsoft.Azure.Management.Compute.Models.ComputeOperationStatus.Failed;
             }
-            return true;
         }
 
         public async Task<bool> PowerOffVirtualMachineAsync(string accessToken, string subscriptionId, string resourceGroupName, string virtualMachineName)
@@ -136,9 +136,9 @@
             var credentials = new TokenCredentials(subscriptionId, accessToken);
             using (var client = new ComputeManagementClient(credentials))
             {
-                await client.VirtualMachines.PowerOffAsync(resourceGroupName, virtualMachineName).ConfigureAwait(false);
+                var status = await client.VirtualMachines.PowerOffAsync(resourceGroupName, virtualMachineName).ConfigureAwait(false);
+                return status.Status != Microsoft.Azure.Management.Compute.Models.ComputeOperationStatus.Failed;
             }
-            return true;
         }
 
         public async Task<bool> DeallocateVirtualMachineAsync(string accessToken, string subscriptionId, string resourceGroupName, string virtualMachineName)
@@ -146,20 +146,20 @@
             var credentials = new TokenCredentials(subscriptionId, accessToken);
             using (var client = new ComputeManagementClient(credentials))
             {
-                await client.VirtualMachines.DeallocateAsync(resourceGroupName, virtualMachineName).ConfigureAwait(false);
+                var status = await client.VirtualMachines.DeallocateAsync(resourceGroupName, virtualMachineName).ConfigureAwait(false);
+                return status.Status != Microsoft.Azure.Management.Compute.Models.ComputeOperationStatus.Failed;
             }
-            return true;
         }
 
         public async Task<RunbookJob> StartRunbookAsync(
-            string accessToken, 
-            string subscriptionId, 
-            string resourceGroupName, 
-            string automationAccountName, 
-            string runbookName, 
+            string accessToken,
+            string subscriptionId,
+            string resourceGroupName,
+            string automationAccountName,
+            string runbookName,
             IDictionary<string, string> runbookParameters = null)
         {
-            var credentials = new TokenCloudCredentials(subscriptionId, accessToken);
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
 
             using (var client = new AutomationManagementClient(credentials))
             {
@@ -189,7 +189,7 @@
 
         public async Task<RunbookJob> GetAutomationJobAsync(string accessToken, string subscriptionId, string resourceGroupName, string automationAccountName, string jobId, bool configureAwait = false)
         {
-            var credentials = new TokenCloudCredentials(subscriptionId, accessToken);
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
 
             using (var automationClient = new AutomationManagementClient(credentials))
             {
@@ -213,7 +213,7 @@
 
         public async Task<string> GetAutomationJobOutputAsync(string accessToken, string subscriptionId, string resourceGroupName, string automationAccountName, string jobId)
         {
-            var credentials = new TokenCloudCredentials(subscriptionId, accessToken);
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
 
             using (var automationClient = new AutomationManagementClient(credentials))
             {
@@ -230,7 +230,7 @@
             string automationAccountName,
             string runbookName)
         {
-            var credentials = new TokenCloudCredentials(subscriptionId, accessToken);
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
 
             using (var automationClient = new AutomationManagementClient(credentials))
             {
@@ -249,7 +249,7 @@
 
         private async Task<IEnumerable<Runbook>> ListAutomationRunbooks(string accessToken, string subscriptionId, string resourceGroupName, string automationAccountName, params string[] runbooksStateFilter)
         {
-            var credentials = new TokenCloudCredentials(subscriptionId, accessToken);
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
 
             using (var automationClient = new AutomationManagementClient(credentials))
             {
@@ -270,7 +270,7 @@
 
         private async Task<IEnumerable<RunbookJob>> ListAutomationJobs(string accessToken, string subscriptionId, string resourceGroupName, string automationAccountName)
         {
-            var credentials = new TokenCloudCredentials(subscriptionId, accessToken);
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
 
             using (var automationClient = new AutomationManagementClient(credentials))
             {
@@ -295,7 +295,7 @@
             string automationAccountName,
             string runbookName)
         {
-            var credentials = new TokenCloudCredentials(subscriptionId, accessToken);
+            var credentials = new TokenCredentials(subscriptionId, accessToken);
 
             using (var automationClient = new AutomationManagementClient(credentials))
             {

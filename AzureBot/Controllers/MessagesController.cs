@@ -16,7 +16,6 @@
         /// POST: api/Messages
         /// Receive a message from a user and reply to it
         /// </summary>
-        [ResponseType(typeof(void))]
         public virtual async Task<HttpResponseMessage> Post([FromBody] Activity activity)
         {
             if (activity != null)
