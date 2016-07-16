@@ -59,14 +59,15 @@
         {
             if (!string.IsNullOrEmpty(messageText))
             {
-                var reply = context.MakeMessage();
-                reply.Text = messageText;
+                //var reply = context.MakeMessage();
+                //reply.Text = messageText;
 
-                using (var scope = DialogModule.BeginLifetimeScope(Conversation.Container, reply))
-                {
-                    var client = scope.Resolve<IConnectorClient>();
-                    await client.Conversations.ReplyToActivityAsync((Activity)reply);
-                }
+                //using (var scope = DialogModule.BeginLifetimeScope(Conversation.Container, reply))
+                //{
+                //    var client = scope.Resolve<IConnectorClient>();
+                //    await client.Conversations.ReplyToActivityAsync((Activity)reply);
+                //}
+                await context.PostAsync(messageText);
             }
         }
     }

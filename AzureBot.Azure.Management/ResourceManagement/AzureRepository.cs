@@ -6,12 +6,12 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Rest;
-    using Microsoft.Azure;
     using Microsoft.Azure.Management.Automation;
     using Microsoft.Azure.Management.Compute;
     using Microsoft.Azure.Management.ResourceManager;
     using Models;
     using AzureModels = Microsoft.Azure.Management.Automation.Models;
+    using Microsoft.Azure;
     public class AzureRepository
     {
         public async Task<IEnumerable<Subscription>> ListSubscriptionsAsync(string accessToken)
@@ -121,31 +121,34 @@
             }
         }
 
-        public async void StartVirtualMachineAsync(string accessToken, string subscriptionId, string resourceGroupName, string virtualMachineName)
+        public async Task<bool> StartVirtualMachineAsync(string accessToken, string subscriptionId, string resourceGroupName, string virtualMachineName)
         {
             var credentials = new TokenCredentials(subscriptionId, accessToken);
             using (var client = new ComputeManagementClient(credentials))
             {
                 await client.VirtualMachines.StartAsync(resourceGroupName, virtualMachineName).ConfigureAwait(false);
             }
+            return true;
         }
 
-        public async void PowerOffVirtualMachineAsync(string accessToken, string subscriptionId, string resourceGroupName, string virtualMachineName)
+        public async Task<bool> PowerOffVirtualMachineAsync(string accessToken, string subscriptionId, string resourceGroupName, string virtualMachineName)
         {
             var credentials = new TokenCredentials(subscriptionId, accessToken);
             using (var client = new ComputeManagementClient(credentials))
             {
                 await client.VirtualMachines.PowerOffAsync(resourceGroupName, virtualMachineName).ConfigureAwait(false);
             }
+            return true;
         }
 
-        public async void DeallocateVirtualMachineAsync(string accessToken, string subscriptionId, string resourceGroupName, string virtualMachineName)
+        public async Task<bool> DeallocateVirtualMachineAsync(string accessToken, string subscriptionId, string resourceGroupName, string virtualMachineName)
         {
             var credentials = new TokenCredentials(subscriptionId, accessToken);
             using (var client = new ComputeManagementClient(credentials))
             {
                 await client.VirtualMachines.DeallocateAsync(resourceGroupName, virtualMachineName).ConfigureAwait(false);
             }
+            return true;
         }
 
         public async Task<RunbookJob> StartRunbookAsync(
