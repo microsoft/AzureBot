@@ -24,7 +24,7 @@
     public class ActionDialog : LuisDialog<string>
     {
         private static Lazy<string> resourceId = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectory.ResourceId"]);
-        
+        private bool serviceUrlSet = false;
         [LuisIntent("")]
         [LuisIntent("None")]
         public async Task None(IDialogContext context, LuisResult result)
@@ -56,6 +56,11 @@
         {
             var message = await item;
 
+            if (!serviceUrlSet)
+            {
+                context.PrivateConversationData.SetValue("ServiceUrl", message.ServiceUrl);
+                serviceUrlSet = true;
+            }
             if (message.Text.ToLowerInvariant().Contains("help"))
             {
                 await base.MessageReceived(context, item);
