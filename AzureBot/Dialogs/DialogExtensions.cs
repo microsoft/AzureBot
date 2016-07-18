@@ -9,7 +9,6 @@
     using Microsoft.Bot.Builder.Dialogs.Internals;
     using Microsoft.Bot.Builder.Luis.Models;
     using Microsoft.Bot.Connector;
-
     public static class DialogExtensions
     {
         public static void NotifyLongRunningOperation<T>(this Task<T> operation, IDialogContext context, Func<T, string> handler)
@@ -59,14 +58,11 @@
         {
             if (!string.IsNullOrEmpty(messageText))
             {
+                string serviceUrl = context.PrivateConversationData.Get<string>("ServiceUrl");
+                var connector = new ConnectorClient(new Uri(serviceUrl));
                 var reply = context.MakeMessage();
                 reply.Text = messageText;
-
-                using (var scope = DialogModule.BeginLifetimeScope(Conversation.Container, reply))
-                {
-                    var client = scope.Resolve<IConnectorClient>();
-                    await client.Conversations.ReplyToActivityAsync((Activity)reply);
-                }
+                await connector.Conversations.ReplyToActivityAsync((Activity)reply);
             }
         }
     }

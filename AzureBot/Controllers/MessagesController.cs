@@ -8,6 +8,7 @@
     using System.Net.Http;
     using System.Web.Http.Description;
     using System.Diagnostics;
+
     [BotAuthentication]
     public class MessagesController : ApiController
     {
@@ -15,8 +16,7 @@
         /// POST: api/Messages
         /// Receive a message from a user and reply to it
         /// </summary>
-        [ResponseType(typeof(void))]
-        public virtual async Task<HttpResponseMessage> Post([FromBody]Activity activity)
+        public virtual async Task<HttpResponseMessage> Post([FromBody] Activity activity)
         {
             if (activity != null)
             {
