@@ -8,7 +8,7 @@
     public class General
     {
         private static BotHelper botHelper;
-        private static TestContext testContext;
+        public static TestContext testContext { get; set; }
 
         internal static BotHelper BotHelper
         {

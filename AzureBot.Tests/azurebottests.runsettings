@@ -4,9 +4,7 @@
     <!-- update these with your values-->
     <Parameter name="MicrosoftAppId" value="YOUR-MICROSOFT-APP-ID" />
     <Parameter name="DirectLineToken" value="YOUR-DIRECTLINE-TOKEN" />
-    <!-- Use the Azure.ConsoleConversation project to auth once against the bot, and use the same FromUser value here -->
     <Parameter name="FromUser" value="YOUR-FROM-USER" />
-    <!--Bot Id is the Bot Handle from your bot configuration -->
     <Parameter name="BotId" value="YOUR-BOT-ID" />
     <Parameter name="Subscription" value="Subscription"/>
     <Parameter name="VirtualMachine" value="VirtualMachine"/>
