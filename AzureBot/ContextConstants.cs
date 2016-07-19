@@ -6,10 +6,6 @@
 
         public const string RunbookFormStateKey = "runbookFormState";
 
-        public const string CurrentMessageFromKey = "messageFrom";
-
-        public const string CurrentMessageToKey = "messageTo";
-
         public const string AutomationJobsKey = "automationJobsBySubscription";
     }
 }

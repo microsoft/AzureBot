@@ -92,7 +92,7 @@
                 var automationAccountsResult = await this.ListAutomationAccountsAsync(accessToken, subscriptionId).ConfigureAwait(false);
                 var automationAccounts = await Task.WhenAll(
                     automationAccountsResult.Select(
-                        async account => 
+                        async account =>
                         {
                             account.Runbooks = await this.ListAutomationRunbooks(accessToken, subscriptionId, account.ResourceGroup, account.AutomationAccountName);
 
@@ -152,11 +152,11 @@
         }
 
         public async Task<RunbookJob> StartRunbookAsync(
-            string accessToken, 
-            string subscriptionId, 
-            string resourceGroupName, 
-            string automationAccountName, 
-            string runbookName, 
+            string accessToken,
+            string subscriptionId,
+            string resourceGroupName,
+            string automationAccountName,
+            string runbookName,
             IDictionary<string, string> runbookParameters = null)
         {
             var credentials = new TokenCredentials(subscriptionId, accessToken);

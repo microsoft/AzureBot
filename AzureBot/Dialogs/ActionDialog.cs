@@ -11,20 +11,20 @@
     using AuthBot.Dialogs;
     using Azure.Management.Models;
     using Azure.Management.ResourceManagement;
-    using Forms;
     using Helpers;
+    using Forms;
     using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Builder.FormFlow;
     using Microsoft.Bot.Builder.Luis;
     using Microsoft.Bot.Builder.Luis.Models;
     using Microsoft.Bot.Connector;
-
+    
     [LuisModel("1b58a513-e98a-4a13-a5c4-f61ac6dc6c84", "0e64d2ae951547f692182b4ae74262cb")]
     [Serializable]
     public class ActionDialog : LuisDialog<string>
     {
         private static Lazy<string> resourceId = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectory.ResourceId"]);
-
+        private bool serviceUrlSet = false;
         [LuisIntent("")]
         [LuisIntent("None")]
         public async Task None(IDialogContext context, LuisResult result)
@@ -33,7 +33,7 @@
 
             await context.PostAsync(message);
 
-            context.Wait(this.MessageReceived);
+            context.Wait(MessageReceived);
         }
 
         [LuisIntent("Help")]
@@ -52,10 +52,77 @@
             context.Wait(this.MessageReceived);
         }
 
+        protected override async Task MessageReceived(IDialogContext context, IAwaitable<IMessageActivity> item)
+        {
+            var message = await item;
+
+            if (!serviceUrlSet)
+            {
+                context.PrivateConversationData.SetValue("ServiceUrl", message.ServiceUrl);
+                serviceUrlSet = true;
+            }
+            if (message.Text.ToLowerInvariant().Contains("help"))
+            {
+                await base.MessageReceived(context, item);
+
+                return;
+            }
+
+            var accessToken = await context.GetAccessToken(resourceId.Value);
+
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                if (message.Text.ToLowerInvariant().Contains("login"))
+                {
+                    await context.Forward(new AzureAuthDialog(resourceId.Value), this.ResumeAfterAuth, message, CancellationToken.None);
+                }
+                else
+                {
+                    await this.Help(context, new LuisResult());
+                }
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(context.GetSubscriptionId()))
+                {
+                    await this.UseSubscriptionAsync(context, new LuisResult());
+                }
+                else
+                {
+                    await base.MessageReceived(context, item);
+                }
+            }
+        }
+
+        private static async Task CheckLongRunningOperationStatus<T>(
+            IDialogContext context,
+            RunbookJob automationJob,
+            string accessToken,
+            Func<string, string, string, string, string, bool, Task<T>> getOperationStatusAsync,
+            Func<T, bool> completionCondition,
+            Func<T, T, RunbookJob, string> getOperationStatusMessage,
+            int delayBetweenPoolingInSeconds = 2)
+        {
+            var lastOperationStatus = default(T);
+            do
+            {
+                var subscriptionId = context.GetSubscriptionId();
+
+                var newOperationStatus = await getOperationStatusAsync(accessToken, subscriptionId, automationJob.ResourceGroupName, automationJob.AutomationAccountName, automationJob.JobId, true).ConfigureAwait(false);
+
+                var message = getOperationStatusMessage(lastOperationStatus, newOperationStatus, automationJob);
+                await context.NotifyUser(message);
+
+                await Task.Delay(TimeSpan.FromSeconds(delayBetweenPoolingInSeconds)).ConfigureAwait(false);
+                lastOperationStatus = newOperationStatus;
+            }
+            while (!completionCondition(lastOperationStatus));
+        }
+
+
         [LuisIntent("ListSubscriptions")]
         public async Task ListSubscriptionsAsync(IDialogContext context, LuisResult result)
         {
-            int index = 0;
             var accessToken = await context.GetAccessToken(resourceId.Value);
             if (string.IsNullOrEmpty(accessToken))
             {
@@ -63,7 +130,8 @@
             }
 
             var subscriptions = await new AzureRepository().ListSubscriptionsAsync(accessToken);
-
+            
+            int index = 0;
             var subscriptionsText = subscriptions.Aggregate(
                 string.Empty,
                 (current, next) =>
@@ -338,7 +406,7 @@
                     }
 
                     var runbook = selectedAutomationAccount.Runbooks.SingleOrDefault(x => x.RunbookName.Equals(runbookName, StringComparison.InvariantCultureIgnoreCase));
-                    
+
                     // ensure that the runbook exists in the specified automation account
                     if (runbook == null)
                     {
@@ -372,7 +440,7 @@
                         return;
                     }
 
-                    var runbooks = selectedAutomationAccounts.SelectMany(x => x.Runbooks.Where(r => r.RunbookName.Equals(runbookName, StringComparison.InvariantCultureIgnoreCase) 
+                    var runbooks = selectedAutomationAccounts.SelectMany(x => x.Runbooks.Where(r => r.RunbookName.Equals(runbookName, StringComparison.InvariantCultureIgnoreCase)
                                                                             && r.RunbookState.Equals("Published", StringComparison.InvariantCultureIgnoreCase)));
 
                     if (runbooks == null || !runbooks.Any())
@@ -470,7 +538,7 @@
                 IList<RunbookJob> automationJobs = context.GetAutomationJobs(subscriptionId);
                 if (automationJobs != null)
                 {
-                    var selectedJob = automationJobs.SingleOrDefault(x => !string.IsNullOrWhiteSpace(x.FriendlyJobId) 
+                    var selectedJob = automationJobs.SingleOrDefault(x => !string.IsNullOrWhiteSpace(x.FriendlyJobId)
                             && x.FriendlyJobId.Equals(friendlyJobId, StringComparison.InvariantCultureIgnoreCase));
 
                     if (selectedJob == null)
@@ -573,71 +641,6 @@
             await context.Logout();
 
             context.Wait(this.MessageReceived);
-        }
-
-        protected override async Task MessageReceived(IDialogContext context, IAwaitable<Message> item)
-        {
-            var message = await item;
-
-            context.PerUserInConversationData.SetValue(AzureBot.ContextConstants.CurrentMessageFromKey, message.From);
-            context.PerUserInConversationData.SetValue(AzureBot.ContextConstants.CurrentMessageToKey, message.To);
-
-            if (message.Text.ToLowerInvariant().Contains("help"))
-            {
-                await base.MessageReceived(context, item);
-
-                return;
-            }
-
-            var accessToken = await context.GetAccessToken(resourceId.Value);
-
-            if (string.IsNullOrEmpty(accessToken))
-            {
-                if (message.Text.ToLowerInvariant().Contains("login"))
-                {
-                    await context.Forward(new AzureAuthDialog(resourceId.Value), this.ResumeAfterAuth, message, CancellationToken.None);
-                }
-                else
-                {
-                    await this.Help(context, new LuisResult());
-                }
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(context.GetSubscriptionId()))
-                {
-                    await this.UseSubscriptionAsync(context, new LuisResult());
-                }
-                else
-                {
-                    await base.MessageReceived(context, item);
-                }
-            }
-        }
-
-        private static async Task CheckLongRunningOperationStatus<T>(
-            IDialogContext context,
-            RunbookJob automationJob,
-            string accessToken,
-            Func<string, string, string, string, string, bool, Task<T>> getOperationStatusAsync,
-            Func<T, bool> completionCondition,
-            Func<T, T, RunbookJob, string> getOperationStatusMessage,
-            int delayBetweenPoolingInSeconds = 2)
-        {
-            var lastOperationStatus = default(T);
-            do
-            {
-                var subscriptionId = context.GetSubscriptionId();
-
-                var newOperationStatus = await getOperationStatusAsync(accessToken, subscriptionId, automationJob.ResourceGroupName, automationJob.AutomationAccountName, automationJob.JobId, true).ConfigureAwait(false);
-
-                var message = getOperationStatusMessage(lastOperationStatus, newOperationStatus, automationJob);
-                await context.NotifyUser(message);
-
-                await Task.Delay(TimeSpan.FromSeconds(delayBetweenPoolingInSeconds)).ConfigureAwait(false);
-                lastOperationStatus = newOperationStatus;
-            }
-            while (!completionCondition(lastOperationStatus));
         }
 
         private async Task ResumeAfterAuth(IDialogContext context, IAwaitable<string> result)
@@ -831,7 +834,7 @@
             ResumeAfter<VirtualMachineFormState> resume)
         {
             EntityRecommendation virtualMachineEntity;
-            
+
             // retrieve the list virtual machines from the subscription
             var accessToken = await context.GetAccessToken(resourceId.Value);
             if (string.IsNullOrEmpty(accessToken))
@@ -1018,10 +1021,10 @@
         }
 
         private async Task ProcessVirtualMachineFormComplete(
-            IDialogContext context, 
-            IAwaitable<VirtualMachineFormState> result, 
-            Func<string, string, string, string, Task<bool>> operationHandler, 
-            Func<string, string> preMessageHandler, 
+            IDialogContext context,
+            IAwaitable<VirtualMachineFormState> result,
+            Func<string, string, string, string, Task<bool>> operationHandler,
+            Func<string, string> preMessageHandler,
             Func<bool, string, string> notifyLongRunningOperationHandler)
         {
             try
@@ -1060,9 +1063,9 @@
 
             await this.ProcessAllVirtualMachinesFormComplete(
                 context,
-                result, 
+                result,
                 new AzureRepository().StartVirtualMachineAsync,
-                preMessageHandler, 
+                preMessageHandler,
                 notifyLongRunningOperationHandler);
         }
 
@@ -1078,9 +1081,9 @@
 
             await this.ProcessAllVirtualMachinesFormComplete(
                 context,
-                result, 
+                result,
                 new AzureRepository().DeallocateVirtualMachineAsync,
-                preMessageHandler, 
+                preMessageHandler,
                 notifyLongRunningOperationHandler);
         }
 
@@ -1103,10 +1106,10 @@
         }
 
         private async Task ProcessAllVirtualMachinesFormComplete(
-            IDialogContext context, 
-            IAwaitable<AllVirtualMachinesFormState> result, 
-            Func<string, string, string, string, Task<bool>> operationHandler, 
-            Func<string, string> preMessageHandler, 
+            IDialogContext context,
+            IAwaitable<AllVirtualMachinesFormState> result,
+            Func<string, string, string, string, Task<bool>> operationHandler,
+            Func<string, string> preMessageHandler,
             Func<bool, string, string> notifyLongRunningOperationHandler)
         {
             try
@@ -1122,7 +1125,7 @@
                 }
 
                 Parallel.ForEach(
-                    allVirtualMachineFormState.AvailableVMs, 
+                    allVirtualMachineFormState.AvailableVMs,
                     vm =>
                     {
                         operationHandler(accessToken, vm.SubscriptionId, vm.ResourceGroup, vm.Name)
