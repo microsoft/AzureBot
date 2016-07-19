@@ -12,15 +12,17 @@
         private string watermark;
         private string microsoftAppId;
         private string fromUser;
+        private string botId;
         private DirectLineClient directLineClient;
         private Conversation conversation;
 
         private bool disposed = false;
 
-        public BotHelper(string directLineToken, string microsoftAppId, string fromUser)
+        public BotHelper(string directLineToken, string microsoftAppId, string fromUser, string BotId)
         {
             this.microsoftAppId = microsoftAppId;
             this.fromUser = fromUser;
+            this.botId = BotId;
             this.directLineClient = new DirectLineClient(directLineToken);
             this.conversation = this.directLineClient.Conversations.NewConversation();
         }
@@ -87,7 +89,7 @@
         {
             var messages = await this.AllMessagesSinceWatermark(specificWatermark);
             var messagesText = from x in messages
-                               where x.FromProperty == this.microsoftAppId
+                               where x.FromProperty == this.botId
                                select x.Text;
             return messagesText.ToList();
         }

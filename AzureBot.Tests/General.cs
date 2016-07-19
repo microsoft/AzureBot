@@ -24,8 +24,9 @@
             string directLineToken = context.Properties["DirectLineToken"].ToString();
             string microsoftAppId = context.Properties["MicrosoftAppId"].ToString();
             string fromUser = context.Properties["FromUser"].ToString();
+            string botId = context.Properties["BotId"].ToString();
 
-            botHelper = new BotHelper(directLineToken, microsoftAppId, fromUser);
+            botHelper = new BotHelper(directLineToken, microsoftAppId, fromUser, botId);
 
             var subscription = context.GetSubscription();
 

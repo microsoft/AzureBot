@@ -6,12 +6,13 @@
     using System.Threading.Tasks;
     using Microsoft.Bot.Connector.DirectLine;
     using Microsoft.Bot.Connector.DirectLine.Models;
-
+    using System.Linq;
     internal class Program
     {
         private static string directLineToken = ConfigurationManager.AppSettings["DirectLineToken"];
         private static string microsoftAppId = ConfigurationManager.AppSettings["MicrosoftAppId"];
         private static string fromUser = ConfigurationManager.AppSettings["FromUser"];
+        private static string BotId = ConfigurationManager.AppSettings["BotId"];
 
         internal static void Main(string[] args)
         {
@@ -25,7 +26,9 @@
             string watermark = null;
 
             var conversation = await client.Conversations.NewConversationAsync();
-
+            
+            //After authenticating using this app, then the tests in the Tests project should work 
+            //as long as the FromUser setting is the same between them
             while (true)
             {
                 Console.Write("Command > ");
@@ -52,20 +55,21 @@
                         watermark = messages?.Watermark;
 
                         Debug.WriteLine($"Received {messages.Messages.Count}");
+             
+                        var messagesText = from x in messages.Messages
+                                           where x.FromProperty == BotId
+                                           select x;
 
-                        foreach (Message message in messages.Messages)
+                        foreach (Message message in messagesText)
                         {
                             Debug.WriteLine(message.FromProperty);
                             Debug.WriteLine(message.Text);
                             Debug.WriteLine("------------------------------");
-                            if ("azurebot" == message.FromProperty)
-                            {
-                                Console.WriteLine(message.Text);
-                            }
+                            Console.WriteLine(message.Text);
                         }
                     }
                 }
             }
         }
-    }
+   }
 }
