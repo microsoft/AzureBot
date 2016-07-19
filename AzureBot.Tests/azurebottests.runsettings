@@ -2,12 +2,12 @@
 <RunSettings>
   <TestRunParameters>
     <!-- update these with your values-->
-    <Parameter key="MicrosoftAppId" value="YOUR-MICROSOFT-APP-ID" />
-    <Parameter key="DirectLineToken" value="YOUR-DIRECTLINE-TOKEN" />
+    <Parameter name="MicrosoftAppId" value="YOUR-MICROSOFT-APP-ID" />
+    <Parameter name="DirectLineToken" value="YOUR-DIRECTLINE-TOKEN" />
     <!-- Use the Azure.ConsoleConversation project to auth once against the bot, and use the same FromUser value here -->
-    <Parameter key="FromUser" value="YOUR-FROM-USER" />
+    <Parameter name="FromUser" value="YOUR-FROM-USER" />
     <!--Bot Id is the Bot Handle from your bot configuration -->
-    <Parameter key="BotId" value="YOUR-BOT-ID" />
+    <Parameter name="BotId" value="YOUR-BOT-ID" />
     <Parameter name="Subscription" value="Subscription"/>
     <Parameter name="VirtualMachine" value="VirtualMachine"/>
     <Parameter name="ResourceGroup" value="ResourceGroup"/>
