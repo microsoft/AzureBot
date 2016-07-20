@@ -8,7 +8,7 @@
     public class General
     {
         private static BotHelper botHelper;
-        private static TestContext testContext;
+        public static TestContext testContext { get; set; }
 
         internal static BotHelper BotHelper
         {
@@ -22,10 +22,11 @@
         {
             testContext = context;
             string directLineToken = context.Properties["DirectLineToken"].ToString();
-            string appId = context.Properties["AppId"].ToString();
+            string microsoftAppId = context.Properties["MicrosoftAppId"].ToString();
             string fromUser = context.Properties["FromUser"].ToString();
+            string botId = context.Properties["BotId"].ToString();
 
-            botHelper = new BotHelper(directLineToken, appId, fromUser);
+            botHelper = new BotHelper(directLineToken, microsoftAppId, fromUser, botId);
 
             var subscription = context.GetSubscription();
 

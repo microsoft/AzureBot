@@ -61,19 +61,19 @@
         {
             RunbookFormState runbookFormState;
 
-            context.PerUserInConversationData.TryGetValue(ContextConstants.RunbookFormStateKey, out runbookFormState);
+            context.PrivateConversationData.TryGetValue(ContextConstants.RunbookFormStateKey, out runbookFormState);
 
             return runbookFormState;
         }
 
         public static void StoreRunbookFormState(this IBotContext context, RunbookFormState runbookFormState)
         {
-            context.PerUserInConversationData.SetValue(ContextConstants.RunbookFormStateKey, runbookFormState);
+            context.PrivateConversationData.SetValue(ContextConstants.RunbookFormStateKey, runbookFormState);
         }
 
         public static void CleanupRunbookFormState(this IBotContext context)
         {
-            context.PerUserInConversationData.RemoveValue(ContextConstants.RunbookFormStateKey);
+            context.PrivateConversationData.RemoveValue(ContextConstants.RunbookFormStateKey);
         }
     }
 }
