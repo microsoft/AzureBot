@@ -2125,6 +2125,11 @@
       "entities": [ ]
     },
     {
+      "text": "hello",
+      "intent": "Help",
+      "entities": [ ]
+    },
+    {
       "text": "shutdown all virtual machines",
       "intent": "ShutdownAllVms",
       "entities": [ ]

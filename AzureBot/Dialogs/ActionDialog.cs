@@ -35,18 +35,29 @@
 
             context.Wait(MessageReceived);
         }
-
+        [LuisIntent("Hello")]
         [LuisIntent("Help")]
         public async Task Help(IDialogContext context, LuisResult result)
         {
-            string message = "Hello! You can use the Azure Bot to: \n";
+            string message = "";
+            var accessToken = await context.GetAccessToken(resourceId.Value);
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                message += $"Welcome to the Azure Bot!\n\n";
+            }
+            message += "I can help you: \n";
             message += $"* List, Switch and Select an Azure subscription\n";
             message += $"* List, Start, Shutdown (power off your VM, still incurring compute charges), and Stop (deallocates your VM, no charges) your virtual machines\n";
             message += $"* List your automation accounts and your runbooks\n";
-            message += $"* Start a runbook, get the description of a runbook, get the status and ouput of automation jobs\n";
+            message += $"* Start a runbook, get the description of a runbook, get the status and output of automation jobs\n";
             message += $"* Logout to sign out from Azure\n\n";
-            message += $"Please type **login** to interact with me for the first time.";
+
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                message += $"Please type **login** to interact with me for the first time.";
+            }
             
+
             await context.PostAsync(message);
 
             context.Wait(this.MessageReceived);
@@ -64,6 +75,13 @@
             if (message.Text.ToLowerInvariant().Contains("help"))
             {
                 await base.MessageReceived(context, item);
+
+                return;
+            }
+
+            if (message.Text.ToLowerInvariant().Contains("hello"))
+            {
+                await this.Help(context, new LuisResult());
 
                 return;
             }
