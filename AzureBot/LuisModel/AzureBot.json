@@ -543,6 +543,11 @@
       "entities": [ ]
     },
     {
+      "text": "hello",
+      "intent": "None",
+      "entities": [ ]
+    },
+    {
       "text": "shutdown vm 1234",
       "intent": "ShutdownVm",
       "entities": [
