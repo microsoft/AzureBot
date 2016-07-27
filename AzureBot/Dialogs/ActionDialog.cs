@@ -42,7 +42,7 @@
             var accessToken = await context.GetAccessToken(resourceId.Value);
             if (string.IsNullOrEmpty(accessToken))
             {
-                message += $"Hello! Welcome to the Azure Bot!\n\n";
+                message += $"Hello!\n\n";
             }
             message += "I can help you: \n";
             message += $"* List, Switch and Select an Azure subscription\n";
