@@ -18,7 +18,7 @@
     using Microsoft.Bot.Builder.Luis;
     using Microsoft.Bot.Builder.Luis.Models;
     using Microsoft.Bot.Connector;
-    
+ 
     [LuisModel("1b58a513-e98a-4a13-a5c4-f61ac6dc6c84", "0e64d2ae951547f692182b4ae74262cb")]
     [Serializable]
     public class ActionDialog : LuisDialog<string>
@@ -89,7 +89,12 @@
                 }
                 else
                 {
-                    await base.MessageReceived(context, item);
+                    if (message.Text.ToLowerInvariant().Contains("create"))
+                    {
+                        await this.CreateResourceAsync(context);//, new LuisResult());
+                    }
+                    else
+                        await base.MessageReceived(context, item);
                 }
             }
         }
@@ -119,6 +124,32 @@
             while (!completionCondition(lastOperationStatus));
         }
 
+        //[LuisIntent("Create")]
+        public async Task CreateResourceAsync(IDialogContext context)//, LuisResult result)
+        {
+            var accessToken = await context.GetAccessToken(resourceId.Value);
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                return;
+            }
+
+            var subscriptionId = context.GetSubscriptionId();
+
+            //TODO - Take USer input for below parameters
+            var groupName = "hackathonDemo";
+            var storageName = "hacky2016";
+            var deploymentName = "MyVmDeployment";
+            var templateContainer = "templates";
+            var templateJson = "azuredeploy.json";
+            var parametersJSon = "azuredeploy.parameters.json";
+   
+            await new AzureRepository().CreateTemplateDeploymentAsync(accessToken, groupName, storageName, deploymentName, subscriptionId, templateContainer, templateJson, parametersJSon);
+
+            await context.PostAsync($"Your VM deployment is initiated. Will let you know once deployment is completed. What's next?");
+
+            context.Wait(this.MessageReceived);
+
+        }
 
         [LuisIntent("ListSubscriptions")]
         public async Task ListSubscriptionsAsync(IDialogContext context, LuisResult result)
@@ -169,6 +200,7 @@
             EntityRecommendation subscriptionEntity;
 
             var accessToken = await context.GetAccessToken(resourceId.Value);
+            
             if (string.IsNullOrEmpty(accessToken))
             {
                 context.Wait(this.MessageReceived);
