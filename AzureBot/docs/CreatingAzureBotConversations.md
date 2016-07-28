@@ -24,7 +24,8 @@ public async Task ListVmsAsync(IDialogContext context, LuisResult result)
 ![conversation overview](http://placehold.it/350x150 "Overview")
 
 ## AzureBot Intent Structure
-* Separated into CRUD type operations
+
+AzureBot Intents are separated into CRUD type operations
 
 Intent      | AzureBot Actions 
 --- | ---
@@ -33,5 +34,20 @@ Read | <ul><li>List Resources</li><li>Find/Search</li><li>Show</li><li>Help</li>
 Update | <ul><li>Start</li><li>Stop</li><li>Shutdown</li><li>Set</li><li>Manage</li><li>Monitor</li></ul>
 Delete | <ul><li>Delete</li></ul>
 Authenticate | <ul><li>Login</li><li>Logout</li></ul>
-### References
+
+## AzureBot Entities
+AzureBot entities map to the [Microsoft Azure Resource Manager](https://azure.microsoft.com/en-us/documentation/articles/resource-group-overview/) (ARM) Resources we manipulate
+
+* Virtual Machines
+* Subscriptions
+* Azure Automation Runbooks
+### Examples
+Message: "start vm mytestvm"
+Intent: _Update_
+Entity: _VirtualMachine_
+Attribute/Context: _mytestvm_
+
+
+## References
 * [LUIS Understanding Natural Language](https://docs.botframework.com/en-us/node/builder/guides/understanding-natural-language/)
+* [Azure Resource Manager Overview](https://azure.microsoft.com/en-us/documentation/articles/resource-group-overview/)
