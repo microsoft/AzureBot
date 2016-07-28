@@ -21,7 +21,7 @@ public async Task ListVmsAsync(IDialogContext context, LuisResult result)
 
 </blockquote>
 <!--TODO: Add image-->
-![conversation overview](http://placehold.it/350x150 "Overview")
+![conversation overview](http://placehold.it/650x150 "Overview")
 
 ## AzureBot Intent Structure
 
