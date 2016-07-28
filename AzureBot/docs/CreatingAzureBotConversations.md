@@ -41,6 +41,7 @@ AzureBot entities map to the [Microsoft Azure Resource Manager](https://azure.mi
 * Virtual Machines
 * Subscriptions
 * Azure Automation Runbooks
+* 
 ### Examples
 Message: "start vm mytestvm"
 Intent: _Update_
