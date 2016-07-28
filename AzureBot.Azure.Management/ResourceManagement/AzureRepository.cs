@@ -10,6 +10,8 @@
     using Microsoft.Azure.Subscriptions;
     using Models;
     using AzureModels = Microsoft.Azure.Management.Automation.Models;
+    using Microsoft.Azure.Management.Resources;
+    using Microsoft.Azure.Management.Resources.Models;
     using TokenCredentials = Microsoft.Azure.TokenCloudCredentials;
 
     public class AzureRepository
@@ -39,6 +41,56 @@
                     DisplayName = subscriptionsResult.Subscription.DisplayName
                 };
             }
+        }
+
+        public  async Task<int> CreateTemplateDeploymentAsync(
+            //  TokenCloudCredentials credential,
+              string accessToken,
+              string groupName,
+              string storageName,
+              string deploymentName,
+              string subscriptionId,
+              string containerName,
+              string templateJson,
+              string parametersJson)
+        {
+            try
+            {
+                var credentials = new TokenCredentials(subscriptionId, accessToken);
+
+                Console.WriteLine("Creating the template deployment...");
+                var deployment = new Deployment();
+                deployment.Properties = new DeploymentProperties
+                {
+                    Mode = DeploymentMode.Incremental,
+                    TemplateLink = new TemplateLink
+                    {
+                        //Uri = new Uri("https://" + storageName + ".blob.core.windows.net/templates/azuredeploy.json")
+                        Uri = new Uri("https://" + storageName + ".blob.core.windows.net/" + containerName + "/" + templateJson)
+                    },
+                    ParametersLink = new ParametersLink
+                    {
+                        //Uri = new Uri("https://" + storageName + ".blob.core.windows.net/templates/azuredeploy.parameters.json")
+                        Uri = new Uri("https://" + storageName + ".blob.core.windows.net/" + containerName + "/" + parametersJson)
+                    }
+                };
+
+
+                var resourceManagementClient = new ResourceManagementClient(credentials);
+
+                await resourceManagementClient.Deployments.CreateOrUpdateAsync(
+                  groupName,
+                  deploymentName, deployment);
+            }
+            catch
+            {
+
+            }
+            finally
+            {
+
+            }
+            return 0;      
         }
 
         public async Task<IEnumerable<VirtualMachine>> ListVirtualMachinesAsync(string accessToken, string subscriptionId)
