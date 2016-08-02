@@ -7,7 +7,7 @@ You will need to create a new AAD application via the classic portal or via Powe
 
 2. Create a new Azure AD app on the AAD tenant
 * Go to the [classic Azure portal](http://manage.windowsazure.com) and add a new application. <br>
-![AzureAD-NewApplication](.\media\AzureAD-NewApp.jpg)
+![AzureAD-NewApplication](media/AzureAD-NewApp.jpg)
 * Select Add an application my organization is developing
 * Pick any name you want and select Web Application / Web API radio button
 * For both URLs pick the base domain name you'd like to publish your Bot code to  and then add /api/messages. <br>i.e. https://mycustomsite.azurewebsites.net/api/messages
@@ -20,4 +20,4 @@ You will need to create a new AAD application via the classic portal or via Powe
 <br>https://localhost/api/OAuthCallback
 * Click on the green Add permissions to other applications button.  Select Windows Service Management API and check the checkbox.
 * Select Delegated Permissions and click the checkbox to "Access Azure Service Management..."
-<br> ![AzureAD-Permissions](.\media\AzureAD-Permissions.jpg)
+<br> ![AzureAD-Permissions](/media/AzureAD-Permissions.jpg)
