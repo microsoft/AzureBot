@@ -5,7 +5,7 @@ If you would like to authenticate against your own Azure AD for development or p
 1. [Create or Utilize an Azure Active Directory (AAD) Tenant](#tenant)<br>
 2. [Create a new Azure AD app on the AAD tenant](#app)<br>
 3. [Configure the AAD application for use with the AzureBot](#configureapp)<br>
-4. [Configure App Multi-Tenancy (optional)](#configuremulti)<br>
+4. [Configure App Multitenancy (optional)](#configuremulti)<br>
 
 <a name="tenant"></a>
 ## 1. Create or Utilize an Azure Active Directory (AAD) Tenant
@@ -39,7 +39,7 @@ Go to the configure tab of the application you just created and do the following
  <br> ![AzureAD-Permissions](media/AzureAD-Permissions.jpg)
 
 <a name="configuremulti"></a>
-## 4. Configure App Multi-Tenancy (optional)
+## 4. Configure App Multitenancy (optional)
  If you want the AzureBot deployment using this application to be able to access Azure subscriptions other than ones which are directly under management of the Azure AD tenant where the application resides, then you will need to enable the application to be multi-tenant.  In order to make this work, you have to do the following:
  
 * Own a custom domain name and corresponding SSL certificate which is assigned to where your bot code is deployed.  This should match in all of the places where you configured https URLs from the above steps.
