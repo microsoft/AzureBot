@@ -71,16 +71,16 @@ The first step is to update the values in ***[web.config](../AzureBot/web.config
   </appSettings>
 ```
 
-You need to replace the value of the following keys:
-Key | Replacement Notes
---- | -----------------
-**BotId** | the bot handle for your new bot
-**MicrosoftAppId** | the App Id of your bot
-**MicrosoftAppPassword** | The Password for your bot 
-**ActiveDirectory.Tenant** | your AD Tenant
-**ActiveDirectory.ClientId** | your AD client ID
-**ActiveDirectory.ClientSecret** | your AD client secret
-**ActiveDirectory.RedirectUrl** | for local dev set to http://localhost:3978/api/OAuthCallback
+You need to replace the value of the following keys:<br>
+| Key | Replacement Notes |
+| --- | ----------------- |
+| **BotId** | the bot handle for your new bot |
+| **MicrosoftAppId** | the App Id of your bot |
+| **MicrosoftAppPassword** | The Password for your bot | 
+| **ActiveDirectory.Tenant** | your AD Tenant |
+| **ActiveDirectory.ClientId** | your AD client ID |
+| **ActiveDirectory.ClientSecret** | your AD client secret |
+| **ActiveDirectory.RedirectUrl** | for local dev set to http://localhost:3978/api/OAuthCallback |
 
 ***Note: Careful to NOT git commit the bot and AD values, as they will then be public once you sync with GitHub. Always revert it back to the placeholder values before a commit. We will be moving these values out of web.config to help avoid this in the future***
  
