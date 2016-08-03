@@ -6,37 +6,44 @@ If you would like to contribute to the Azure Bot or run it on your own environme
 
 The solution was created using [Visual Studio 2015 Update 2](https://www.visualstudio.com/en-us/news/vs2015-update2-vs.aspx). It was built with the [Microsoft Bot framework](http://docs.botframework.com/) and the [Microsoft Bot Builder C# SDK](http://docs.botframework.com/sdkreference/csharp/). It uses the [Azure Resource Manager Nuget package](https://www.nuget.org/packages/Microsoft.Azure.Management.ResourceManager) and other Azure packages.
 
-## LUIS Model
+Here are the steps you need to follow:
+1. [LUIS Model (Optional)]()
+2. [Azure Active Directory]()
+3. [Register a Bot with the Bot Framework]()
+4. [Bot Framework Emulator]()
+5. [Putting it all Together]()
+
+## 1. LUIS Model (Optional)
 
 AzureBot uses [Language Understanding Intelligent Service (LUIS)](https://www.luis.ai), a part of [Microsoft Cognitive Services](https://www.microsoft.com/cognitive-services/), to understand the user's intent. 
 
-The AzureBot code in this repo has the the ***LuisModel*** attribute on the ***ActionDialog*** class already configured with our LUIS model, so if you are not adding to the bot code you don't need to craete your own LUIS applicaiton.
+The AzureBot code in this repo has the the ***LuisModel*** attribute on the ***[ActionDialog](../AzureBot/ActionDialog.cs)*** class already configured with our LUIS model, so if you are not adding to the bot code you don't need to craete your own LUIS applicaiton.
 
 But if you would like to develop with your own model and extend it with your additions to the bot, or want to understand how the LUIS model works, [create an account with LUIS](https://www.luis.ai). Then create a new application using New App -> Import Existing App. Then, in this new app dialog box, upload the [AzureBot.json file](../AzureBot/LuisModel/AzureBot.json).   
 
-Once you have created the new LUIS application, train and [publish it](https://www.luis.ai/Help/#PublishingModel), then update the ***LuisModel*** attribute in the ***ActionDialog*** class with the new application ID and subscription key. You can get the application ID and subscription key from the LUIS application published URL.
+Once you have created the new LUIS application, train and [publish it](https://www.luis.ai/Help/#PublishingModel), then update the ***LuisModel*** attribute in the ***[ActionDialog](../AzureBot/ActionDialog.cs)*** class with the new application ID and subscription key. You can get the application ID and subscription key from the LUIS application published URL.
 
-## Azure Active Directory
+## 2. Azure Active Directory
 
 To authenticate against your own Azure AD for development or private use of the AzureBot code, you'll need to setup your own Azure AD application. Follow our [Azure AD instructions](/CreateAzureADforAzureBot.md) to get it set up and take note of the tenant, client id and client secret values for it.
 
-## Register a Bot with the Bot Framework 
+## 3. Register a Bot with the Bot Framework 
 
 You will also need a bot entry in the Bot Framework. You can do this from the [Bot Framework developer portal](https://dev.botframework.com/bots/new).
 
 Once you have created your bot, follow the [***Step 1. Get your App ID and password from the Developer Portal***](https://docs.botframework.com/en-us/support/upgrade-to-v3/#case-1-there-is-an-app-id-already)  instruction and take not of the bot handle, bot app id and bot app password.
 
-## Bot Framework Emulator
+## 4. Bot Framework Emulator
 
 If you would like to run the bot locally from Visual Studio and test it, the Bot Framework Emulator is required.
 
 Follow the [instructions to install the Bot Framework Emulator](https://docs.botframework.com/en-us/tools/bot-framework-emulator/) on your development environment. 
 
-## Putting it all Together
+## 5. Putting it all Together
 
 Now that you have a LUIS application, an Azure Active Directory tenant, a registered bot, and have installed the Bot Framework Emulator, you can run your bot locally and use the emulator to interact with your bot, or even deploy it to your own web host like an Azure Web App to run it.
 
-The first step is to update the values in ***web.config*** of the AzureBot project in the appSettings section:
+The first step is to update the values in ***[web.config](../AzureBot/web.config)*** of the AzureBot project in the appSettings section:
 
 ```XML
   <appSettings>
