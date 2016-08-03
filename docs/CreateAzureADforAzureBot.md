@@ -3,7 +3,7 @@
 If you would like to authenticate against your own Azure AD for development or private use of the AzureBot code, you'll need to setup your own Azure AD application.  Here are the steps you need to follow:
 <br>
 1. [Create or Utilize an Azure Active Directory (AAD) Tenant](#tenant)
-2. [Create a new Azure AD app on the AAD tenant](app)
+2. [Create a new Azure AD app on the AAD tenant](#app)
 3. [Configure the AAD application for use with the AzureBot](#configureapp)
 4. [Configure App Multi-Tenancy (optional)](#configuremulti)
 

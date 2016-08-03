@@ -6,7 +6,7 @@ If you would like to contribute to the Azure Bot or run it on your own environme
 
 The solution was created using [Visual Studio 2015 Update 2](https://www.visualstudio.com/en-us/news/vs2015-update2-vs.aspx). It was built with the [Microsoft Bot framework](http://docs.botframework.com/) and the [Microsoft Bot Builder C# SDK](http://docs.botframework.com/sdkreference/csharp/). It uses the [Azure Resource Manager Nuget package](https://www.nuget.org/packages/Microsoft.Azure.Management.ResourceManager) and other Azure packages.
 
-Here are the steps you need to follow:
+Here are the steps you need to follow:<br>
 1. [LUIS Model (Optional)](#luis)<br>
 2. [Azure Active Directory](#azuread)<br>
 3. [Register a Bot with the Bot Framework](#registerbot)<br>
