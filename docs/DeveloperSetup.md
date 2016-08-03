@@ -72,6 +72,7 @@ The first step is to update the values in ***[web.config](../AzureBot/web.config
 ```
 
 You need to replace the value of the following keys:<br>
+
 | Key | Replacement Notes |
 | --- | ----------------- |
 | **BotId** | the bot handle for your new bot |
