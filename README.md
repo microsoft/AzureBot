@@ -1,5 +1,5 @@
 # AzureBot
-The AzureBot was created to improve the productivity of any developer, admin, or team working with Azure. It is not currently publicly available, but you can follow the [Developer Set Up](#developersetup) to run it yourself and contribute.
+The AzureBot was created to improve the productivity of any developer, admin, or team working with Azure. It is not currently publicly available, but you can follow our [Developer Set Up](/docs/DeveloperSetup.md) to run it yourself and contribute.
 
 This first implementation focuses on authenticating to the user's Azure subscription, selecting and switching subscriptions, starting and stopping RM-based virtual machines, and listing and starting Azure Automation runbooks. 
 
