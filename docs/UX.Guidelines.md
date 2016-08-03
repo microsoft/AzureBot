@@ -2,7 +2,6 @@
 This document should help you design or add new functions to AzureBot in a way that is consistent with other behaviors.
 
 
-
 ## Writing Guidelines
 ### Use a Conversational Tone
 * Use [Active voice, not passive voice](https://www.youtube.com/watch?v=J5icZ24Ys7M)
