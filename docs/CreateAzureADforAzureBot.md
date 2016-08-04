@@ -36,7 +36,7 @@ Go to the configure tab of the application you just created and do the following
    <br>https://localhost:3978/api/OAuthCallback 
    <br>https://_mycustomsite_.azurewebsites.com/api/OAuthCallback  
 
-> Note: If you want to multi-tenant enable your application, then you would add something like https://_mycustomdomain.com_/api/OAuthCallback instead of or in addition to the 2nd azurewebsites.com URL listed above.)
+> Note: If you want to multi-tenant enable your application, then you would add something like https://_mycustomdomain.com_/api/OAuthCallback instead of or in addition to the 2nd azurewebsites.com URL listed above.
  
  * Click on the green Add permissions to other applications button.  Select Windows Service Management API and check the checkbox.
  * Select Delegated Permissions and click the checkbox to "Access Azure Service Management..."
