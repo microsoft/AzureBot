@@ -31,7 +31,8 @@
 
                 Action<IList<string>> action = (replies) =>
                 {
-                    Assert.IsTrue(replies.Contains(step.ExpectedReply), step.ErrorMessageHandler(step.Action, step.ExpectedReply, String.Join(", ", replies)));
+                    var match = replies.FirstOrDefault(stringToCheck => stringToCheck.Contains(step.ExpectedReply));
+                    Assert.IsTrue(match != null, step.ErrorMessageHandler(step.Action, step.ExpectedReply, string.Join(", ", replies)));
                     step.Verified?.Invoke(replies.LastOrDefault());
                 };
                 await General.BotHelper.WaitForLongRunningOperations(action, 1);

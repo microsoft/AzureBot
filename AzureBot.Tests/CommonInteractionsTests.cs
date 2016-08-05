@@ -16,7 +16,7 @@
             var testCase = new BotTestCase()
             {
                 Action = "help",
-                ExpectedReply = "Hello! You can use the Azure Bot to",
+                ExpectedReply = "I can help you",
             };
 
             await TestRunner.RunTestCase(testCase);
