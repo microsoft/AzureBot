@@ -27,13 +27,14 @@
 
             foreach (var step in steps)
             {
-                var reply = await General.BotHelper.SendMessage(step.Action);
-                Assert.IsTrue(reply.Contains(step.ExpectedReply), step.ErrorMessageHandler(step.Action, step.ExpectedReply, reply));
-                
-                if (step.Verified != null)
+                await General.BotHelper.SendMessageNoReply(step.Action);
+
+                Action<IList<string>> action = (replies) =>
                 {
-                    step.Verified(reply);
-                }
+                    Assert.IsTrue(replies.Contains(step.ExpectedReply), step.ErrorMessageHandler(step.Action, step.ExpectedReply, String.Join(", ", replies)));
+                    step.Verified?.Invoke(replies.LastOrDefault());
+                };
+                await General.BotHelper.WaitForLongRunningOperations(action, 1);
             }
 
             if (completionTestCases != null && completionTestCases.Any())
