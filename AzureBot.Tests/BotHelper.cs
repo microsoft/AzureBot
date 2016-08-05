@@ -90,7 +90,7 @@
             var messages = await this.AllMessagesSinceWatermark(specificWatermark);
             var messagesText = from x in messages
                                where x.FromProperty == this.botId
-                               select x.Text;
+                               select x.Text.Trim();
             return messagesText.ToList();
         }
 
