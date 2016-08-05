@@ -25,13 +25,10 @@
 
             var conversation = await client.Conversations.NewConversationAsync();
             conversationId = conversation.ConversationId;
-            var t = new System.Threading.Thread(async () => await ReadBotMessagesAsync());
-            t.Start();
-            t.Join();
-
+            new System.Threading.Thread(async () => await ReadBotMessagesAsync()).Start();
+            
             //After authenticating using this app, then the tests in the Tests project should work 
             //as long as the FromUser setting is the same between them
-
             Console.Write("Command > ");
             while (true)
             {
