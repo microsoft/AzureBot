@@ -332,7 +332,7 @@
 
             var completionStep2 = new BotTestCase()
             {
-                ExpectedReply = $"is currently in 'Completed' status. Type **show job",
+                ExpectedReply = $"is currently in 'Completed' status. Type *show job",
             };
 
             var completionSteps = new List<BotTestCase>() { completionStep1, completionStep2 };
@@ -347,7 +347,7 @@
             var testCase = new BotTestCase()
             {
                 Action = $"show status of my jobs",
-                ExpectedReply = "|Id|Runbook|Start Time|End Time|Status|",
+                ExpectedReply = "|job",
             };
 
             await TestRunner.RunTestCase(testCase);
@@ -380,7 +380,7 @@
 
             var completionStep2 = new BotTestCase()
             {
-                ExpectedReply = $"Runbook '{runbook}' is currently in 'Completed' status. Type **show job",
+                ExpectedReply = $"Runbook '{runbook}' is currently in 'Completed' status. Type *show job",
             };
 
             var completionSteps = new List<BotTestCase>() { completionStep1, completionStep2 };
@@ -416,7 +416,7 @@
 
             var completionStep2 = new BotTestCase()
             {
-                ExpectedReply = $"Runbook '{runbook}' is currently in 'Completed' status. Type **show job",
+                ExpectedReply = $"Runbook '{runbook}' is currently in 'Completed' status. Type *show job",
             };
 
             var completionSteps = new List<BotTestCase>() { completionStep1, completionStep2 };
@@ -475,7 +475,7 @@
             var step2 = new BotTestCase()
             {
                 Action = $"Yes",
-                ExpectedReply = $"If you're unsure what to input, type **quit** followed by **show runbook {runbook} description** to get more details.",
+                ExpectedReply = $"If you're unsure what to input, type *quit* followed by *show runbook {runbook} description* to get more details.",
             };
 
             var step3 = new BotTestCase()
@@ -499,7 +499,7 @@
 
             var completionStep2 = new BotTestCase()
             {
-                ExpectedReply = $"Runbook '{runbook}' is currently in 'Completed' status. Type **show job",
+                ExpectedReply = $"Runbook '{runbook}' is currently in 'Completed' status. Type *show job",
             };
 
             var completionSteps = new List<BotTestCase>() { completionStep1, completionStep2 };
@@ -536,7 +536,7 @@
 
             var completionStep2 = new BotTestCase()
             {
-                ExpectedReply = $"Runbook '{runbook}' is currently in 'Completed' status. Type **show job",
+                ExpectedReply = $"Runbook '{runbook}' is currently in 'Completed' status. Type *show job",
                 Verified = (reply) =>
                 {
                     var jobIndex = reply.LastIndexOf("job");
@@ -598,7 +598,7 @@
             var statusOfJobsTestCase = new BotTestCase()
             {
                 Action = $"show status of jobs",
-                ExpectedReply = "|Id|Runbook|Start Time|End Time|Status|",
+                ExpectedReply = "|job",
                 Verified = (reply) =>
                 {
                     var lastJob = reply.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries).Last();
