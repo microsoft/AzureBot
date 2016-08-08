@@ -23,7 +23,6 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <TargetFrameworkProfile />
-    <ApplicationInsightsResourceId>/subscriptions/c9f809d2-f21c-4300-81f2-7db4c7c4e6de/resourcegroups/AzureBotBeta-App/providers/microsoft.insights/components/azurebotbeta</ApplicationInsightsResourceId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
