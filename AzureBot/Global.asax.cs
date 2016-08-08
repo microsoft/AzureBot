@@ -16,6 +16,9 @@
             AuthSettings.RedirectUrl = ConfigurationManager.AppSettings["ActiveDirectory.RedirectUrl"];
             AuthSettings.ClientId = ConfigurationManager.AppSettings["ActiveDirectory.ClientId"];
             AuthSettings.ClientSecret = ConfigurationManager.AppSettings["ActiveDirectory.ClientSecret"];
+
+            Microsoft.ApplicationInsights.Extensibility.TelemetryConfiguration.Active.InstrumentationKey =
+                ConfigurationManager.AppSettings["iKey"];
         }
     }
 }
