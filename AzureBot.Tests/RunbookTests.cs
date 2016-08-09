@@ -499,7 +499,7 @@
 
             var completionStep2 = new BotTestCase()
             {
-                ExpectedReply = $"Runbook '{runbook}' is currently in 'Completed' status. Type *show job",
+                ExpectedReply = $"Runbook '{runbook}' is currently in 'Completed' status. Type **show job",
             };
 
             var completionSteps = new List<BotTestCase>() { completionStep1, completionStep2 };
