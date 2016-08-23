@@ -53,6 +53,7 @@
 
             if (string.IsNullOrEmpty(accessToken))
             {
+                message += $"By using me, you agree to the Microsoft Privacy Statement and Microsoft Services Agreement on http://aka.ms/AzureBot \n\n";
                 message += $"Please type **login** to interact with me for the first time.";
             }
             
