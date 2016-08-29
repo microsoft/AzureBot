@@ -3,7 +3,7 @@ The AzureBot was created to improve the productivity of any developer, admin, or
 
 This first implementation focuses on authenticating to the user's Azure subscription, selecting and switching subscriptions, starting and stopping RM-based virtual machines, and listing and starting Azure Automation runbooks.
 
-This is the documentation and webpage branch of the code used to run the AzureBot.
+This is the documentation and [webpage](https://microsoft.github.io/AzureBot) branch of the code used to run the AzureBot.
 
 ## Developer Set Up
 
@@ -19,8 +19,8 @@ If creating new commands, our [UX Guidelines](docs/UX.Guidelines.md) are helpful
 
 If you are interested in contributing to this project feel free to submit a pull request to the [beta branch](https://github.com/Microsoft/AzureBot/tree/beta). If you find issues with or desire improvements for the existing functionality, please [file an issue](https://github.com/Microsoft/AzureBot/issues) here in GitHub.
 
-## Contact 
-Please reach out to azurebot at microsoft dot c o m.  
+## Contact
+Please reach out to azurebot at microsoft dot c o m.
 
 ## Code of Conduct
 
