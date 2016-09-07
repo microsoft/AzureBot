@@ -1,14 +1,13 @@
 ﻿namespace AzureBot
 {
-    using System.Threading.Tasks;
-    using System.Web.Http;
     using Dialogs;
     using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Connector;
-    using System.Net.Http;
-    using System.Web.Http.Description;
+    using System;
     using System.Diagnostics;
-
+    using System.Net.Http;
+    using System.Threading.Tasks;
+    using System.Web.Http;
     [BotAuthentication]
     public class MessagesController : ApiController
     {
@@ -23,7 +22,11 @@
                 switch (activity.GetActivityType())
                 {
                     case ActivityTypes.Message:
-                        await Conversation.SendAsync(activity, () => new ActionDialog());
+                        await Conversation.SendAsync(activity, () => new RootDialog());
+                        break;
+                    case ActivityTypes.ConversationUpdate:
+                        if (activity.Action.Equals("add", StringComparison.InvariantCultureIgnoreCase))
+                            await Conversation.SendAsync(activity, () => new RootDialog());
                         break;
                     default:
                         Trace.TraceError($"Azure Bot ignored an activity. Activity type received: {activity.GetActivityType()}");

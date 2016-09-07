@@ -1,8 +1,8 @@
 ﻿namespace AzureBot
 {
-    using System.Web.Http;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Serialization;
+    using System.Web.Http;
 
     public static class WebApiConfig
     {
@@ -15,7 +15,7 @@
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings()
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                Formatting = Newtonsoft.Json.Formatting.Indented,
+                Formatting = Formatting.Indented,
                 NullValueHandling = NullValueHandling.Ignore,
             };
 
