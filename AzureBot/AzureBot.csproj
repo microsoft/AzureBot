@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Dialogs\DialogFactory.cs" />
     <Compile Include="Dialogs\RootDialog.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
     <Compile Include="Global.asax.cs">
@@ -270,6 +271,10 @@
     <ProjectReference Include="..\AzureBot.Services.VMs\AzureBot.Services.VM.csproj">
       <Project>{46ef4dce-1634-476a-9d30-2f6f001f934b}</Project>
       <Name>AzureBot.Services.VM</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AzureBot.Types\AzureBot.Types.csproj">
+      <Project>{340B9591-867B-44F6-9520-C90575F51998}</Project>
+      <Name>AzureBot.Types</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
