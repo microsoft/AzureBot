@@ -218,6 +218,8 @@
                 return;
             }
 
+            var factory = new DialogFactory();
+
             //var entity = result.Entities.First();
             //if (string.IsNullOrEmpty(entity.Entity))
             //{
@@ -228,11 +230,9 @@
             var message = context.MakeMessage();
             message.Text = userToBot;
 
-            if (result.Query.ToLowerInvariant().Contains("vm"))
-                await context.Forward(new VMDialog(), this.ResumeAfterForward, message, CancellationToken.None);
-            else
-            if (result.Query.ToLowerInvariant().Contains("job") | result.Query.ToLowerInvariant().Contains("runbook"))
-                await context.Forward(new AutomationDialog(), this.ResumeAfterForward, message, CancellationToken.None);
+            var dialog = factory.Create(result.Query);
+
+            await context.Forward(dialog, this.ResumeAfterForward, message, CancellationToken.None);
             //}
         }
 

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureBot", "AzureBot\AzureBot.csproj", "{A8BA1066-5695-4D71-ABB4-65E5A5E0C3D4}"
 EndProject
@@ -16,6 +16,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureBot.Services.Common", "AzureBot.Services.Common\AzureBot.Services.Common.csproj", "{C6BA2212-1BF1-4B7F-9E3E-D7EBD7F60B9A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureBot.Services.ResourceGroup", "AzureBot.Services.ResourceGroups\AzureBot.Services.ResourceGroup.csproj", "{1E58566F-DC84-49F5-9028-DC1EA1EA8038}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureBot.Types", "AzureBot.Types\AzureBot.Types.csproj", "{340B9591-867B-44F6-9520-C90575F51998}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{1E58566F-DC84-49F5-9028-DC1EA1EA8038}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E58566F-DC84-49F5-9028-DC1EA1EA8038}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1E58566F-DC84-49F5-9028-DC1EA1EA8038}.Release|Any CPU.Build.0 = Release|Any CPU
+		{340B9591-867B-44F6-9520-C90575F51998}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{340B9591-867B-44F6-9520-C90575F51998}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{340B9591-867B-44F6-9520-C90575F51998}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{340B9591-867B-44F6-9520-C90575F51998}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
