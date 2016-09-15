@@ -189,6 +189,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Dialogs\ResourceGroupDialog.cs" />
+    <Compile Include="Dialogs\ResourceGroupResourceDialog.cs" />
     <Compile Include="ResourceGroupDomain.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -204,6 +205,10 @@
     <ProjectReference Include="..\AzureBot.Services.Common\AzureBot.Services.Common.csproj">
       <Project>{c6ba2212-1bf1-4b7f-9e3e-d7ebd7f60b9a}</Project>
       <Name>AzureBot.Services.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AzureBot.Types\AzureBot.Types.csproj">
+      <Project>{340B9591-867B-44F6-9520-C90575F51998}</Project>
+      <Name>AzureBot.Types</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -25,9 +25,27 @@
         [LuisIntent("None")]
         public async Task None(IDialogContext context, LuisResult result)
         {
-            string message = $"Sorry, I did not understand '{result.Query}'. Type 'help' if you need assistance.";
+            var factory = new DialogFactory();
+            var dialog = factory.Create(result.Query);
 
-            await context.PostAsync(message);
+            if (dialog != null)
+            {
+                var message = context.MakeMessage();
+                message.Text = userToBot;
+
+                var accessToken = await context.GetAccessToken(resourceId.Value);
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    return;
+                }
+                await context.Forward(dialog, this.ResumeAfterForward, message, CancellationToken.None);
+            }
+            else
+            {
+                string message = $"Sorry, I did not understand '{result.Query}'. Type 'help' if you need assistance.";
+
+                await context.PostAsync(message);
+            }
 
             context.Wait(MessageReceived);
         }
@@ -209,32 +227,23 @@
             context.Wait(this.MessageReceived);
         }
 
-        [LuisIntent("DetermineResource")]
-        public async Task DetermineResourceAsync(IDialogContext context, LuisResult result)
-        {
-            var accessToken = await context.GetAccessToken(resourceId.Value);
-            if (string.IsNullOrEmpty(accessToken))
-            {
-                return;
-            }
+        //[LuisIntent("DetermineResource")]
+        //public async Task DetermineResourceAsync(IDialogContext context, LuisResult result)
+        //{
+        //    var accessToken = await context.GetAccessToken(resourceId.Value);
+        //    if (string.IsNullOrEmpty(accessToken))
+        //    {
+        //        return;
+        //    }
 
-            var factory = new DialogFactory();
+        //    var factory = new DialogFactory();
+        //    var message = context.MakeMessage();
+        //    message.Text = userToBot;
 
-            //var entity = result.Entities.First();
-            //if (string.IsNullOrEmpty(entity.Entity))
-            //{
-            //    await None(context, result);
-            //}
-            //else
-            //{
-            var message = context.MakeMessage();
-            message.Text = userToBot;
+        //    var dialog = factory.Create(result.Query);
 
-            var dialog = factory.Create(result.Query);
-
-            await context.Forward(dialog, this.ResumeAfterForward, message, CancellationToken.None);
-            //}
-        }
+        //    await context.Forward(dialog, this.ResumeAfterForward, message, CancellationToken.None);
+        //}
 
         private async Task ResumeAfterForward(IDialogContext context, IAwaitable<string> result)
         {

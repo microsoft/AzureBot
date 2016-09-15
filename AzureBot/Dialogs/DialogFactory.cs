@@ -21,7 +21,7 @@ namespace AzureBot.Dialogs
                     return resourceDialog.Create();
                 }
             }
-            return null;// no idea of how to handle 
+            return null; 
         }
 
         private void EnsureResourceDialogs()
