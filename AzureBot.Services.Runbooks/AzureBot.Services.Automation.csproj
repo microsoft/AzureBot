@@ -7,8 +7,8 @@
     <ProjectGuid>{32BBD261-F6E1-4995-9EDA-B881E3A54C80}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AzureBot.Services.Runbooks</RootNamespace>
-    <AssemblyName>AzureBot.Services.Runbooks</AssemblyName>
+    <RootNamespace>AzureBot.Services.Automation</RootNamespace>
+    <AssemblyName>AzureBot.Services.Automation</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />

@@ -45,9 +45,10 @@
                 string message = $"Sorry, I did not understand '{result.Query}'. Type 'help' if you need assistance.";
 
                 await context.PostAsync(message);
+
+                context.Wait(MessageReceived);
             }
 
-            context.Wait(MessageReceived);
         }
 
         [LuisIntent("Help")]
@@ -90,7 +91,7 @@
                 context.PrivateConversationData.SetValue("ServiceUrl", message.ServiceUrl);
                 serviceUrlSet = true;
             }
-            if (userToBot.Contains("help"))
+            if (userToBot.Contains("help") || message.Type != ActivityTypes.Message)
             {
                 await base.MessageReceived(context, item);
 

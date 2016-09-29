@@ -264,6 +264,10 @@
       <Project>{c6ba2212-1bf1-4b7f-9e3e-d7ebd7f60b9a}</Project>
       <Name>AzureBot.Services.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\AzureBot.Services.ResourceGroups\AzureBot.Services.ResourceGroup.csproj">
+      <Project>{1e58566f-dc84-49f5-9028-dc1ea1ea8038}</Project>
+      <Name>AzureBot.Services.ResourceGroup</Name>
+    </ProjectReference>
     <ProjectReference Include="..\AzureBot.Services.Runbooks\AzureBot.Services.Automation.csproj">
       <Project>{32bbd261-f6e1-4995-9eda-b881e3a54c80}</Project>
       <Name>AzureBot.Services.Automation</Name>

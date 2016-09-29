@@ -123,8 +123,7 @@ namespace AzureBot.Dialogs
                 if (selectedVM == null)
                 {
                     await context.PostAsync($"The '{virtualMachineName}' virtual machine was not found in the current subscription.");
-                    //context.Wait(this.MessageReceived);
-                    context.Done(true);
+                    context.Done<string>(null);
                     return;
                 }
 
@@ -135,8 +134,7 @@ namespace AzureBot.Dialogs
                 {
                     var powerState = selectedVM.PowerState.ToString().ToLower();
                     await context.PostAsync($"The '{virtualMachineName}' virtual machine is already {powerState}.");
-                    context.Done(true);
-                    //context.Wait(this.MessageReceived);
+                    context.Done<string>(null);
                     return;
                 }
 
@@ -162,7 +160,7 @@ namespace AzureBot.Dialogs
             {
                 var operationText = VirtualMachineHelper.RetrieveOperationTextByOperation(operation);
                 await context.PostAsync($"No virtual machines that can be {operationText} were found in the current subscription.");
-                context.Done(true);
+                context.Done<string>(null);
                 //context.Wait(this.MessageReceived);
             }
         }
@@ -196,8 +194,7 @@ namespace AzureBot.Dialogs
                 {
                     var operationText = VirtualMachineHelper.RetrieveOperationTextByOperation(operation);
                     await context.PostAsync($"The {resourceGroup} resource group doesn't contain VMs or doesn't exist in the current subscription.");
-                    context.Done(true);
-                    //context.Wait(this.MessageReceived);
+                    context.Done<string>(null);
                     return;
                 }
 
@@ -207,8 +204,7 @@ namespace AzureBot.Dialogs
                 {
                     var operationText = VirtualMachineHelper.RetrieveOperationTextByOperation(operation);
                     await context.PostAsync($"No virtual machines that can be {operationText} were found in the {resourceGroup} resource group of the current subscription.");
-                    context.Done(true);
-                    //context.Wait(this.MessageReceived);
+                    context.Done<string>(null);
                     return;
                 }
             }
@@ -220,8 +216,7 @@ namespace AzureBot.Dialogs
                 {
                     var operationText = VirtualMachineHelper.RetrieveOperationTextByOperation(operation);
                     await context.PostAsync($"No virtual machines that can be {operationText} were found in the current subscription.");
-                    context.Done(true);
-                    //context.Wait(this.MessageReceived);
+                    context.Done<string>(null);
                     return;
                 }
             }
@@ -315,8 +310,7 @@ namespace AzureBot.Dialogs
                 await context.PostAsync("You have canceled the operation. What would you like to do next?");
             }
 
-            context.Done(true);
-            //context.Wait(this.MessageReceived);
+            context.Done<string>(null);
         }
 
         private async Task StartAllVirtualMachinesFormComplete(IDialogContext context, IAwaitable<AllVirtualMachinesFormState> result)
@@ -402,8 +396,7 @@ namespace AzureBot.Dialogs
                 await context.PostAsync("You have canceled the operation. What would you like to do next?");
             }
 
-            context.Done(true);
-            //context.Wait(this.MessageReceived);
+            context.Done<string>(null);
         }
 
     }

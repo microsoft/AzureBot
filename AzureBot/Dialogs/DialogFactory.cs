@@ -13,6 +13,7 @@ namespace AzureBot.Dialogs
 
         public IDialog<string> Create(string query)
         {
+            query = query.ToLowerInvariant();
             EnsureResourceDialogs();
             foreach (var resourceDialog in ResourceDialogs)
             {
@@ -26,11 +27,11 @@ namespace AzureBot.Dialogs
 
         private void EnsureResourceDialogs()
         {
-            if (!ResourceDialogs.Any())
+            if (ResourceDialogs == null || !ResourceDialogs.Any())
             {
                 lock (resoucelock)
                 {
-                    if (!ResourceDialogs.Any())
+                    if (ResourceDialogs == null || !ResourceDialogs.Any())
                     {
                         var type = typeof(IResourceDialog);
                         var assemblies=AppDomain.CurrentDomain.GetAssemblies().Where(a=>a.FullName.StartsWith("AzureBot.Services")).ToList();

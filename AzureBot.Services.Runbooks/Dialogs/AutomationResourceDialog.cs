@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace AzureBot.Dialogs
 {
-    public class AutomationResourceDialog:IResourceDialog
+    public class AutomationResourceDialog : IResourceDialog
     {
         private List<string> keywords = new List<string> { "job", "runbook", "automation", "run", "book" };
         public bool CanHandle(string query)

@@ -84,8 +84,7 @@ namespace AzureBot.Dialogs
                 await context.PostAsync("No runbooks listed since no automations accounts were found in the current subscription.");
             }
 
-            context.Done(true);
-            //context.Wait(this.MessageReceived);
+            context.Done<string>(null);
         }
 
         [LuisIntent("ListAutomationAccounts")]
@@ -116,8 +115,7 @@ namespace AzureBot.Dialogs
                 await context.PostAsync("No automations accounts were found in the current subscription.");
             }
 
-            context.Done(true);
-            //context.Wait(this.MessageReceived);
+            context.Done<string>(null);
         }
 
         [LuisIntent("RunRunbook")]
@@ -152,8 +150,7 @@ namespace AzureBot.Dialogs
                     if (selectedAutomationAccount == null)
                     {
                         await context.PostAsync($"The '{automationAccountName}' automation account was not found in the current subscription");
-                        context.Done(true);
-                        //context.Wait(this.MessageReceived);
+                        context.Done<string>(null);
                         return;
                     }
 
@@ -163,16 +160,14 @@ namespace AzureBot.Dialogs
                     if (runbook == null)
                     {
                         await context.PostAsync($"The '{runbookName}' runbook was not found in the '{automationAccountName}' automation account.");
-                        context.Done(true);
-                        //context.Wait(this.MessageReceived);
+                        context.Done<string>(null);
                         return;
                     }
 
                     if (!runbook.RunbookState.Equals("Published", StringComparison.InvariantCultureIgnoreCase))
                     {
                         await context.PostAsync($"The '{runbookName}' runbook that you are trying to run is not published (State: {runbook.RunbookState}). Please go the Azure Portal and publish the runbook.");
-                        context.Done(true);
-                        //context.Wait(this.MessageReceived);
+                        context.Done<string>(null);
                         return;
                     }
 
@@ -190,8 +185,7 @@ namespace AzureBot.Dialogs
                     if (selectedAutomationAccounts == null || !selectedAutomationAccounts.Any())
                     {
                         await context.PostAsync($"The '{runbookName}' runbook was not found in any of your automation accounts.");
-                        context.Done(true);
-                        //context.Wait(this.MessageReceived);
+                        context.Done<string>(null);
                         return;
                     }
 
@@ -201,8 +195,7 @@ namespace AzureBot.Dialogs
                     if (runbooks == null || !runbooks.Any())
                     {
                         await context.PostAsync($"The '{runbookName}' runbook that you are trying to run is not Published. Please go the Azure Portal and publish the runbook.");
-                        context.Done(true);
-                        //context.Wait(this.MessageReceived);
+                        context.Done<string>(null);
                         return;
                     }
 
@@ -233,8 +226,7 @@ namespace AzureBot.Dialogs
             else
             {
                 await context.PostAsync($"No automations accounts were found in the current subscription. Please create an Azure automation account or switch to a subscription which has an automation account in it.");
-                context.Done(true);
-                //context.Wait(this.MessageReceived);
+                context.Done<string>(null);
             }
         }
 
@@ -271,8 +263,7 @@ namespace AzureBot.Dialogs
                 await context.PostAsync("No Runbook Jobs were created in the current session. To create a new Runbook Job type: Start Runbook.");
             }
 
-            context.Done(true);
-            //context.Wait(this.MessageReceived);
+            context.Done<string>(null);
         }
 
         [LuisIntent("ShowJobOutput")]
@@ -302,8 +293,7 @@ namespace AzureBot.Dialogs
                     if (selectedJob == null)
                     {
                         await context.PostAsync($"The job with id '{friendlyJobId}' was not found.");
-                        context.Done(true);
-                        //context.Wait(this.MessageReceived);
+                        context.Done<string>(null);
                         return;
                     }
 
@@ -323,8 +313,7 @@ namespace AzureBot.Dialogs
                 await context.PostAsync("No runbook job id was specified. Try 'show <jobId> output'.");
             }
 
-            context.Done(true);
-            //context.Wait(this.MessageReceived);
+            context.Done<string>(null);
         }
 
         [LuisIntent("ShowRunbookDescription")]
@@ -353,8 +342,7 @@ namespace AzureBot.Dialogs
                 if (selectedAutomationAccounts == null || !selectedAutomationAccounts.Any())
                 {
                     await context.PostAsync($"The '{runbookName}' runbook was not found in any of your automation accounts.");
-                    context.Done(true);
-                    //context.Wait(this.MessageReceived);
+                    context.Done<string>(null);
                     return;
                 }
 
@@ -364,8 +352,7 @@ namespace AzureBot.Dialogs
                     var runbook = automationAccount.Runbooks.Single(r => r.RunbookName.Equals(runbookName, StringComparison.InvariantCultureIgnoreCase));
                     var description = await new AutomationDomain().GetAutomationRunbookDescriptionAsync(accessToken, subscriptionId, automationAccount.ResourceGroup, automationAccount.AutomationAccountName, runbook.RunbookName) ?? "No description";
                     await context.PostAsync(description);
-                    context.Done(true);
-                    //context.Wait(this.MessageReceived);
+                    context.Done<string>(null);
                 }
                 else
                 {
@@ -386,15 +373,13 @@ namespace AzureBot.Dialogs
                     }
 
                     await context.PostAsync(message);
-                    context.Done(true);
-                    //context.Wait(this.MessageReceived);
+                    context.Done<string>(null);
                 }
             }
             else
             {
                 await context.PostAsync($"No runbook was specified. Please try again specifying a runbook name.");
-                context.Done(true);
-                //context.Wait(this.MessageReceived);
+                context.Done<string>(null);
             }
         }
 
@@ -422,8 +407,7 @@ namespace AzureBot.Dialogs
 
                 await context.PostAsync(reply);
 
-                context.Done(true);
-                //context.Wait(this.MessageReceived);
+                context.Done<string>(null);
             }
         }
 
@@ -484,8 +468,7 @@ namespace AzureBot.Dialogs
 
                 await context.PostAsync(reply);
 
-                context.Done(true);
-                //context.Wait(this.MessageReceived);
+                context.Done<string>(null);
             }
         }
 
@@ -572,8 +555,7 @@ namespace AzureBot.Dialogs
                 await context.PostAsync($"Oops! Something went wrong :(. Technical Details: {e.InnerException.Message}");
             }
 
-            context.Done(true);
-            //context.Wait(this.MessageReceived);
+            context.Done<string>(null);
         }
 
         private static async Task CheckLongRunningOperationStatus<T>(IDialogContext context, RunbookJob automationJob, string accessToken,

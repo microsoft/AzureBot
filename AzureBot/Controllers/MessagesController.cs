@@ -24,10 +24,6 @@
                     case ActivityTypes.Message:
                         await Conversation.SendAsync(activity, () => new RootDialog());
                         break;
-                    case ActivityTypes.ConversationUpdate:
-                        if (activity.Action.Equals("add", StringComparison.InvariantCultureIgnoreCase))
-                            await Conversation.SendAsync(activity, () => new RootDialog());
-                        break;
                     default:
                         Trace.TraceError($"Azure Bot ignored an activity. Activity type received: {activity.GetActivityType()}");
                         break;

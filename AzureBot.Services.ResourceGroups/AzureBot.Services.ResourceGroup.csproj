@@ -7,8 +7,8 @@
     <ProjectGuid>{1E58566F-DC84-49F5-9028-DC1EA1EA8038}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AzureBot.Services.ResourceGroups</RootNamespace>
-    <AssemblyName>AzureBot.Services.ResourceGroups</AssemblyName>
+    <RootNamespace>AzureBot.Services.ResourceGroup</RootNamespace>
+    <AssemblyName>AzureBot.Services.ResourceGroup</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
