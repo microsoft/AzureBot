@@ -71,6 +71,7 @@
             {
                 context.PrivateConversationData.SetValue("ServiceUrl", message.ServiceUrl);
                 serviceUrlSet = true;
+                MicrosoftAppCredentials.TrustServiceUrl(message.ServiceUrl);
             }
             if (message.Text.ToLowerInvariant().Contains("help"))
             {
