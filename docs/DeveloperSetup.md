@@ -27,7 +27,7 @@ Once you have created the new LUIS application, train and [publish it](https://w
 <a name="azuread"></a>
 ## 2. Azure Active Directory
 
-To authenticate against your own Azure AD for development or private use of the AzureBot code, you'll need to setup your own Azure AD application. Follow our [Azure AD instructions](/CreateAzureADforAzureBot.md) to get it set up and take note of the tenant, client id and client secret values for it.
+To authenticate against your own Azure AD for development or private use of the AzureBot code, you'll need to setup your own Azure AD application. Follow our [Azure AD instructions](./CreateAzureADforAzureBot.md) to get it set up and take note of the tenant, client id and client secret values for it.
 
 <a name="registerbot"></a>
 ## 3. Register a Bot with the Bot Framework 
