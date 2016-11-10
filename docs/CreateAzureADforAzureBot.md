@@ -33,7 +33,7 @@ Go to the configure tab of the application you just created and do the following
  * Save the *Client ID* value. This is the **ActiveDirectory.ClientId** for AzureBot development
  * Select duration for a key and click save.  Securely save the application secret key displayed on the screen - This will be the **ActiveDirectory.ClientSecret** value used for AzureBot development..  You won't get access to this key again.
  * Remove any existing Reply URLs and then add and save these two Reply URLs as follows: 
-   <br>https://localhost:3978/api/OAuthCallback 
+   <br>http://localhost:3978/api/OAuthCallback 
    <br>https://_mycustomsite_.azurewebsites.com/api/OAuthCallback  
 
 > Note: If you want to multi-tenant enable your application, then you would add something like https://_mycustomdomain.com_/api/OAuthCallback instead of or in addition to https://_mycustomsite_.azurewebsites.com/api/OAuthCallback.
