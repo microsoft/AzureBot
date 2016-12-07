@@ -1,23 +1,25 @@
 # AzureBot
-The AzureBot was created to improve the productivity of any developer, admin, or team working with Azure. It is not currently publicly available, but you can follow our [Developer Set Up](/docs/DeveloperSetup.md) to run it yourself and contribute.
+The AzureBot is a sample that showcases how the Microsoft Bot Framework and Cognitive services can be used to create intelligent bots. The sample was created to show how a bot can be used to improve the productivity of any developer, admin, or team working with Azure. If you would like to set it up yourself and contribute, follow our [Developer Set Up](https://github.com/Microsoft/AzureBot/blob/gh-pages/docs/DeveloperSetup.md).
 
-This first implementation focuses on authenticating to the user's Azure subscription, selecting and switching subscriptions, starting and stopping RM-based virtual machines, and listing and starting Azure Automation runbooks. 
+We maintain the latest version of the sample running in the [Bot Framework Bot Directory](https://bots.botframework.com/bot?id=azurebot), where you can try it via Skype, Slack or GroupMe. 
 
-This is the home of the code used to run the AzureBot.
+The current implementation focuses on authenticating to the user's Azure subscription, selecting and switching subscriptions, starting and stopping RM-based virtual machines, and listing and starting Azure Automation runbooks. 
+
+![AzureBot Example](AzureBot.gif)
 
 ## Developer Set Up
 
 AzureBot is built with the [Microsoft Bot framework] (http://docs.botframework.com/) and the [Microsoft Bot Builder C# SDK](http://docs.botframework.com/sdkreference/csharp/). It uses the [Azure Resource Manager Nuget package](https://www.nuget.org/packages/Microsoft.Azure.Management.ResourceManager) and other Azure packages.
 
-Follow our [Developer Set Up](/docs/DeveloperSetup.md) guide to get started.
+Follow our [Developer Set Up](https://github.com/Microsoft/AzureBot/blob/gh-pages/docs/DeveloperSetup.md) guide to get started.
 
 ## UX Guidelines
 
-If creating new commands, our [UX Guidelines](docs/UX.Guidelines.md) are helpful for the conversational tone and best practices.
+If creating new commands, our [UX Guidelines](https://github.com/Microsoft/AzureBot/blob/gh-pages/docs/UX.Guidelines.md) are helpful for the conversational tone and best practices.
 
 ## Contributing
 
-If you are interested in contributing to this project feel free to submit a pull request to the [beta branch](https://github.com/Microsoft/AzureBot/tree/beta). If you find issues with or desire improvements for the existing functionality, please [file an issue](https://github.com/Microsoft/AzureBot/issues) here in GitHub.
+If you are interested in contributing to this project feel free to submit a pull request to the [beta branch](https://github.com/Microsoft/AzureBot/tree/beta). If you find issues with or desire improvements for the existing functionality, please [file an issue](https://github.com/Microsoft/AzureBot/issues) here in GitHub. Note that the AzureBot is a sample and not actively supported. 
 
 ## Contact 
 Please reach out to azurebot at microsoft dot c o m.  

@@ -31,7 +31,7 @@
 
                 Action<IList<string>> action = (replies) =>
                 {
-                    var match = replies.FirstOrDefault(stringToCheck => stringToCheck.Contains(step.ExpectedReply));
+                    var match = replies.FirstOrDefault(stringToCheck => stringToCheck.ToLowerInvariant().Contains(step.ExpectedReply));
                     Assert.IsTrue(match != null, step.ErrorMessageHandler(step.Action, step.ExpectedReply, string.Join(", ", replies)));
                     step.Verified?.Invoke(replies.LastOrDefault());
                 };
@@ -57,13 +57,10 @@
                         var completionTestCase = completionTestCases[completionIndex];
 
                         Assert.IsTrue(
-                            replies[i].Contains(completionTestCase.ExpectedReply),
+                            replies[i].Contains(completionTestCase.ExpectedReply.ToLowerInvariant()),
                             completionTestCase.ErrorMessageHandler(completionTestCase.Action, completionTestCase.ExpectedReply, replies[i]));
 
-                        if (completionTestCase.Verified != null)
-                        {
-                            completionTestCase.Verified(replies[i]);
-                        }
+                        completionTestCase.Verified?.Invoke(replies[i]);
                     }
                 };
 
