@@ -57,7 +57,7 @@
                         var completionTestCase = completionTestCases[completionIndex];
 
                         Assert.IsTrue(
-                            replies[i].Contains(completionTestCase.ExpectedReply.ToLowerInvariant()),
+                            replies[i].ToLowerInvariant().Contains(completionTestCase.ExpectedReply.ToLowerInvariant()),
                             completionTestCase.ErrorMessageHandler(completionTestCase.Action, completionTestCase.ExpectedReply, replies[i]));
 
                         completionTestCase.Verified?.Invoke(replies[i]);
