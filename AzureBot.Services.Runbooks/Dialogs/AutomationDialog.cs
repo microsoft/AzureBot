@@ -19,7 +19,7 @@ namespace AzureBot.Dialogs
 {
     [LuisModel("6ca45971-e419-4e43-8ba4-71fb486d3ffc", "0e64d2ae951547f692182b4ae74262cb")]
     [Serializable]
-    public class AutomationDialog : LuisDialog<string>
+    public class AutomationDialog : AzureBotLuisDialog<string>
     {
 
         [LuisIntent("None")]

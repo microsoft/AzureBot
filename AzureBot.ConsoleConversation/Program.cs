@@ -5,7 +5,6 @@
     using System.Diagnostics;
     using System.Threading.Tasks;
     using Microsoft.Bot.Connector.DirectLine;
-    using Microsoft.Bot.Connector.DirectLine.Models;
     using System.Linq;
     internal class Program
     {
@@ -23,7 +22,7 @@
         internal static async Task StartBotConversation()
         {
 
-            var conversation = await client.Conversations.NewConversationAsync();
+            var conversation = await client.Conversations.StartConversationAsync();
             conversationId = conversation.ConversationId;
             new System.Threading.Thread(async () => await ReadBotMessagesAsync()).Start();
             
@@ -42,13 +41,14 @@
                 {
                     if (input.Length > 0)
                     {
-                        Message userMessage = new Message
+                        Activity userMessage = new Activity
                         {
-                            FromProperty = fromUser,
+                            Type = ActivityTypes.Message,
+                            From = new ChannelAccount { Id = fromUser },
                             Text = input
                         };
 
-                        await client.Conversations.PostMessageAsync(conversation.ConversationId, userMessage);
+                        await client.Conversations.PostActivityAsync(conversation.ConversationId, userMessage);
 
                     }
                 }
@@ -60,16 +60,16 @@
             string watermark = null;
             while (true)
             {
-                var messages = await client.Conversations.GetMessagesAsync(conversationId, watermark);
-                watermark = messages?.Watermark;
+                var activities = await client.Conversations.GetActivitiesAsync(conversationId, watermark);
+                watermark = activities?.Watermark;
 
-                var messagesText = from x in messages.Messages
-                                   where x.FromProperty == BotId
+                var activitiesText = from x in activities.Activities
+                                   where x.From.Id == BotId
                                    select x;
 
-                foreach (Message message in messagesText)
+                foreach (Activity activity in activitiesText)
                 {
-                    Console.WriteLine(message.Text);
+                    Console.WriteLine(activity.Text);
                     Console.Write("Command > ");
                 }
                 await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);

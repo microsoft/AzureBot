@@ -16,7 +16,7 @@
 
     [LuisModel("d2129bee-5d15-4c78-be3b-2005e3c08cd4", "0e64d2ae951547f692182b4ae74262cb")]
     [Serializable]
-    public class RootDialog : LuisDialog<string>
+    public class RootDialog : AzureBotLuisDialog<string>
     {
         private static Lazy<string> resourceId = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectory.ResourceId"]);
         private bool serviceUrlSet = false;
@@ -26,7 +26,7 @@
         public async Task None(IDialogContext context, LuisResult result)
         {
             var factory = new DialogFactory();
-            var dialog = factory.Create(result.Query);
+            AzureBotLuisDialog<string> dialog = await factory.Create(result.Query);
 
             if (dialog != null)
             {

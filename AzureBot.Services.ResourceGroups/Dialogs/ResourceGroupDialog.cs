@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace AzureBot.Dialogs
 {
     [Serializable]
-    class ResourceGroupDialog : LuisDialog<string>
+    class ResourceGroupDialog : AzureBotLuisDialog<string>
     {
         private static Lazy<string> resourceId = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectory.ResourceId"]);
 

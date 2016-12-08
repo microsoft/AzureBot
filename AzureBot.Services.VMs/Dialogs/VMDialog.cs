@@ -20,7 +20,7 @@ namespace AzureBot.Dialogs
 {
     [LuisModel("836166b9-d8c1-4185-9515-0ebfbf3226dc", "0e64d2ae951547f692182b4ae74262cb")]
     [Serializable]
-    public class VMDialog : LuisDialog<string>
+    public class VMDialog : AzureBotLuisDialog<string>
     {
         private static Lazy<string> resourceId = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectory.ResourceId"]);
 
