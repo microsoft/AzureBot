@@ -42,7 +42,7 @@
             {
                 Action<IList<string>> action = (replies) =>
                 {
-                   var singleCompletionTestCase = completionTestCases.Count == 1;
+                    var singleCompletionTestCase = completionTestCases.Count == 1;
 
                     for (int i = 0; i < replies.Count(); i++)
                     {
@@ -66,6 +66,25 @@
 
                 await General.BotHelper.WaitForLongRunningOperations(action, completionChecks);
             }
+        }
+
+        internal static async Task EnsureAllVmsStopped()
+        {
+            await General.BotHelper.SendMessageNoReply("stop all vms");
+
+            Action<IList<string>> action = async (replies) =>
+            {
+                if (replies.Any())
+                {
+                    if (replies.First().ToLowerInvariant().Contains("you are trying to stop the following"))
+                    {
+                        await General.BotHelper.SendMessageNoReply("yes");
+                        Action<IList<string>> action2 = (replies2) => { };
+                        await General.BotHelper.WaitForLongRunningOperations(action2, 1);
+                    }
+                }
+            };
+            await General.BotHelper.WaitForLongRunningOperations(action, 1);
         }
     }
 }

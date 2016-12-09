@@ -40,7 +40,7 @@
 
             try
             {
-                CleanUp();
+                TestRunner.EnsureAllVmsStopped().Wait();
             }
             catch
             {
@@ -54,29 +54,7 @@
         {
             try
             {
-                if (testContext.DeallocateResourcesOnCleanup())
-                {
-                    var step1 = new BotTestCase()
-                    {
-                        Action = "stop all vms",
-                        ExpectedReply = "You are trying to stop the following virtual machines",
-                    };
-
-                    var step2 = new BotTestCase()
-                    {
-                        Action = "Yes",
-                        ExpectedReply = "Stopping the following virtual machines",
-                    };
-
-                    var completionTestCase = new BotTestCase()
-                    {
-                        ExpectedReply = $"virtual machine was stopped successfully.",
-                    };
-
-                    var steps = new List<BotTestCase> { step1, step2 };
-
-                    TestRunner.RunTestCases(steps, completionTestCase, 2).Wait();
-                }
+                TestRunner.EnsureAllVmsStopped().Wait();
             }
             finally
             {
