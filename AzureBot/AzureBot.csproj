@@ -52,34 +52,24 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
-    <Compile Include="ContextExtensions.cs" />
-    <Compile Include="Dialogs\ActionDialog.cs" />
-    <Compile Include="Dialogs\DialogExtensions.cs" />
-    <Compile Include="Forms\EntityForms.cs" />
-    <Compile Include="Forms\Operations.cs" />
-    <Compile Include="Forms\RunbookFormState.cs" />
-    <Compile Include="Forms\RunbookParameterFormState.cs" />
-    <Compile Include="Forms\SubscriptionFormState.cs" />
-    <Compile Include="Forms\AllVirtualMachinesFormState.cs" />
-    <Compile Include="Forms\VirtualMachineFormState.cs" />
+    <Compile Include="Dialogs\DialogFactory.cs" />
+    <Compile Include="Dialogs\RootDialog.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="Helpers\AutomationJobsHelper.cs" />
-    <Compile Include="Helpers\VirtualMachineHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ContextConstants.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="LuisModel\AzureBot.json" />
-    <Content Include="packages.config">
-      <SubType>Designer</SubType>
-    </Content>
     <Content Include="ApplicationInsights.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Service References\Application Insights\ConnectedService.json" />
+    <Content Include="LuisModel\AzureBot-Automation.json" />
+    <Content Include="LuisModel\AzureBot-ResourceGroups.json" />
+    <Content Include="LuisModel\AzureBot-Root.json" />
+    <Content Include="LuisModel\AzureBot-VMs.json" />
+    <Content Include="packages.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -88,18 +78,12 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AzureBot.Azure.Management\AzureBot.Azure.Management.csproj">
-      <Project>{7b112f12-3f0d-48d5-9203-28a2e1cfd224}</Project>
-      <Name>AzureBot.Azure.Management</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="AuthBot, Version=3.1.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\AuthBot.3.1.2-alpha\lib\net40\AuthBot.dll</HintPath>
+    <Reference Include="AuthBot, Version=3.3.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\AuthBot.3.3.6-alpha\lib\net40\AuthBot.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Autofac, Version=4.1.1.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
-      <HintPath>..\packages\Autofac.4.1.1\lib\net45\Autofac.dll</HintPath>
+    <Reference Include="Autofac, Version=4.2.0.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Autofac.4.2.0\lib\net45\Autofac.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Chronic, Version=0.3.2.0, Culture=neutral, PublicKeyToken=3bd1f1ef638b0d3c, processorArchitecture=MSIL">
@@ -138,12 +122,12 @@
       <HintPath>..\packages\Microsoft.ApplicationInsights.TraceListener.2.1.0\lib\net45\Microsoft.ApplicationInsights.TraceListener.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.Bot.Builder, Version=3.2.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Bot.Builder.3.2.1\lib\net46\Microsoft.Bot.Builder.dll</HintPath>
+    <Reference Include="Microsoft.Bot.Builder, Version=3.3.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bot.Builder.3.3.3\lib\net46\Microsoft.Bot.Builder.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.Bot.Connector, Version=3.2.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Bot.Builder.3.2.1\lib\net46\Microsoft.Bot.Connector.dll</HintPath>
+    <Reference Include="Microsoft.Bot.Connector, Version=3.3.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bot.Builder.3.3.3\lib\net46\Microsoft.Bot.Connector.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
@@ -155,24 +139,24 @@
       <HintPath>..\packages\Microsoft.Identity.Client.1.0.304142221-alpha\lib\net45\Microsoft.Identity.Client.Platform.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.IdentityModel.Clients.ActiveDirectory, Version=3.12.0.827, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.IdentityModel.Clients.ActiveDirectory.3.12.0\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.dll</HintPath>
+    <Reference Include="Microsoft.IdentityModel.Clients.ActiveDirectory, Version=3.13.7.964, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.Clients.ActiveDirectory.3.13.7\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.IdentityModel.Clients.ActiveDirectory.Platform, Version=3.12.0.827, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.IdentityModel.Clients.ActiveDirectory.3.12.0\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.Platform.dll</HintPath>
+    <Reference Include="Microsoft.IdentityModel.Clients.ActiveDirectory.Platform, Version=3.13.7.964, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.Clients.ActiveDirectory.3.13.7\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.Platform.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.IdentityModel.Logging, Version=1.0.0.127, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.IdentityModel.Logging.1.0.0\lib\net451\Microsoft.IdentityModel.Logging.dll</HintPath>
+    <Reference Include="Microsoft.IdentityModel.Logging, Version=1.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.Logging.1.1.0\lib\net451\Microsoft.IdentityModel.Logging.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.IdentityModel.Protocol.Extensions, Version=1.0.2.33, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.IdentityModel.Protocol.Extensions.1.0.2.206221351\lib\net45\Microsoft.IdentityModel.Protocol.Extensions.dll</HintPath>
+    <Reference Include="Microsoft.IdentityModel.Protocol.Extensions, Version=1.0.3.42, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.Protocol.Extensions.1.0.3.308261200\lib\net45\Microsoft.IdentityModel.Protocol.Extensions.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.IdentityModel.Tokens, Version=5.0.0.127, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.IdentityModel.Tokens.5.0.0\lib\net451\Microsoft.IdentityModel.Tokens.dll</HintPath>
+    <Reference Include="Microsoft.IdentityModel.Tokens, Version=5.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IdentityModel.Tokens.5.1.0\lib\net451\Microsoft.IdentityModel.Tokens.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Rest.ClientRuntime, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -196,7 +180,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.WindowsAzure.Configuration, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.WindowsAzure.ConfigurationManager.3.2.1\lib\net40\Microsoft.WindowsAzure.Configuration.dll</HintPath>
+      <HintPath>..\packages\Microsoft.WindowsAzure.ConfigurationManager.3.2.3\lib\net40\Microsoft.WindowsAzure.Configuration.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -213,8 +197,8 @@
       <HintPath>..\packages\System.Diagnostics.DiagnosticSource.4.0.0\lib\net46\System.Diagnostics.DiagnosticSource.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.IdentityModel.Tokens.Jwt, Version=4.0.20622.1351, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.IdentityModel.Tokens.Jwt.4.0.2.206221351\lib\net45\System.IdentityModel.Tokens.Jwt.dll</HintPath>
+    <Reference Include="System.IdentityModel.Tokens.Jwt, Version=4.0.30826.1200, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IdentityModel.Tokens.Jwt.4.0.3.308261200\lib\net45\System.IdentityModel.Tokens.Jwt.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Net" />
@@ -273,6 +257,24 @@
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AzureBot.Services.Common\AzureBot.Services.Common.csproj">
+      <Project>{c6ba2212-1bf1-4b7f-9e3e-d7ebd7f60b9a}</Project>
+      <Name>AzureBot.Services.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AzureBot.Services.ResourceGroups\AzureBot.Services.ResourceGroup.csproj">
+      <Project>{1e58566f-dc84-49f5-9028-dc1ea1ea8038}</Project>
+      <Name>AzureBot.Services.ResourceGroup</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AzureBot.Services.Runbooks\AzureBot.Services.Automation.csproj">
+      <Project>{32bbd261-f6e1-4995-9eda-b881e3a54c80}</Project>
+      <Name>AzureBot.Services.Automation</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\AzureBot.Services.VMs\AzureBot.Services.VM.csproj">
+      <Project>{46ef4dce-1634-476a-9d30-2f6f001f934b}</Project>
+      <Name>AzureBot.Services.VM</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -301,10 +303,12 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
-  <Import Project="..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets" Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" />
-  <Target Name="EnsureBclBuildImported" BeforeTargets="BeforeBuild" Condition="'$(BclBuildImported)' == ''">
-    <Error Condition="!Exists('..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" Text="This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=317567." HelpKeyword="BCLBUILD2001" />
-    <Error Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" Text="The build restored NuGet packages. Build the project again to include these packages in the build. For more information, see http://go.microsoft.com/fwlink/?LinkID=317568." HelpKeyword="BCLBUILD2002" />
+  <Import Project="..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets" Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.Bcl.Build.1.0.21\build\Microsoft.Bcl.Build.targets'))" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

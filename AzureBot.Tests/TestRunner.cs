@@ -31,7 +31,7 @@
 
                 Action<IList<string>> action = (replies) =>
                 {
-                    var match = replies.FirstOrDefault(stringToCheck => stringToCheck.Contains(step.ExpectedReply));
+                    var match = replies.FirstOrDefault(stringToCheck => stringToCheck.ToLowerInvariant().Contains(step.ExpectedReply));
                     Assert.IsTrue(match != null, step.ErrorMessageHandler(step.Action, step.ExpectedReply, string.Join(", ", replies)));
                     step.Verified?.Invoke(replies.LastOrDefault());
                 };
@@ -42,7 +42,7 @@
             {
                 Action<IList<string>> action = (replies) =>
                 {
-                   var singleCompletionTestCase = completionTestCases.Count == 1;
+                    var singleCompletionTestCase = completionTestCases.Count == 1;
 
                     for (int i = 0; i < replies.Count(); i++)
                     {
@@ -57,18 +57,34 @@
                         var completionTestCase = completionTestCases[completionIndex];
 
                         Assert.IsTrue(
-                            replies[i].Contains(completionTestCase.ExpectedReply),
+                            replies[i].ToLowerInvariant().Contains(completionTestCase.ExpectedReply.ToLowerInvariant()),
                             completionTestCase.ErrorMessageHandler(completionTestCase.Action, completionTestCase.ExpectedReply, replies[i]));
 
-                        if (completionTestCase.Verified != null)
-                        {
-                            completionTestCase.Verified(replies[i]);
-                        }
+                        completionTestCase.Verified?.Invoke(replies[i]);
                     }
                 };
 
                 await General.BotHelper.WaitForLongRunningOperations(action, completionChecks);
             }
+        }
+
+        internal static async Task EnsureAllVmsStopped()
+        {
+            await General.BotHelper.SendMessageNoReply("stop all vms");
+
+            Action<IList<string>> action = async (replies) =>
+            {
+                if (replies.Any())
+                {
+                    if (replies.First().ToLowerInvariant().Contains("you are trying to stop the following"))
+                    {
+                        await General.BotHelper.SendMessageNoReply("yes");
+                        Action<IList<string>> action2 = (replies2) => { };
+                        await General.BotHelper.WaitForLongRunningOperations(action2, 1);
+                    }
+                }
+            };
+            await General.BotHelper.WaitForLongRunningOperations(action, 1);
         }
     }
 }

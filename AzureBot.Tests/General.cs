@@ -37,39 +37,31 @@
             };
 
             TestRunner.RunTestCase(testCase).Wait();
+
+            try
+            {
+                TestRunner.EnsureAllVmsStopped().Wait();
+            }
+            catch
+            {
+                Console.WriteLine("CleanUp called from SetUp failed");
+            }
         }
 
         // Will run after all the tests have finished
         [AssemblyCleanup]
         public static void CleanUp()
         {
-            if (testContext.DeallocateResourcesOnCleanup())
+            try
             {
-                var step1 = new BotTestCase()
-                {
-                    Action = "stop all vms",
-                    ExpectedReply = "You are trying to stop the following virtual machines",
-                };
-
-                var step2 = new BotTestCase()
-                {
-                    Action = "Yes",
-                    ExpectedReply = "Stopping the following virtual machines",
-                };
-
-                var completionTestCase = new BotTestCase()
-                {
-                    ExpectedReply = $"virtual machine was stopped successfully.",
-                };
-
-                var steps = new List<BotTestCase> { step1, step2 };
-
-                TestRunner.RunTestCases(steps, completionTestCase, 2).Wait();
+                TestRunner.EnsureAllVmsStopped().Wait();
             }
-
-            if (botHelper != null)
+            finally
             {
-                botHelper.Dispose();
+                if (botHelper != null)
+                {
+                    botHelper.Dispose();
+                }
             }
         }
     }
