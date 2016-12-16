@@ -62,6 +62,7 @@
                 var connector = new ConnectorClient(new Uri(serviceUrl));
                 var reply = context.MakeMessage();
                 reply.Text = messageText;
+                MicrosoftAppCredentials.TrustServiceUrl(serviceUrl);
                 await connector.Conversations.ReplyToActivityAsync((Activity)reply);
             }
         }
