@@ -5,7 +5,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.Bot.Connector.DirectLine;
-    using Microsoft.Bot.Connector.DirectLine.Models;
+    using System.Threading;
 
     public class BotHelper : IDisposable 
     {
@@ -22,84 +22,93 @@
         {
             this.microsoftAppId = microsoftAppId;
             this.fromUser = fromUser;
-            this.botId = BotId;
-            this.directLineClient = new DirectLineClient(directLineToken);
-            this.conversation = this.directLineClient.Conversations.NewConversation();
+            botId = BotId;
+            directLineClient = new DirectLineClient(directLineToken);
+            conversation = directLineClient.Conversations.StartConversation();
         }
 
         public async Task<string> SendMessage(string msg)
         {
-            await this.SendMessageNoReply(msg);
-            return await this.LastMessageFromBot();
+            await SendMessageNoReply(msg);
+            return await LastMessageFromBot();
         }
 
         public async Task SendMessageNoReply(string msg)
         {
-            // Passing in a value in FromProperty makes the bot 'remember' that it's the same user
+            await directLineClient.Conversations.PostActivityAsync(conversation.ConversationId, MakeActivity(msg), CancellationToken.None);
+        }
+
+        private Activity MakeActivity(string msg)
+        {
+            // Passing in a value in From makes the bot 'remember' that it's the same user
             // and loads the user context that will have been set up previously outside the tests
-            Message message = new Message { FromProperty = this.fromUser, Text = msg };
-            await this.directLineClient.Conversations.PostMessageAsync(this.conversation.ConversationId, message);
+            return new Activity()
+            {
+                Type = ActivityTypes.Message,
+                From = new ChannelAccount { Id = fromUser },
+                Text = msg
+            };
         }
 
         public async Task<string> LastMessageFromBot()
         {
-            var botMessages = await this.AllBotMessagesSinceWatermark();
+            var botMessages = await AllBotMessagesSinceWatermark();
             return botMessages.Last();
         }
 
         public async Task WaitForLongRunningOperations(Action<IList<string>> resultHandler, int operationsToWait, int delayBetweenPoolingInSeconds = 4)
         {
-            var currentWatermark = this.watermark;
-            var messages = await this.AllBotMessagesSinceWatermark(currentWatermark).ConfigureAwait(false);
+            var currentWatermark = watermark;
+            var messages = await AllBotMessagesSinceWatermark(currentWatermark).ConfigureAwait(false);
             var iterations = 0;
             var maxIterations = (5 * 60) / delayBetweenPoolingInSeconds;
 
             while (iterations < maxIterations && messages.Count < operationsToWait)
             {
                 await Task.Delay(TimeSpan.FromSeconds(delayBetweenPoolingInSeconds)).ConfigureAwait(false);
-                messages = await this.AllBotMessagesSinceWatermark(currentWatermark);
+                messages = await AllBotMessagesSinceWatermark(currentWatermark);
                 iterations++;
             }
 
             resultHandler(messages);
         }
 
+        private async Task<IList<string>> AllBotMessagesSinceWatermark(string specificWatermark = null)
+        {
+            var messages = await AllMessagesSinceWatermark(specificWatermark);
+            var messagesText = from x in messages
+                               where x.From.Id == botId
+                               select x.Text.Trim();
+            return messagesText.ToList();
+        }
+
+        private async Task<IList<Activity>> AllMessagesSinceWatermark(string specificWatermark = null)
+        {
+            specificWatermark = string.IsNullOrEmpty(specificWatermark) ? watermark : specificWatermark;
+            ActivitySet messageSet = await directLineClient.Conversations.GetActivitiesAsync(conversation.ConversationId, specificWatermark);
+            watermark = messageSet?.Watermark;
+            return messageSet.Activities;
+        }
+
         public void Dispose()
         {
-            this.Dispose(true);
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool disposing)
         {
-            if (this.disposed)
+            if (disposed)
             {
                 return;
             }
 
             if (disposing)
             {
-                this.directLineClient.Dispose();
+                directLineClient.Dispose();
             }
 
-            this.disposed = true;
-        }
-
-        private async Task<IList<string>> AllBotMessagesSinceWatermark(string specificWatermark = null)
-        {
-            var messages = await this.AllMessagesSinceWatermark(specificWatermark);
-            var messagesText = from x in messages
-                               where x.FromProperty == this.botId
-                               select x.Text.Trim();
-            return messagesText.ToList();
-        }
-
-        private async Task<IList<Message>> AllMessagesSinceWatermark(string specificWatermark = null)
-        {
-            specificWatermark = string.IsNullOrEmpty(specificWatermark) ? this.watermark : specificWatermark;
-            MessageSet messageSet = await this.directLineClient.Conversations.GetMessagesAsync(this.conversation.ConversationId, specificWatermark);
-            this.watermark = messageSet?.Watermark;
-            return messageSet.Messages;
+            disposed = true;
         }
     }
 }
