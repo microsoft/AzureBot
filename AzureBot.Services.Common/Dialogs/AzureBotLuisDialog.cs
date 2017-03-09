@@ -12,7 +12,6 @@ namespace AzureBot
     {
         public async Task<bool> CanHandle(string query)
         {
-
             var tasks = services.Select(s => s.QueryAsync(query, CancellationToken.None)).ToArray();
             var results = await Task.WhenAll(tasks);
 
@@ -23,11 +22,6 @@ namespace AzureBot
 
             var winner = this.BestResultFrom(winners);
             return winner != null && winner.BestIntent.Intent != "None";
-
-            //var tasks = services.Select(s => s.QueryAsync(query, CancellationToken.None));
-            //var winner = BestResultFrom(await Task.WhenAll(tasks));
-            //return winner != null && winner.BestIntent.Intent != "None";
-
         }
     }
 }
