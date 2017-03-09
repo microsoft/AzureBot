@@ -69,7 +69,17 @@
 
                 foreach (Activity activity in activitiesText)
                 {
-                    Console.WriteLine(activity.Text);
+                    if (!string.IsNullOrEmpty(activity.Text.Trim()))
+                    {
+                        Console.WriteLine(activity.Text);
+                    }
+                    else
+                    {
+                        foreach (Attachment attachment in activity.Attachments)
+                        { 
+                            Console.WriteLine(attachment.Content);
+                        }
+                    }
                     Console.Write("Command > ");
                 }
                 await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);

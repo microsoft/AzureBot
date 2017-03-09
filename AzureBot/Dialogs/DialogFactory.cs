@@ -25,19 +25,23 @@ namespace AzureBot.Dialogs
             }
             return null; 
         }
-
         private void EnsureResourceDialogs()
         {
-            if (ResourceDialogs == null || !ResourceDialogs.Any())
+            if (ResourceDialogs == null || (ResourceDialogs.Count != 3))
             {
                 lock (resoucelock)
                 {
-                    if (ResourceDialogs == null || !ResourceDialogs.Any())
+                    if (ResourceDialogs == null)
                     {
-                        var type = typeof(AzureBotLuisDialog<string>);
-                        var assemblies=AppDomain.CurrentDomain.GetAssemblies().Where(a=>a.FullName.StartsWith("AzureBot.Services")).ToList();
-                        ResourceDialogs = assemblies.SelectMany(a => a.GetTypes()).Where(a => type.IsAssignableFrom(a)).Select(a=> (AzureBotLuisDialog<string>)Activator.CreateInstance(a)).ToList();
+                        ResourceDialogs = new List<AzureBotLuisDialog<string>>();
                     }
+                    else if (ResourceDialogs.Count != 3)
+                    {
+                        ResourceDialogs.Clear();
+                    }
+                    ResourceDialogs.Add((AzureBotLuisDialog<string>)Activator.CreateInstance(typeof(AutomationDialog)));
+                    ResourceDialogs.Add((AzureBotLuisDialog<string>)Activator.CreateInstance(typeof(ResourceGroupDialog)));
+                    ResourceDialogs.Add((AzureBotLuisDialog<string>)Activator.CreateInstance(typeof(VMDialog)));
                 }
             }
         }
