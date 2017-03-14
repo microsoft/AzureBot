@@ -42,11 +42,22 @@
             }
             else
             {
-                string message = $"Sorry, I did not understand '{result.Query}'. Type 'help' if you need assistance.";
-
-                await context.PostAsync(message);
-
-                context.Wait(MessageReceived);
+                if (new[] { "cancel", "reset", "restart", "kill", "undo", "start over" }.Any(c => result.Query.Contains(c)))
+                {
+                    context.Reset();
+                    context.ConversationData.Clear();
+                    context.UserData.Clear();
+                    context.PrivateConversationData.Clear();
+                    await context.FlushAsync(CancellationToken.None);
+                    await context.PostAsync($"Alright, I've reset everything, let's try again.");
+                    await this.Help(context, new LuisResult());
+                }
+                else
+                {
+                    string message = $"Sorry, I did not understand '{result.Query}'. Type 'help' if you need assistance.";
+                    await context.PostAsync(message);
+                    context.Wait(MessageReceived);
+                }
             }
 
         }
