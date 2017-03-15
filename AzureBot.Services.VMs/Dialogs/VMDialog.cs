@@ -18,7 +18,7 @@ using Microsoft.Bot.Connector;
 
 namespace AzureBot.Dialogs
 {
-    [LuisModel("836166b9-d8c1-4185-9515-0ebfbf3226dc", "0e64d2ae951547f692182b4ae74262cb")]
+    [LuisModel("836166b9-d8c1-4185-9515-0ebfbf3226dc", "110c81d75bdb4f918a991696cd09f66b")]
     [Serializable]
     public class VMDialog : AzureBotLuisDialog<string>
     {
