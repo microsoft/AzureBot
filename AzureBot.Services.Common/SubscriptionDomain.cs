@@ -26,13 +26,13 @@ namespace AzureBot.Domain
             }
         }
 
-        public static async Task<Models.Subscription> GetSubscription(string accessToken, string subscriptionId)
+        public static async Task<Models.Subscription> GetSubscription(string accessToken, string subscriptionId, CancellationToken cancellationToken)
         {
             var credentials = new TokenCloudCredentials(accessToken);
 
             using (SubscriptionClient client = new SubscriptionClient(credentials))
             {
-                var subscriptionsResult = await client.Subscriptions.GetAsync(subscriptionId, CancellationToken.None);
+                var subscriptionsResult = await client.Subscriptions.GetAsync(subscriptionId, cancellationToken);
                 return new Models.Subscription
                 {
                     SubscriptionId = subscriptionsResult.Subscription.SubscriptionId,

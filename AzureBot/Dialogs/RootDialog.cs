@@ -26,7 +26,7 @@
         public async Task None(IDialogContext context, LuisResult result)
         {
             var factory = new DialogFactory();
-            AzureBotLuisDialog<string> dialog = await factory.Create(result.Query);
+            AzureBotLuisDialog<string> dialog = await factory.Create(result.Query, context.CancellationToken);
 
             if (dialog != null)
             {
@@ -38,26 +38,13 @@
                 {
                     return;
                 }
-                await context.Forward(dialog, this.ResumeAfterForward, message, CancellationToken.None);
+                await context.Forward(dialog, this.ResumeAfterForward, message, context.CancellationToken);
             }
             else
             {
-                if (new[] { "cancel", "reset", "restart", "kill", "undo", "start over" }.Any(c => result.Query.Contains(c)))
-                {
-                    context.Reset();
-                    context.ConversationData.Clear();
-                    context.UserData.Clear();
-                    context.PrivateConversationData.Clear();
-                    await context.FlushAsync(CancellationToken.None);
-                    await context.PostAsync($"Alright, I've reset everything, let's try again.");
-                    await this.Help(context, new LuisResult());
-                }
-                else
-                {
-                    string message = $"Sorry, I did not understand '{result.Query}'. Type 'help' if you need assistance.";
-                    await context.PostAsync(message);
-                    context.Wait(MessageReceived);
-                }
+                string message = $"Sorry, I did not understand '{result.Query}'. Type 'help' if you need assistance.";
+                await context.PostAsync(message);
+                context.Wait(MessageReceived);
             }
 
         }
@@ -94,17 +81,24 @@
             var message = await item;
 
             //No way to get the message in the LuisIntent methods so saving it here
-            userToBot = message.Text.ToLowerInvariant();
+            if (message.Type != ActivityTypes.Message || message == null || string.IsNullOrEmpty(message.Text))
+            {
+                await this.Help(context, new LuisResult());
+                return;
+            }
+            else
+            {
+                userToBot = message.Text.ToLowerInvariant();
+            }
 
             if (!serviceUrlSet)
             {
                 context.PrivateConversationData.SetValue("ServiceUrl", message.ServiceUrl);
                 serviceUrlSet = true;
             }
-            if (userToBot.Contains("help") || message.Type != ActivityTypes.Message)
+            if (userToBot.Contains("help"))
             {
                 await base.MessageReceived(context, item);
-
                 return;
             }
 
@@ -114,7 +108,7 @@
             {
                 if (userToBot.Contains("login"))
                 {
-                    await context.Forward(new AzureAuthDialog(resourceId.Value), this.ResumeAfterAuth, message, CancellationToken.None);
+                    await context.Forward(new AzureAuthDialog(resourceId.Value), this.ResumeAfterAuth, message, context.CancellationToken);
                 }
                 else
                 {
@@ -170,7 +164,7 @@
 
             var subscriptionId = context.GetSubscriptionId();
 
-            var currentSubscription = await Domain.Subscription.GetSubscription(accessToken, subscriptionId);
+            var currentSubscription = await Domain.Subscription.GetSubscription(accessToken, subscriptionId, context.CancellationToken);
 
             await context.PostAsync($"Your current subscription is '{currentSubscription.DisplayName}'.");
 
@@ -237,24 +231,6 @@
 
             context.Wait(this.MessageReceived);
         }
-
-        //[LuisIntent("DetermineResource")]
-        //public async Task DetermineResourceAsync(IDialogContext context, LuisResult result)
-        //{
-        //    var accessToken = await context.GetAccessToken(resourceId.Value);
-        //    if (string.IsNullOrEmpty(accessToken))
-        //    {
-        //        return;
-        //    }
-
-        //    var factory = new DialogFactory();
-        //    var message = context.MakeMessage();
-        //    message.Text = userToBot;
-
-        //    var dialog = factory.Create(result.Query);
-
-        //    await context.Forward(dialog, this.ResumeAfterForward, message, CancellationToken.None);
-        //}
 
         private async Task ResumeAfterForward(IDialogContext context, IAwaitable<string> result)
         {

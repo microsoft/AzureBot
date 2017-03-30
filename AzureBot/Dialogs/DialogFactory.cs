@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.Bot.Builder.Dialogs;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace AzureBot.Dialogs
 {
@@ -12,13 +13,13 @@ namespace AzureBot.Dialogs
         private static object resoucelock= new object();
         private static List<AzureBotLuisDialog<string>> ResourceDialogs { get; set; }
 
-        public async Task<AzureBotLuisDialog<string>> Create(string query)
+        public async Task<AzureBotLuisDialog<string>> Create(string query, CancellationToken cancellationToken)
         {
             query = query.ToLowerInvariant();
             EnsureResourceDialogs();
             foreach (var resourceDialog in ResourceDialogs)
             {
-                if (await resourceDialog.CanHandle(query))
+                if (await resourceDialog.CanHandle(query, cancellationToken))
                 {
                     return resourceDialog;
                 }

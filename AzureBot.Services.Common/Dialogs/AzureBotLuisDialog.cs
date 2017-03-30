@@ -10,9 +10,9 @@ namespace AzureBot
     [Serializable]
     public class AzureBotLuisDialog<R> : LuisDialog<R>
     {
-        public async Task<bool> CanHandle(string query)
+        public async Task<bool> CanHandle(string query, CancellationToken cancellationToken)
         {
-            var tasks = services.Select(s => s.QueryAsync(query, CancellationToken.None)).ToArray();
+            var tasks = services.Select(async(s) => await s.QueryAsync(query, cancellationToken)).ToArray();
             var results = await Task.WhenAll(tasks);
 
             var winners = from result in results.Select((value, index) => new { value, index })

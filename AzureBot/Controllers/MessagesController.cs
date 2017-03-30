@@ -22,6 +22,7 @@
                 switch (activity.GetActivityType())
                 {
                     case ActivityTypes.Message:
+                    case ActivityTypes.ConversationUpdate:
                         await Conversation.SendAsync(activity, () => new RootDialog());
                         break;
                     default:
