@@ -3,11 +3,13 @@
     using Dialogs;
     using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Connector;
-    using System;
     using System.Diagnostics;
+    using System.Linq;
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Web.Http;
+
     [BotAuthentication]
     public class MessagesController : ApiController
     {
@@ -23,6 +25,15 @@
                 {
                     case ActivityTypes.Message:
                     case ActivityTypes.ConversationUpdate:
+
+                        if (!string.IsNullOrEmpty(activity.Text) && 
+                            new[] { "cancel", "reset", "start over", "/deleteprofile" }.Any(c => activity.Text.Contains(c)))
+                        {
+                            StateClient stateClient = activity.GetStateClient();
+                            await stateClient.BotState.DeleteStateForUserAsync(activity.ChannelId,
+                                                                        activity.From.Id,
+                                                                        CancellationToken.None);
+                        }
                         await Conversation.SendAsync(activity, () => new RootDialog());
                         break;
                     default:
