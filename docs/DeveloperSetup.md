@@ -20,7 +20,7 @@ AzureBot uses [Language Understanding Intelligent Service (LUIS)](https://www.lu
 
 The AzureBot code in this repo has the the ***LuisModel*** attribute on the ***[ActionDialog](../AzureBot/ActionDialog.cs)*** class already configured with our LUIS model, so if you are not adding to the bot code you don't need to craete your own LUIS applicaiton.
 
-But if you would like to develop with your own model and extend it with your additions to the bot, or want to understand how the LUIS model works, [create an account with LUIS](https://www.luis.ai). Then create a new application using New App -> Import Existing App. Then, in this new app dialog box, upload the [AzureBot.json file](../AzureBot/LuisModel/AzureBot.json).   
+But if you would like to develop with your own models and extend them with your additions to the bot, or want to understand how the LUIS model works, [create an account with LUIS](https://www.luis.ai). Then create new applications using New App -> Import Existing App. Then, in this new app dialog box, upload the [json files for the different models](https://github.com/Microsoft/AzureBot/tree/master/AzureBot/LuisModel).   
 
 Once you have created the new LUIS application, train and [publish it](https://www.luis.ai/Help/#PublishingModel), then update the ***LuisModel*** attribute in the ***[ActionDialog](../AzureBot/ActionDialog.cs)*** class with the new application ID and subscription key. You can get the application ID and subscription key from the LUIS application published URL.
 
