@@ -14,13 +14,17 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    [LuisModel("d2129bee-5d15-4c78-be3b-2005e3c08cd4", "110c81d75bdb4f918a991696cd09f66b")]
     [Serializable]
     public class RootDialog : AzureBotLuisDialog<string>
     {
         private static Lazy<string> resourceId = new Lazy<string>(() => ConfigurationManager.AppSettings["ActiveDirectory.ResourceId"]);
         private bool serviceUrlSet = false;
         private string userToBot;
+
+        public RootDialog(params ILuisService[] services) : base(services)
+        {
+        }
+
         [LuisIntent("")]
         [LuisIntent("None")]
         public async Task None(IDialogContext context, LuisResult result)

@@ -5,6 +5,8 @@ using System.Reflection;
 using Microsoft.Bot.Builder.Dialogs;
 using System.Threading.Tasks;
 using System.Threading;
+using Microsoft.Bot.Builder.Luis;
+using System.Configuration;
 
 namespace AzureBot.Dialogs
 {
@@ -40,9 +42,13 @@ namespace AzureBot.Dialogs
                     {
                         ResourceDialogs.Clear();
                     }
-                    ResourceDialogs.Add((AzureBotLuisDialog<string>)Activator.CreateInstance(typeof(AutomationDialog)));
-                    ResourceDialogs.Add((AzureBotLuisDialog<string>)Activator.CreateInstance(typeof(ResourceGroupDialog)));
-                    ResourceDialogs.Add((AzureBotLuisDialog<string>)Activator.CreateInstance(typeof(VMDialog)));
+                    
+                    ResourceDialogs.Add(new AutomationDialog(new LuisService(new LuisModelAttribute(ConfigurationManager.AppSettings["AutomationDialog.AppId"],
+                                                                                                   ConfigurationManager.AppSettings["LuisAPIKey"]))));
+                    ResourceDialogs.Add(new ResourceGroupDialog(new LuisService(new LuisModelAttribute(ConfigurationManager.AppSettings["ResourceGroupDialog.AppId"],
+                                                                                                   ConfigurationManager.AppSettings["LuisAPIKey"]))));
+                    ResourceDialogs.Add(new VMDialog(new LuisService(new LuisModelAttribute(ConfigurationManager.AppSettings["VMDialog.AppId"],
+                                                                                                   ConfigurationManager.AppSettings["LuisAPIKey"])))); ;
                 }
             }
         }

@@ -17,10 +17,12 @@ using System.Threading.Tasks;
 
 namespace AzureBot.Dialogs
 {
-    [LuisModel("6ca45971-e419-4e43-8ba4-71fb486d3ffc", "110c81d75bdb4f918a991696cd09f66b")]
     [Serializable]
     public class AutomationDialog : AzureBotLuisDialog<string>
     {
+        public AutomationDialog(params ILuisService[] services) : base(services)
+        {
+        }
 
         [LuisIntent("None")]
         public async Task None(IDialogContext context, LuisResult result)

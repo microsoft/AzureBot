@@ -2,7 +2,9 @@
 {
     using Dialogs;
     using Microsoft.Bot.Builder.Dialogs;
+    using Microsoft.Bot.Builder.Luis;
     using Microsoft.Bot.Connector;
+    using System.Configuration;
     using System.Diagnostics;
     using System.Linq;
     using System.Net.Http;
@@ -34,7 +36,8 @@
                                                                         activity.From.Id,
                                                                         CancellationToken.None);
                         }
-                        await Conversation.SendAsync(activity, () => new RootDialog());
+                        await Conversation.SendAsync(activity, () => new RootDialog(new LuisService(new LuisModelAttribute(ConfigurationManager.AppSettings["RootDialog.AppId"],
+                                                                                                   ConfigurationManager.AppSettings["LuisAPIKey"]))));
                         break;
                     default:
                         Trace.TraceError($"Azure Bot ignored an activity. Activity type received: {activity.GetActivityType()}");
