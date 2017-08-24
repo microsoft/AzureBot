@@ -25,6 +25,19 @@
             {
                 switch (activity.GetActivityType())
                 {
+                    case ActivityTypes.Event:
+                        var eventToken = activity.Value.ToString();
+
+                        AuthBot.Models.AuthResult authResult = new AuthBot.Models.AuthResult();
+                        object tokenCache = new Microsoft.IdentityModel.Clients.ActiveDirectory.TokenCache();
+                        var token = await AuthBot.Helpers.AzureActiveDirectoryHelper.GetTokenByAuthCodeAsync(eventToken,
+                            (Microsoft.IdentityModel.Clients.ActiveDirectory.TokenCache)tokenCache);
+
+                        StateClient stateClient = activity.GetStateClient();
+                        BotData userData = await stateClient.BotState.GetUserDataAsync(activity.ChannelId, activity.From.Id);
+                        userData.SetProperty(ContextConstants.AuthResultKey, token);
+                        await stateClient.BotState.SetUserDataAsync(activity.ChannelId, activity.From.Id, userData);
+                        break;
                     case ActivityTypes.Message:
                     case ActivityTypes.ConversationUpdate:
 
