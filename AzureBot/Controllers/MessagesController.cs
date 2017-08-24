@@ -23,6 +23,8 @@
         {
             if (activity != null)
             {
+                StateClient stateClient = activity.GetStateClient();
+
                 switch (activity.GetActivityType())
                 {
                     case ActivityTypes.Event:
@@ -33,7 +35,6 @@
                         var token = await AuthBot.Helpers.AzureActiveDirectoryHelper.GetTokenByAuthCodeAsync(eventToken,
                             (Microsoft.IdentityModel.Clients.ActiveDirectory.TokenCache)tokenCache);
 
-                        StateClient stateClient = activity.GetStateClient();
                         BotData userData = await stateClient.BotState.GetUserDataAsync(activity.ChannelId, activity.From.Id);
                         userData.SetProperty(ContextConstants.AuthResultKey, token);
                         await stateClient.BotState.SetUserDataAsync(activity.ChannelId, activity.From.Id, userData);
@@ -44,7 +45,6 @@
                         if (!string.IsNullOrEmpty(activity.Text) && 
                             new[] { "cancel", "reset", "start over", "/deleteprofile" }.Any(c => activity.Text.Contains(c)))
                         {
-                            StateClient stateClient = activity.GetStateClient();
                             await stateClient.BotState.DeleteStateForUserAsync(activity.ChannelId,
                                                                         activity.From.Id,
                                                                         CancellationToken.None);
