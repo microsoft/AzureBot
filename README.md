@@ -9,7 +9,7 @@ The current implementation focuses on authenticating to the user's Azure subscri
 
 ## Developer Set Up
 
-AzureBot is built with the [Microsoft Bot Framework](http://docs.botframework.com/) and the [Microsoft Bot Builder C# SDK](http://docs.botframework.com/sdkreference/csharp/). It uses the [Azure Resource Manager Nuget package](https://www.nuget.org/packages/Microsoft.Azure.Management.ResourceManager) and other Azure packages.
+AzureBot is built with the [Microsoft Bot framework] (http://docs.botframework.com/) and the [Microsoft Bot Builder C# SDK](http://docs.botframework.com/sdkreference/csharp/). It uses the [Azure Resource Manager Nuget package](https://www.nuget.org/packages/Microsoft.Azure.Management.ResourceManager) and other Azure packages.
 
 Follow our [Developer Set Up](https://github.com/Microsoft/AzureBot/blob/gh-pages/docs/DeveloperSetup.md) guide to get started.
 
