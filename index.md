@@ -1,0 +1,3 @@
+## AzureBot
+This is the home of the code used to run the AzureBot and is built with the [Microsoft Bot framework] (http://docs.botframework.com/), [Microsoft Bot Builder C# SDK](http://docs.botframework.com/sdkreference/csharp/), and the [Azure Resource Manager Nuget package](https://www.nuget.org/packages/Microsoft.Azure.Management.ResourceManager).
+This first implementation focuses on authenticating to the user's Azure subscription, selecting and switching subscriptions, starting and stopping RM-based virtual machines, and listing and starting Azure Automation runbooks. 
