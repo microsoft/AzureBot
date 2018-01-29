@@ -1,0 +1,29 @@
+queue:
+  name: Hosted
+  demands: 
+    - msbuild
+    - visualstudio
+    - vstest
+
+variables:
+  BuildPlatform: "any cpu"
+  BuildConfiguration: "debug"
+steps:
+- task: NuGetInstaller@0
+  inputs:
+    solution: "AzureBot.sln"
+
+- task: VSBuild@1
+  inputs:
+    solution: "AzureBot.sln"
+    vsVersion: "14.0"
+    platform: "$(BuildPlatform)"
+    configuration: "$(BuildConfiguration)"
+
+- task: VSTest@1
+  inputs:
+    testFiltercriteria: "TestCategory=Parallel"
+    runSettingsFile: "AzureBot.Tests/azurebottests.runsettings"
+    overrideTestrunParameters: "MicrosoftAppId=$(BotFramework.MicrosoftAppId);DirectLineToken=$(BotFramework.DirectLineToken);FromUser=$(BotFramework.FromUser);BotId=$(BotFramework.BotId);Subscription=$(BotFramework.Subscription);VirtualMachine=$(BotFramework.VirtualMachine);ResourceGroup=$(BotFramework.ResourceGroup);RunbookWithDescription=$(BotFramework.RunbookWithDescription);RunbookDescription=$(BotFramework.RunbookDescription);RunbookWithoutDescription=$(BotFramework.RunbookWithoutDescription);RunbookInMultipleAutomationAccounts=$(BotFramework.RunbookInMultipleAutomationAccounts);RunbookNotPublished=$(BotFramework.RunbookNotPublished);AutomationAccount=$(BotFramework.AutomationAccount);RunbookThatFails=$(BotFramework.RunbookThatFails);RunbookOutput=$(BotFramework.RunbookOutput);RunbookWithParameters=$(BotFramework.RunbookWithParameters);AlternativeSubscription=$(BotFramework.AlternativeSubscription);DeallocateResourcesOnCleanup=false"
+    codeCoverageEnabled: "false"
+
