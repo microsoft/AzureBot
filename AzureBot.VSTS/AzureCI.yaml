@@ -1,0 +1,36 @@
+queue:
+  name: Hosted
+  demands: 
+    - msbuild
+    - visualstudio
+#Your build definition references the ‘BuildPlatform’ variable, which you’ve selected to be settable at queue time. Create or edit the build definition for this YAML file, define the variable on the Variables tab, and then select the option to make it settable at queue time. See https://go.microsoft.com/fwlink/?linkid=865971
+#Your build definition references the ‘BuildConfiguration’ variable, which you’ve selected to be settable at queue time. Create or edit the build definition for this YAML file, define the variable on the Variables tab, and then select the option to make it settable at queue time. See https://go.microsoft.com/fwlink/?linkid=865971
+#Your build definition references an undefined variable named ‘build.artifactstagingdirectory’. Create or edit the build definition for this YAML file, define the variable on the Variables tab. See https://go.microsoft.com/fwlink/?linkid=865972
+steps:
+- task: NuGetInstaller@0
+  inputs:
+    solution: "**\*.sln"
+
+- task: VSBuild@1
+  inputs:
+    solution: "AzureBot.sln"
+    vsVersion: "14.0"
+    msbuildArgs: "/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation=$(build.artifactstagingdirectory)"
+    platform: "$(BuildPlatform)"
+    configuration: "$(BuildConfiguration)"
+
+- task: CopyPublishBuildArtifacts@1
+  inputs:
+    CopyRoot: "$(build.artifactstagingdirectory)"
+    Contents: "*.zip"
+    ArtifactName: "website"
+    ArtifactType: "Container"
+
+- task: CopyPublishBuildArtifacts@1
+  inputs:
+    CopyRoot: "AzureBot.Tests"
+    Contents: "**\bin\*
+**\*.runsettings"
+    ArtifactName: "Tests"
+    ArtifactType: "Container"
+
