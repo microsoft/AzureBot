@@ -4,7 +4,7 @@
 
 If you would like to contribute to the Azure Bot or run it on your own environment, these instructions will help you get set up. 
 
-The solution was created using [Visual Studio 2015 Update 2](https://www.visualstudio.com/en-us/news/vs2015-update2-vs.aspx). It was built with the [Microsoft Bot framework](http://docs.botframework.com/) and the [Microsoft Bot Builder C# SDK](http://docs.botframework.com/sdkreference/csharp/). It uses the [Azure Resource Manager Nuget package](https://www.nuget.org/packages/Microsoft.Azure.Management.ResourceManager) and other Azure packages.
+This solution was created using [Visual Studio 2015 Update 2](https://www.visualstudio.com/en-us/news/vs2015-update2-vs.aspx). It was built with the [Microsoft Bot framework](http://docs.botframework.com/) and the [Microsoft Bot Builder C# SDK](http://docs.botframework.com/sdkreference/csharp/). It uses the [Azure Resource Manager Nuget package](https://www.nuget.org/packages/Microsoft.Azure.Management.ResourceManager) and other Azure packages.
 
 Here are the steps you need to follow:<br>
 1. [LUIS Model (Optional)](#luis)<br>
@@ -18,23 +18,23 @@ Here are the steps you need to follow:<br>
 
 AzureBot uses [Language Understanding Intelligent Service (LUIS)](https://www.luis.ai), a part of [Microsoft Cognitive Services](https://www.microsoft.com/cognitive-services/), to understand the user's intent. 
 
-The AzureBot code in this repo has the the ***LuisModel*** attribute on the ***[ActionDialog](../AzureBot/ActionDialog.cs)*** class already configured with our LUIS model, so if you are not adding to the bot code you don't need to craete your own LUIS applicaiton.
+The AzureBot code in this repo has the ***LuisModel*** attribute on the ***[ActionDialog](../AzureBot/ActionDialog.cs)*** class already configured with our LUIS model, so if you are not adding to the bot code, you don't need to craete your own LUIS applicaiton.
 
-But if you would like to develop with your own models and extend them with your additions to the bot, or want to understand how the LUIS model works, [create an account with LUIS](https://www.luis.ai). Then create new applications using New App -> Import Existing App. Then, in this new app dialog box, upload the [json files for the different models](https://github.com/Microsoft/AzureBot/tree/master/AzureBot/LuisModel).   
+But if you would like to develop with your own models and extend them with your additions to the bot, or want to understand how the LUIS model works, [create an account with LUIS](https://www.luis.ai). Then create new applications using New App -> Import Existing App. Then, in this new app dialog box, upload the [.json files for the different models](https://github.com/Microsoft/AzureBot/tree/master/AzureBot/LuisModel).   
 
 Once you have created the new LUIS application, train and [publish it](https://www.luis.ai/Help/#PublishingModel), then update the ***LuisModel*** attribute in the ***[ActionDialog](../AzureBot/ActionDialog.cs)*** class with the new application ID and subscription key. You can get the application ID and subscription key from the LUIS application published URL.
 
 <a name="azuread"></a>
 ## 2. Azure Active Directory
 
-To authenticate against your own Azure AD for development or private use of the AzureBot code, you'll need to setup your own Azure AD application. Follow our [Azure AD instructions](./CreateAzureADforAzureBot.md) to get it set up and take note of the tenant, client id and client secret values for it.
+To authenticate against your own Azure AD for development or private use of the AzureBot code, you'll need to setup your own Azure AD application. Follow our [Azure AD instructions](./CreateAzureADforAzureBot.md) to get it set up and take note of the tenant, client ID and client secret values for it.
 
 <a name="registerbot"></a>
 ## 3. Register a Bot with the Bot Framework 
 
 You will also need a bot entry in the Bot Framework. You can do this from the [Bot Framework developer portal](https://dev.botframework.com/bots/new).
 
-Once you have created your bot, follow the [***Step 1. Get your App ID and password from the Developer Portal***](https://docs.botframework.com/en-us/support/upgrade-to-v3/#case-1-there-is-an-app-id-already)  instruction and take not of the bot handle, bot app id and bot app password.
+Once you have created your bot, follow the [***Step 1. Get your App ID and password from the Developer Portal***](https://docs.botframework.com/en-us/support/upgrade-to-v3/#case-1-there-is-an-app-id-already)  instructions and take note of the bot handle, bot app ID and bot app password.
 
 <a name="emulator"></a>
 ## 4. Bot Framework Emulator
@@ -76,7 +76,7 @@ You need to replace the value of the following keys:<br>
 | Key | Replacement Notes |
 | --- | ----------------- |
 | **BotId** | the bot handle for your new bot |
-| **MicrosoftAppId** | the App Id of your bot |
+| **MicrosoftAppId** | the App ID of your bot |
 | **MicrosoftAppPassword** | The Password for your bot | 
 | **ActiveDirectory.Tenant** | your AD Tenant |
 | **ActiveDirectory.ClientId** | your AD client ID |
